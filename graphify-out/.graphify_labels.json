@@ -31,5 +31,6 @@
   "29": "migrations/__init__.py",
   "30": "versions/__init__.py",
   "31": "backend/tests/__init__.py",
-  "32": "nyc-events-backend"
+  "32": "nyc-events-backend",
+  "33": "Handoff — Issue #7: Backend Walking Skeleton on Railway"
 }

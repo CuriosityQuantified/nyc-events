@@ -1800,6 +1800,105 @@
       "norm_label": "11. completion criteria for the first implementation"
     },
     {
+      "label": "backend/HANDOFF.md",
+      "file_type": "document",
+      "source_file": "backend/HANDOFF.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "backend_handoff",
+      "community": 33,
+      "community_name": "Handoff \u2014 Issue #7: Backend Walking Skeleton on Railway",
+      "norm_label": "backend/handoff.md"
+    },
+    {
+      "label": "Handoff \u2014 Issue #7: Backend Walking Skeleton on Railway",
+      "file_type": "document",
+      "source_file": "backend/HANDOFF.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "backend_handoff_handoff_issue_7_backend_walking_skeleton_on_railway",
+      "community": 33,
+      "community_name": "Handoff \u2014 Issue #7: Backend Walking Skeleton on Railway",
+      "norm_label": "handoff \u2014 issue #7: backend walking skeleton on railway"
+    },
+    {
+      "label": "Current state",
+      "file_type": "document",
+      "source_file": "backend/HANDOFF.md",
+      "source_location": "L8",
+      "_origin": "ast",
+      "id": "backend_handoff_current_state",
+      "community": 33,
+      "community_name": "Handoff \u2014 Issue #7: Backend Walking Skeleton on Railway",
+      "norm_label": "current state"
+    },
+    {
+      "label": "Done",
+      "file_type": "document",
+      "source_file": "backend/HANDOFF.md",
+      "source_location": "L13",
+      "_origin": "ast",
+      "id": "backend_handoff_done",
+      "community": 33,
+      "community_name": "Handoff \u2014 Issue #7: Backend Walking Skeleton on Railway",
+      "norm_label": "done"
+    },
+    {
+      "label": "Local gate results",
+      "file_type": "document",
+      "source_file": "backend/HANDOFF.md",
+      "source_location": "L32",
+      "_origin": "ast",
+      "id": "backend_handoff_local_gate_results",
+      "community": 33,
+      "community_name": "Handoff \u2014 Issue #7: Backend Walking Skeleton on Railway",
+      "norm_label": "local gate results"
+    },
+    {
+      "label": "NOT done",
+      "file_type": "document",
+      "source_file": "backend/HANDOFF.md",
+      "source_location": "L46",
+      "_origin": "ast",
+      "id": "backend_handoff_not_done",
+      "community": 33,
+      "community_name": "Handoff \u2014 Issue #7: Backend Walking Skeleton on Railway",
+      "norm_label": "not done"
+    },
+    {
+      "label": "Blocker",
+      "file_type": "document",
+      "source_file": "backend/HANDOFF.md",
+      "source_location": "L52",
+      "_origin": "ast",
+      "id": "backend_handoff_blocker",
+      "community": 33,
+      "community_name": "Handoff \u2014 Issue #7: Backend Walking Skeleton on Railway",
+      "norm_label": "blocker"
+    },
+    {
+      "label": "What the next agent should do",
+      "file_type": "document",
+      "source_file": "backend/HANDOFF.md",
+      "source_location": "L64",
+      "_origin": "ast",
+      "id": "backend_handoff_what_the_next_agent_should_do",
+      "community": 33,
+      "community_name": "Handoff \u2014 Issue #7: Backend Walking Skeleton on Railway",
+      "norm_label": "what the next agent should do"
+    },
+    {
+      "label": "Files changed (all in `backend/`)",
+      "file_type": "document",
+      "source_file": "backend/HANDOFF.md",
+      "source_location": "L100",
+      "_origin": "ast",
+      "id": "backend_handoff_files_changed_all_in_backend",
+      "community": 33,
+      "community_name": "Handoff \u2014 Issue #7: Backend Walking Skeleton on Railway",
+      "norm_label": "files changed (all in `backend/`)"
+    },
+    {
       "label": "README.md",
       "file_type": "document",
       "source_file": "contracts/README.md",
@@ -4928,6 +5027,94 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": "backend/HANDOFF.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "backend_handoff",
+      "target": "backend_handoff_handoff_issue_7_backend_walking_skeleton_on_railway",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "backend/HANDOFF.md",
+      "source_location": "L52",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "backend_handoff_handoff_issue_7_backend_walking_skeleton_on_railway",
+      "target": "backend_handoff_blocker",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "backend/HANDOFF.md",
+      "source_location": "L8",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "backend_handoff_handoff_issue_7_backend_walking_skeleton_on_railway",
+      "target": "backend_handoff_current_state",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "backend/HANDOFF.md",
+      "source_location": "L100",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "backend_handoff_handoff_issue_7_backend_walking_skeleton_on_railway",
+      "target": "backend_handoff_files_changed_all_in_backend",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "backend/HANDOFF.md",
+      "source_location": "L64",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "backend_handoff_handoff_issue_7_backend_walking_skeleton_on_railway",
+      "target": "backend_handoff_what_the_next_agent_should_do",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "backend/HANDOFF.md",
+      "source_location": "L13",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "backend_handoff_current_state",
+      "target": "backend_handoff_done",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "backend/HANDOFF.md",
+      "source_location": "L32",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "backend_handoff_current_state",
+      "target": "backend_handoff_local_gate_results",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "backend/HANDOFF.md",
+      "source_location": "L46",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "backend_handoff_current_state",
+      "target": "backend_handoff_not_done",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "contracts/README.md",
       "source_location": "L1",
       "weight": 1.0,
@@ -5576,5 +5763,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "d27c3cf1df7243ffe4a1cc81d7a189c513d6c6fb"
+  "built_at_commit": "76c71748cd532ca81583002184879c3be8ce59ee"
 }

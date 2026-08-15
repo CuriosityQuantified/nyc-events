@@ -1,16 +1,16 @@
 # Graph Report - nyc-events-backend  (2026-08-15)
 
 ## Corpus Check
-- 40 files · ~29,155 words
+- 41 files · ~29,795 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 234 nodes · 265 edges · 33 communities (22 shown, 11 thin omitted)
+- 243 nodes · 273 edges · 34 communities (23 shown, 11 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 1 edges (avg confidence: 0.5)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `d27c3cf1`
+- Built from commit: `76c71748`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -41,6 +41,7 @@
 - TestHealthEndpoint
 - conftest.py
 - nyc-events-backend
+- Handoff — Issue #7: Backend Walking Skeleton on Railway
 
 ## God Nodes (most connected - your core abstractions)
 1. `419495f4-0ca6-4d45-b6e3-43e1e35536d5 implementation handoff` - 13 edges
@@ -69,7 +70,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (33 total, 11 thin omitted)
+## Communities (34 total, 11 thin omitted)
 
 ### Community 0 - "Development pipeline — nyc-events"
 Cohesion: 0.14
@@ -131,8 +132,12 @@ Nodes (8): Tests for the /health endpoint., Verify the health endpoint reports s
 Cohesion: 0.23
 Nodes (11): _check_docker(), client(), postgres_url(), Test fixtures using Testcontainers for real Postgres., Provide an async test client for the FastAPI app., Start a PostgreSQL container for the test session. Yields the async connection…, Set DATABASE_URL and REDIS_URL for the test session. Redis is pointed at a non-…, Run Alembic migrations against the Testcontainers database. (+3 more)
 
+### Community 33 - "Handoff — Issue #7: Backend Walking Skeleton on Railway"
+Cohesion: 0.22
+Nodes (8): Blocker, Current state, Done, Files changed (all in `backend/`), Handoff — Issue #7: Backend Walking Skeleton on Railway, Local gate results, NOT done, What the next agent should do
+
 ## Knowledge Gaps
-- **80 isolated node(s):** `nyc-events-backend`, `Identity`, `Current state — NO application code yet`, `Stack — decided 2026-08-15`, `Gate commands` (+75 more)
+- **86 isolated node(s):** `nyc-events-backend`, `Identity`, `Current state — NO application code yet`, `Stack — decided 2026-08-15`, `Gate commands` (+81 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **11 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -140,13 +145,13 @@ Nodes (11): _check_docker(), client(), postgres_url(), Test fixtures using Testc
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `get_settings()` connect `get_settings` to `env.py`, `conftest.py`?**
-  _High betweenness centrality (0.042) - this node is a cross-community bridge._
+  _High betweenness centrality (0.039) - this node is a cross-community bridge._
 - **Why does `ParkMatch NYC — Initial Frontend Direction` connect `ParkMatch NYC — Initial Frontend Direction` to `Core screens`?**
-  _High betweenness centrality (0.036) - this node is a cross-community bridge._
+  _High betweenness centrality (0.033) - this node is a cross-community bridge._
 - **Why does `Core screens` connect `Core screens` to `ParkMatch NYC — Initial Frontend Direction`?**
-  _High betweenness centrality (0.027) - this node is a cross-community bridge._
+  _High betweenness centrality (0.025) - this node is a cross-community bridge._
 - **What connects `nyc-events-backend`, `Identity`, `Current state — NO application code yet` to the rest of the system?**
-  _80 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _86 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Development pipeline — nyc-events` be split into smaller, more focused modules?**
   _Cohesion score 0.14285714285714285 - nodes in this community are weakly interconnected._
 - **Should `ParkMatch NYC — Initial Frontend Direction` be split into smaller, more focused modules?**
