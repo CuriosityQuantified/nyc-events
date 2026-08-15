@@ -188,16 +188,20 @@ git worktree add /Users/halgorithm/workspaces/AI/nyc-events-frontend frontend
 
 `backend` and `frontend` are long-lived lane branches, not per-ticket feature
 branches. Each lane handles one issue and one PR at a time. A lane PR must use a
-**merge commit** (`gh pr merge --merge`) and must not delete, squash, rebase, or
-force-push the persistent branch. After merge, that worktree fetches and runs
-`git merge --ff-only origin/main`, then pushes the aligned lane branch before
-claiming another issue. A non-fast-forward is a blocker requiring review.
+**merge commit** through the GitHub REST endpoint (`gh api -X PUT
+repos/CuriosityQuantified/nyc-events/pulls/<PR>/merge -f merge_method=merge`) and
+must not delete, squash, rebase, or force-push the persistent branch. Do not run
+`gh pr merge` from a lane worktree: it tries to check out `main`, which is held by
+the coordinator worktree. After merge, that worktree fetches and runs `git merge
+--ff-only origin/main`, then pushes the aligned lane branch before claiming
+another issue. A non-fast-forward is a blocker requiring review.
 
 `fullstack` uses neither persistent lane branch. For each fullstack issue, create
 `feat/<issue>-<slug>` from `origin/main` in a temporary
 `/Users/halgorithm/workspaces/AI/nyc-events-fullstack-<issue>` worktree. It may
-start only when no lane issue or PR is in flight. After green CI, squash-merge,
-delete the remote branch, remove the worktree, and delete the local branch.
+start only when no lane issue or PR is in flight. After green CI, squash-merge
+through the same REST endpoint with `merge_method=squash`, delete the remote
+branch, remove the worktree, and delete the local branch.
 
 **`.env` does not follow a worktree.** It is untracked, so a new worktree starts
 without it and every Socrata call fails with a confusing auth error rather than a
