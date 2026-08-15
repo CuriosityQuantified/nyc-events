@@ -1,0 +1,182 @@
+/* ============================================================
+   ParkMatch NYC — Design Tokens & Global Styles
+   ============================================================ */
+
+/* --- Colour tokens (oklch) --- */
+:root {
+  --color-background: oklch(0.975 0.005 80);
+  --color-surface: oklch(0.995 0.002 90);
+  --color-surface-raised: oklch(1 0 0);
+  --color-foreground: oklch(0.22 0.01 50);
+  --color-foreground-secondary: oklch(0.42 0.01 50);
+  --color-muted: oklch(0.46 0.008 60);
+  --color-border: oklch(0.88 0.008 70);
+  --color-accent: oklch(0.46 0.13 155);
+  --color-accent-subtle: oklch(0.92 0.04 155);
+  --color-accent-foreground: oklch(0.995 0 0);
+  --color-paid: oklch(0.55 0.12 50);
+  --color-registration: oklch(0.50 0.10 260);
+
+  /* --- Shadows --- */
+  --shadow-md: 0 4px 12px oklch(0.2 0 0 / 0.08);
+
+  /* --- Typography scale (fluid clamp) --- */
+  --text-xs: clamp(0.6875rem, 0.66rem + 0.14vw, 0.75rem);
+  --text-sm: clamp(0.8125rem, 0.78rem + 0.16vw, 0.875rem);
+  --text-base: clamp(0.9375rem, 0.9rem + 0.18vw, 1rem);
+  --text-lg: clamp(1.0625rem, 1rem + 0.3vw, 1.125rem);
+  --text-xl: clamp(1.1875rem, 1.1rem + 0.44vw, 1.3125rem);
+  --text-2xl: clamp(1.375rem, 1.25rem + 0.62vw, 1.5rem);
+  --text-3xl: clamp(1.625rem, 1.45rem + 0.88vw, 1.875rem);
+
+  /* --- Spacing scale (px) --- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* --- Border radii --- */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+  --radius-full: 100px;
+
+  /* --- Touch target minimum --- */
+  --touch-min: 44px;
+
+  /* --- Font family --- */
+  --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* --- Dark mode tokens --- */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-background: oklch(0.15 0.005 80);
+    --color-surface: oklch(0.18 0.003 70);
+    --color-surface-raised: oklch(0.22 0.005 60);
+    --color-foreground: oklch(0.92 0.005 80);
+    --color-foreground-secondary: oklch(0.72 0.005 70);
+    --color-muted: oklch(0.52 0.005 60);
+    --color-border: oklch(0.32 0.008 70);
+    --color-accent: oklch(0.62 0.14 155);
+    --color-accent-subtle: oklch(0.25 0.04 155);
+    --color-accent-foreground: oklch(0.995 0 0);
+    --color-paid: oklch(0.60 0.12 50);
+    --color-registration: oklch(0.55 0.10 260);
+    --shadow-md: 0 4px 12px oklch(0.05 0 0 / 0.3);
+  }
+}
+
+/* --- Reset --- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.5;
+  color: var(--color-foreground);
+  background-color: var(--color-background);
+  min-height: 100dvh;
+}
+
+img,
+picture,
+video,
+canvas,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: none;
+}
+
+ul,
+ol {
+  list-style: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.skip-link {
+  position: fixed;
+  top: var(--space-3);
+  left: var(--space-3);
+  z-index: 100;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  color: var(--color-accent-foreground);
+  background: var(--color-accent);
+  transform: translateY(calc(-100% - var(--space-6)));
+  transition: transform 0.15s ease;
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+/* --- Focus styles --- */
+:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+  border-radius: var(--radius-sm);
+}
+
+/* --- Reduced-motion support --- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* --- Screen-reader only utility --- */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border-width: 0;
+}

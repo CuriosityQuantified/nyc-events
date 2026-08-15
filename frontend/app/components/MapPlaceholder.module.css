@@ -1,0 +1,31 @@
+.wrapper {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--color-accent-subtle);
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-lg);
+  margin: var(--space-4);
+  min-height: 300px;
+}
+
+.content {
+  text-align: center;
+  color: var(--color-muted);
+}
+
+.icon {
+  font-size: 48px;
+  margin-bottom: var(--space-2);
+}
+
+.text {
+  font-size: var(--text-lg);
+  font-weight: 500;
+}
+
+.subtext {
+  font-size: var(--text-sm);
+  margin-top: var(--space-1);
+}
