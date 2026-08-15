@@ -63,7 +63,7 @@ $ codex login --device-auth
 
 ## Implementation and audit work (complete)
 
-Implementation commit `5ede74d` is pushed. The four required sequential subagent phases are complete:
+Implementation commit `5ede74d` and CI/CD strengthening commit `a6416e1` are pushed. The four required sequential subagent phases are complete:
 
 1. **Implementation + CI** — Next.js shell with design tokens, EventCard, ListMapToggle, BottomNav; Playwright UAT at phone (390x844) and desktop (1440x900); Vitest component tests; accessibility scan.
 2. **Code review** — Reviewed against issue spec and repository standards. Fixes applied.
@@ -91,7 +91,7 @@ Additional strengthening in the continuation:
 | ESLint: `npm run lint` | PASS |
 | TypeScript: `npx tsc --noEmit` | PASS |
 | Production build: `npm run build` | PASS |
-| Graphify | Must refresh after final edit |
+| Graphify | PASS; refreshed after the CI/CD changes; 307 nodes, 338 edges; second rebuild reported no topology changes |
 
 Tests use only local mock data. No live third-party API calls.
 
@@ -126,5 +126,5 @@ The first upload contains commit `5ede74d`. Deploy and verify the final pushed c
 - [ ] **BLOCKED** — `impeccable-design-polish` Open Design pass (Codex auth required)
 - [ ] **BLOCKED** — `web-design-guidelines` Open Design pass (Codex auth required)
 - [ ] Deployed and verified at production origin
-- [ ] Graphify refreshed and committed
+- [x] Graphify refreshed and committed in `a6416e1`; refresh again after the final Open Design edit
 - [ ] PR created
