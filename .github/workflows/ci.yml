@@ -1,6 +1,7 @@
 name: CI
 
 on:
+  workflow_dispatch:
   pull_request:
   push:
     branches: [main]
@@ -66,6 +67,28 @@ jobs:
         if: steps.probe.outputs.present == 'true'
         working-directory: frontend
         run: npm run build
+
+  graph:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Install graphify
+        run: uv tool install "graphifyy[mcp]==0.9.43"
+
+      - name: Verify committed knowledge graph is fresh
+        run: |
+          graphify update .
+          git diff --exit-code -- \
+            graphify-out/graph.json \
+            graphify-out/graph.html \
+            graphify-out/GRAPH_REPORT.md \
+            graphify-out/.graphify_labels.json \
+            graphify-out/.graphify_labels.json.sig \
+            graphify-out/.graphify_root
 
   secrets:
     runs-on: ubuntu-latest
