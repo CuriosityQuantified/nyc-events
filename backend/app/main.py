@@ -9,6 +9,7 @@ from sqlalchemy import text
 
 from app.config import get_settings
 from app.database import get_engine, reset_engine
+from app.routes.events import router as events_router
 
 
 @asynccontextmanager
@@ -19,6 +20,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="NYC Events API", lifespan=lifespan)
+app.include_router(events_router)
 
 
 @app.get("/health")
