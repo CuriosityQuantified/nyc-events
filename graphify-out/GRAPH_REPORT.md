@@ -1,16 +1,16 @@
-# Graph Report - nyc-events  (2026-08-15)
+# Graph Report - nyc-events-frontend  (2026-08-15)
 
 ## Corpus Check
-- 27 files · ~28,065 words
+- 28 files · ~28,587 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 159 nodes · 172 edges · 23 communities (13 shown, 10 thin omitted)
+- 168 nodes · 180 edges · 24 communities (14 shown, 10 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `0748897c`
+- Built from commit: `d27c3cf1`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -36,6 +36,7 @@
 - 0009-issues-carry-a-lane-label.md
 - validate_contract.py
 - EventMatch NYC API contract
+- Issue #8 handoff — frontend walking skeleton
 
 ## God Nodes (most connected - your core abstractions)
 1. `419495f4-0ca6-4d45-b6e3-43e1e35536d5 implementation handoff` - 13 edges
@@ -43,11 +44,11 @@
 3. `ContractMockTests` - 10 edges
 4. `ParkMatch NYC — Initial Frontend Direction` - 10 edges
 5. `Development pipeline — nyc-events` - 9 edges
-6. `verify_csv_reference()` - 7 edges
-7. `Core screens` - 7 edges
-8. `ContractHandler` - 6 edges
-9. `create_server()` - 6 edges
-10. `load_json()` - 6 edges
+6. `Issue #8 handoff — frontend walking skeleton` - 8 edges
+7. `verify_csv_reference()` - 7 edges
+8. `Core screens` - 7 edges
+9. `ContractHandler` - 6 edges
+10. `create_server()` - 6 edges
 
 ## Surprising Connections (you probably didn't know these)
 - None detected - all connections are within the same source files.
@@ -55,7 +56,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (23 total, 10 thin omitted)
+## Communities (24 total, 10 thin omitted)
 
 ### Community 0 - "Development pipeline — nyc-events"
 Cohesion: 0.14
@@ -101,8 +102,12 @@ Nodes (12): derived_registration(), load_json(), local_iso(), main(), parsed_coo
 Cohesion: 0.50
 Nodes (3): EventMatch NYC API contract, Run the mock, Validate
 
+### Community 23 - "Issue #8 handoff — frontend walking skeleton"
+Cohesion: 0.22
+Nodes (8): Completed, Issue #8 handoff — frontend walking skeleton, Live repository state before this handoff commit, Ordered next actions, Ownership, Remaining acceptance criteria, Required phases, Session result
+
 ## Knowledge Gaps
-- **79 isolated node(s):** `Identity`, `Current state — NO application code yet`, `Stack — decided 2026-08-15`, `Gate commands`, `Code graph` (+74 more)
+- **86 isolated node(s):** `Identity`, `Current state — NO application code yet`, `Stack — decided 2026-08-15`, `Gate commands`, `Code graph` (+81 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **10 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -110,13 +115,13 @@ Nodes (3): EventMatch NYC API contract, Run the mock, Validate
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `ParkMatch NYC — Initial Frontend Direction` connect `ParkMatch NYC — Initial Frontend Direction` to `Core screens`?**
-  _High betweenness centrality (0.079) - this node is a cross-community bridge._
+  _High betweenness centrality (0.070) - this node is a cross-community bridge._
 - **Why does `Core screens` connect `Core screens` to `ParkMatch NYC — Initial Frontend Direction`?**
-  _High betweenness centrality (0.060) - this node is a cross-community bridge._
+  _High betweenness centrality (0.054) - this node is a cross-community bridge._
 - **Why does `NYC Events — Handoff Document` connect `NYC Events — Handoff Document` to `ParkMatch NYC — Initial Frontend Direction`?**
-  _High betweenness centrality (0.055) - this node is a cross-community bridge._
+  _High betweenness centrality (0.049) - this node is a cross-community bridge._
 - **What connects `Identity`, `Current state — NO application code yet`, `Stack — decided 2026-08-15` to the rest of the system?**
-  _79 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _86 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Development pipeline — nyc-events` be split into smaller, more focused modules?**
   _Cohesion score 0.14285714285714285 - nodes in this community are weakly interconnected._
 - **Should `ParkMatch NYC — Initial Frontend Direction` be split into smaller, more focused modules?**

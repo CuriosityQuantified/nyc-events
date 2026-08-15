@@ -21,5 +21,6 @@
   "19": "validate_contract.py",
   "20": "EventMatch NYC API contract",
   "21": "contracts/__init__.py",
-  "22": "tests/__init__.py"
+  "22": "tests/__init__.py",
+  "23": "Issue #8 handoff — frontend walking skeleton"
 }
