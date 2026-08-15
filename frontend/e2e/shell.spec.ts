@@ -19,7 +19,7 @@ async function expectInViewport(locator: Locator) {
   expect(intersects).toBe(true);
 }
 
-test.describe("ParkMatch NYC Walking Skeleton", () => {
+test.describe("EventMatch NYC Walking Skeleton", () => {
   test.beforeEach(async ({ page }) => {
     // Listen for console errors
     const consoleErrors: string[] = [];
@@ -54,10 +54,17 @@ test.describe("ParkMatch NYC Walking Skeleton", () => {
     expect(results.violations).toEqual([]);
   });
 
-  test("header with ParkMatch text is visible", async ({ page }) => {
+  test("exact EventMatch NYC brand and canonical origin are rendered", async ({ page }) => {
     const header = page.getByTestId("header");
     await expect(header).toBeVisible();
-    await expect(header).toContainText("ParkMatch");
+    await expect(header.getByRole("heading", { level: 1 })).toHaveText(
+      "EventMatch NYC",
+    );
+    await expect(page).toHaveTitle("EventMatch NYC");
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+      "href",
+      "https://eventmatch.nyc",
+    );
   });
 
   test("all 8 event cards are rendered", async ({ page }) => {

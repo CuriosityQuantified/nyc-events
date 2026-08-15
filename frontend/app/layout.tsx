@@ -2,9 +2,13 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "ParkMatch NYC",
+  metadataBase: new URL("https://eventmatch.nyc"),
+  title: "EventMatch NYC",
   description:
     "Discover parks, events, and outdoor activities across all five boroughs of New York City.",
+  alternates: {
+    canonical: "/",
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {

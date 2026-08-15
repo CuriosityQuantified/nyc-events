@@ -14,10 +14,10 @@ export default function Header() {
     <header className={styles.header} data-testid="header">
       <div className={styles.brand}>
         <div className={styles.logo} aria-hidden="true">
-          PM
+          EM
         </div>
         <h1 className={styles.title}>
-          Park<span className={styles.titleAccent}>Match</span>{" "}
+          Event<span className={styles.titleAccent}>Match</span>{" "}
           <span>NYC</span>
         </h1>
       </div>
