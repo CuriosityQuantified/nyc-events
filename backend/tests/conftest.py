@@ -5,7 +5,6 @@ from __future__ import annotations
 import json
 import os
 import subprocess
-from datetime import date
 from pathlib import Path
 from typing import Any
 
@@ -63,7 +62,7 @@ def _maybe_start_postgres():
         yield
         return
 
-    from testcontainers.postgres import PostgresContainer
+    from testcontainers.community.postgres import PostgresContainer
 
     container = PostgresContainer("postgres:16-alpine")
     container.start()
@@ -132,12 +131,20 @@ async def db_session():
     if not _check_docker():
         pytest.skip("Docker is not available")
 
+    from sqlalchemy import delete
+
     from app.database import reset_engine, get_session_factory
+    from app.models.event import Event
 
     await reset_engine()
     factory = get_session_factory()
     async with factory() as session:
+        await session.execute(delete(Event))
+        await session.commit()
         yield session
+        await session.rollback()
+        await session.execute(delete(Event))
+        await session.commit()
 
     await reset_engine()
 
@@ -168,6 +175,7 @@ class MockTransport(httpx.AsyncBaseTransport):
         # serving real data. Each call pops the first entry.
         self._error_queue: list[int] = list(error_responses or [])
         self._request_count = 0
+        self.requests: list[dict[str, Any]] = []
 
     async def handle_async_request(
         self, request: httpx.Request
@@ -178,6 +186,11 @@ class MockTransport(httpx.AsyncBaseTransport):
         assert request.method == "POST", (
             f"Expected POST but got {request.method}"
         )
+        assert request.headers["accept"] == "application/json"
+        assert request.headers["content-type"] == "application/json"
+
+        body = json.loads(request.content) if request.content else {}
+        self.requests.append(body)
 
         # If error responses are queued, return them first.
         if self._error_queue:
@@ -188,9 +201,10 @@ class MockTransport(httpx.AsyncBaseTransport):
             )
 
         # Parse the request body for pagination parameters.
-        body = json.loads(request.content) if request.content else {}
-        offset = body.get("$offset", 0)
-        limit = body.get("$limit", self._page_size)
+        page = body["page"]
+        page_number = page["pageNumber"]
+        limit = page["pageSize"]
+        offset = (page_number - 1) * limit
 
         page_rows = self._rows[offset : offset + limit]
         return httpx.Response(
@@ -212,6 +226,9 @@ class AlwaysErrorTransport(httpx.AsyncBaseTransport):
     async def handle_async_request(
         self, request: httpx.Request
     ) -> httpx.Response:
+        assert request.method == "POST", (
+            f"Expected POST but got {request.method}"
+        )
         return httpx.Response(
             status_code=self._status_code,
             json={"error": "Service Unavailable"},
@@ -224,34 +241,6 @@ async def ingest_rows(db_session, rows: list[dict[str, Any]]) -> None:
     This is the shared ingestion helper used by all test modules that
     need to populate the events table from fixture data.
     """
-    from app.models.event import Event
-    from app.socrata import parse_event
+    from app.socrata import ingest_events
 
-    for row in rows:
-        parsed = parse_event(row)
-        start = date.fromisoformat(parsed["start_date"]) if parsed["start_date"] else None
-        end = date.fromisoformat(parsed["end_date"]) if parsed["end_date"] else None
-
-        event = Event(
-            guid=parsed["guid"],
-            title=parsed["title"],
-            description=parsed["description"],
-            official_event_url=parsed["official_event_url"],
-            location_id=parsed["location_id"],
-            location_name=parsed["location_name"],
-            start_date=start,
-            end_date=end,
-            start_datetime=parsed["start_datetime"],
-            end_datetime=parsed["end_datetime"],
-            categories=parsed["categories"],
-            latitude=parsed["latitude"],
-            longitude=parsed["longitude"],
-            borough=parsed["borough"],
-            registration_status=parsed["registration_status"],
-            registration_description=parsed["registration_description"],
-            is_free_explicit=parsed["is_free_explicit"],
-            accessibility_mentioned=parsed["accessibility_mentioned"],
-            raw_data=parsed["raw_data"],
-        )
-        await db_session.merge(event)
-    await db_session.commit()
+    await ingest_events(db_session, rows)

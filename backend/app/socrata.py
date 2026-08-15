@@ -5,13 +5,16 @@ from __future__ import annotations
 import asyncio
 import logging
 import re
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any
+from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
 import httpx
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
+from app.models.event import Event
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +42,8 @@ _RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 504}
 
 # Pagination
 _DEFAULT_PAGE_SIZE = 1000
+_ALLOWED_SOCRATA_HOST = "data.cityofnewyork.us"
+_SOCRATA_QUERY = "SELECT * ORDER BY startdate ASC, starttime ASC"
 
 
 class CredentialFilter(logging.Filter):
@@ -46,20 +51,39 @@ class CredentialFilter(logging.Filter):
 
     def __init__(self, secret_values: list[str] | None = None) -> None:
         super().__init__()
-        self._secret_values = [v for v in (secret_values or []) if v]
+        self._secret_values = [v for v in (secret_values or []) if len(v) >= 8]
 
     def filter(self, record: logging.LogRecord) -> bool:
         msg = record.getMessage()
         for secret in self._secret_values:
-            if secret in msg:
-                return False
-        if _CREDENTIAL_PATTERN.search(msg):
-            return False
+            msg = msg.replace(secret, "[REDACTED]")
+        msg = _CREDENTIAL_PATTERN.sub(r"\1=[REDACTED]", msg)
+        if msg != record.getMessage():
+            record.msg = msg
+            record.args = ()
         return True
 
 
 class SocrataError(Exception):
     """Raised when the Socrata API returns an unrecoverable error."""
+
+
+def _validated_endpoint(value: str) -> str:
+    """Allow only the fixed NYC Open Data HTTPS query origin."""
+    parsed = urlparse(value)
+    if (
+        parsed.scheme != "https"
+        or parsed.hostname != _ALLOWED_SOCRATA_HOST
+        or parsed.username is not None
+        or parsed.password is not None
+        or parsed.port not in (None, 443)
+        or not parsed.path.startswith("/api/v3/views/")
+        or not parsed.path.endswith("/query.json")
+        or parsed.query
+        or parsed.fragment
+    ):
+        raise SocrataError("SOCRATA_QUERY_ENDPOINT is not an approved NYC Open Data query URL")
+    return value
 
 
 class SocrataClient:
@@ -76,7 +100,7 @@ class SocrataClient:
         http_client: httpx.AsyncClient | None = None,
     ) -> None:
         settings = get_settings()
-        self._endpoint = settings.socrata_query_endpoint
+        self._endpoint = _validated_endpoint(settings.socrata_query_endpoint)
         self._api_key_id = settings.socrata_api_key_id
         self._api_key_secret = settings.socrata_api_key_secret
         self._app_token = settings.socrata_app_token
@@ -112,7 +136,10 @@ class SocrataClient:
         if self._api_key_id and self._api_key_secret:
             auth = (self._api_key_id, self._api_key_secret)
 
-        headers: dict[str, str] = {}
+        headers: dict[str, str] = {
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+        }
         if self._app_token:
             headers["X-App-Token"] = self._app_token
 
@@ -124,7 +151,7 @@ class SocrataClient:
                     json=payload,
                     auth=auth,
                     headers=headers,
-                    timeout=30.0,
+                    timeout=60.0,
                 )
                 if response.status_code in _RETRYABLE_STATUS_CODES:
                     last_exc = SocrataError(
@@ -162,34 +189,33 @@ class SocrataClient:
         # Unreachable, but satisfies type checkers.
         raise SocrataError("Retry loop exited unexpectedly")  # pragma: no cover
 
-    async def _fetch_page(self, offset: int) -> list[dict[str, Any]]:
+    async def _fetch_page(self, page_number: int) -> list[dict[str, Any]]:
         """Fetch one page of events from the Socrata API."""
         payload = {
-            "$select": "*",
-            "$limit": self._page_size,
-            "$offset": offset,
+            "query": _SOCRATA_QUERY,
+            "page": {"pageNumber": page_number, "pageSize": self._page_size},
+            "includeSynthetic": False,
         }
         response = await self._post_with_retry(payload)
-        data = response.json()
-
-        # The Socrata v3 query endpoint returns rows under various keys.
-        if isinstance(data, list):
-            return data
-        if isinstance(data, dict):
-            return data.get("rows", data.get("results", []))
-        return []
+        try:
+            data = response.json()
+        except ValueError as exc:
+            raise SocrataError("Socrata returned invalid JSON") from exc
+        if not isinstance(data, list) or not all(isinstance(row, dict) for row in data):
+            raise SocrataError("Socrata response must be a JSON array of objects")
+        return data
 
     async def fetch_all_events(self) -> list[dict[str, Any]]:
         """Page through all events until an empty page returns."""
         all_rows: list[dict[str, Any]] = []
-        offset = 0
+        page_number = 1
 
         while True:
-            page = await self._fetch_page(offset)
+            page = await self._fetch_page(page_number)
             if not page:
                 break
             all_rows.extend(page)
-            offset += self._page_size
+            page_number += 1
 
         logger.info("Fetched %d total events from Socrata", len(all_rows))
         return all_rows
@@ -235,6 +261,8 @@ def _parse_coordinates(
             try:
                 lat = float(parts[0].strip())
                 lon = float(parts[1].strip())
+                if not (-90 <= lat <= 90 and -180 <= lon <= 180):
+                    continue
                 coords.append({"latitude": lat, "longitude": lon})
             except ValueError:
                 continue
@@ -275,13 +303,34 @@ def _parse_categories(raw: str | None) -> list[str]:
     return [c.strip() for c in raw.split("|") if c.strip()]
 
 
+def _location_key(
+    location_id: str | None, coordinates: list[dict[str, float]]
+) -> str | None:
+    """Build Location identity from source ID and normalized coordinates."""
+    stable_id = (location_id or "").strip()
+    if not stable_id or not coordinates:
+        return None
+    normalized = ";".join(
+        f"{item['latitude']:.6f},{item['longitude']:.6f}" for item in coordinates
+    )
+    return f"{stable_id}|{normalized}"
+
+
 def parse_event(row: dict[str, Any]) -> dict[str, Any]:
     """Convert a Socrata row dict to Event model field values.
 
     Returns a dict suitable for constructing or updating an Event model
     instance.
     """
-    lat, lon, _coords = _parse_coordinates(row.get("coordinates"))
+    guid = row.get("guid")
+    title = row.get("title")
+    if not isinstance(guid, str) or not guid.strip():
+        raise SocrataError("Socrata row is missing a non-empty guid")
+    if not isinstance(title, str) or not title.strip():
+        raise SocrataError(f"Socrata row {guid!r} is missing a non-empty title")
+
+    lat, lon, coordinates = _parse_coordinates(row.get("coordinates"))
+    location_id = row.get("parkids")
     reg_status, _reg_prov = _derive_registration(
         row.get("registration_url"),
         row.get("registration_description"),
@@ -289,11 +338,12 @@ def parse_event(row: dict[str, Any]) -> dict[str, Any]:
     reg_desc = row.get("registration_description", "").strip() or None
 
     return {
-        "guid": row["guid"],
-        "title": row.get("title", ""),
+        "guid": guid,
+        "title": title,
         "description": row.get("description"),
         "official_event_url": row.get("link"),
-        "location_id": row.get("parkids"),
+        "location_key": _location_key(location_id, coordinates),
+        "location_id": location_id,
         "location_name": row.get("location"),
         "start_date": _parse_date(row.get("startdate")),
         "end_date": _parse_date(row.get("enddate")),
@@ -309,3 +359,34 @@ def parse_event(row: dict[str, Any]) -> dict[str, Any]:
         "accessibility_mentioned": None,
         "raw_data": row,
     }
+
+
+async def ingest_events(session: AsyncSession, rows: list[dict[str, Any]]) -> int:
+    """Atomically upsert validated source rows by source guid."""
+    try:
+        for row in rows:
+            values = parse_event(row)
+            if values["start_date"]:
+                values["start_date"] = date.fromisoformat(values["start_date"])
+            if values["end_date"]:
+                values["end_date"] = date.fromisoformat(values["end_date"])
+            await session.merge(Event(**values))
+        await session.commit()
+    except Exception:
+        await session.rollback()
+        raise
+    return len(rows)
+
+
+async def sync_events(
+    session: AsyncSession, client: SocrataClient | None = None
+) -> int:
+    """Fetch the complete source Snapshot and store it in Postgres."""
+    source = client or SocrataClient()
+    owns_client = client is None
+    try:
+        rows = await source.fetch_all_events()
+        return await ingest_events(session, rows)
+    finally:
+        if owns_client:
+            await source.close()

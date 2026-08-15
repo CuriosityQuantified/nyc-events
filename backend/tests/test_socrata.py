@@ -8,7 +8,7 @@ from unittest.mock import patch
 import httpx
 import pytest
 
-from app.socrata import SocrataClient, SocrataError, parse_event
+from app.socrata import CredentialFilter, SocrataClient, SocrataError, parse_event
 from tests.conftest import (
     AlwaysErrorTransport,
     MockTransport,
@@ -26,7 +26,7 @@ class TestPagination:
         http_client = httpx.AsyncClient(transport=transport)
 
         with patch("app.socrata.get_settings") as mock_settings:
-            mock_settings.return_value.socrata_query_endpoint = "https://fake.socrata/query"
+            mock_settings.return_value.socrata_query_endpoint = "https://data.cityofnewyork.us/api/v3/views/w3wp-dpdi/query.json"
             mock_settings.return_value.socrata_api_key_id = ""
             mock_settings.return_value.socrata_api_key_secret = ""
             mock_settings.return_value.socrata_app_token = ""
@@ -41,6 +41,11 @@ class TestPagination:
         assert result[2]["guid"] == "2,095,486"
         # 2 rows on page 1, 1 row on page 2, 0 rows on page 3 (empty → stop)
         assert transport.request_count == 3
+        assert [request["page"] for request in transport.requests] == [
+            {"pageNumber": 1, "pageSize": 2},
+            {"pageNumber": 2, "pageSize": 2},
+            {"pageNumber": 3, "pageSize": 2},
+        ]
 
     async def test_pagination_stops_on_empty_page(self):
         """The client must stop when an empty page is returned."""
@@ -48,7 +53,7 @@ class TestPagination:
         http_client = httpx.AsyncClient(transport=transport)
 
         with patch("app.socrata.get_settings") as mock_settings:
-            mock_settings.return_value.socrata_query_endpoint = "https://fake.socrata/query"
+            mock_settings.return_value.socrata_query_endpoint = "https://data.cityofnewyork.us/api/v3/views/w3wp-dpdi/query.json"
             mock_settings.return_value.socrata_api_key_id = ""
             mock_settings.return_value.socrata_api_key_secret = ""
             mock_settings.return_value.socrata_app_token = ""
@@ -72,7 +77,7 @@ class TestRetry:
         http_client = httpx.AsyncClient(transport=transport)
 
         with patch("app.socrata.get_settings") as mock_settings:
-            mock_settings.return_value.socrata_query_endpoint = "https://fake.socrata/query"
+            mock_settings.return_value.socrata_query_endpoint = "https://data.cityofnewyork.us/api/v3/views/w3wp-dpdi/query.json"
             mock_settings.return_value.socrata_api_key_id = ""
             mock_settings.return_value.socrata_api_key_secret = ""
             mock_settings.return_value.socrata_app_token = ""
@@ -95,7 +100,7 @@ class TestRetry:
         http_client = httpx.AsyncClient(transport=transport)
 
         with patch("app.socrata.get_settings") as mock_settings:
-            mock_settings.return_value.socrata_query_endpoint = "https://fake.socrata/query"
+            mock_settings.return_value.socrata_query_endpoint = "https://data.cityofnewyork.us/api/v3/views/w3wp-dpdi/query.json"
             mock_settings.return_value.socrata_api_key_id = ""
             mock_settings.return_value.socrata_api_key_secret = ""
             mock_settings.return_value.socrata_app_token = ""
@@ -125,7 +130,7 @@ class TestCredentialFiltering:
         http_client = httpx.AsyncClient(transport=transport)
 
         with patch("app.socrata.get_settings") as mock_settings:
-            mock_settings.return_value.socrata_query_endpoint = "https://fake.socrata/query"
+            mock_settings.return_value.socrata_query_endpoint = "https://data.cityofnewyork.us/api/v3/views/w3wp-dpdi/query.json"
             mock_settings.return_value.socrata_api_key_id = secret_key_id
             mock_settings.return_value.socrata_api_key_secret = secret_key
             mock_settings.return_value.socrata_app_token = secret_token
@@ -140,6 +145,73 @@ class TestCredentialFiltering:
         assert secret_key_id not in full_log
         assert secret_key not in full_log
         assert secret_token not in full_log
+
+        record = logging.LogRecord(
+            "app.socrata",
+            logging.WARNING,
+            __file__,
+            0,
+            "api_key=%s authorization=%s token=%s",
+            (secret_key_id, secret_key, secret_token),
+            None,
+        )
+        credential_filter = CredentialFilter(
+            [secret_key_id, secret_key, secret_token]
+        )
+        assert credential_filter.filter(record)
+        assert record.getMessage() == (
+            "api_key=[REDACTED] authorization=[REDACTED] token=[REDACTED]"
+        )
+
+
+class TestResponseValidation:
+    """Reject unsafe endpoints and malformed source responses."""
+
+    @pytest.mark.parametrize(
+        "endpoint",
+        [
+            "http://data.cityofnewyork.us/api/v3/views/w3wp-dpdi/query.json",
+            "https://example.com/api/v3/views/w3wp-dpdi/query.json",
+            "https://user@data.cityofnewyork.us/api/v3/views/w3wp-dpdi/query.json",
+            "https://data.cityofnewyork.us:444/api/v3/views/w3wp-dpdi/query.json",
+            "https://data.cityofnewyork.us/api/v3/views/w3wp-dpdi/query.json?x=1",
+            "https://data.cityofnewyork.us/api/v3/views/w3wp-dpdi/query.json#fragment",
+        ],
+    )
+    def test_unapproved_endpoint_is_rejected(self, endpoint):
+        with patch("app.socrata.get_settings") as mock_settings:
+            mock_settings.return_value.socrata_query_endpoint = endpoint
+            mock_settings.return_value.socrata_api_key_id = ""
+            mock_settings.return_value.socrata_api_key_secret = ""
+            mock_settings.return_value.socrata_app_token = ""
+
+            with pytest.raises(SocrataError, match="approved NYC Open Data"):
+                SocrataClient()
+
+    @pytest.mark.parametrize(
+        "response",
+        [
+            httpx.Response(200, text="not-json"),
+            httpx.Response(200, json={"rows": []}),
+            httpx.Response(200, json=["not-an-object"]),
+        ],
+    )
+    async def test_malformed_response_is_rejected(self, response):
+        async def handler(_request):
+            return response
+
+        http_client = httpx.AsyncClient(transport=httpx.MockTransport(handler))
+        with patch("app.socrata.get_settings") as mock_settings:
+            mock_settings.return_value.socrata_query_endpoint = (
+                "https://data.cityofnewyork.us/api/v3/views/w3wp-dpdi/query.json"
+            )
+            mock_settings.return_value.socrata_api_key_id = ""
+            mock_settings.return_value.socrata_api_key_secret = ""
+            mock_settings.return_value.socrata_app_token = ""
+
+            client = SocrataClient(http_client=http_client)
+            with pytest.raises(SocrataError):
+                await client.fetch_all_events()
 
 
 class TestParseEvent:

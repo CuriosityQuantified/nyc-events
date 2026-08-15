@@ -2,20 +2,15 @@
 
 from __future__ import annotations
 
-from datetime import date
 from typing import Any
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Path, Query
 from sqlalchemy import select, func
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.database import get_session_factory
 from app.models.event import Event
-from app.socrata import BOROUGHS
+
 
 router = APIRouter()
-
-_NY_TZ_NAME = "America/New_York"
 
 
 def _text_fact(
@@ -179,12 +174,6 @@ def _event_to_contract(event: Event) -> dict[str, Any]:
 
 @router.get("/events")
 async def list_events(
-    borough: str | None = None,
-    category: str | None = None,
-    registration: str | None = None,
-    location: str | None = None,
-    date_from: date | None = None,
-    date_to: date | None = None,
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=100),
 ) -> dict[str, Any]:
@@ -193,24 +182,6 @@ async def list_events(
     async with session_factory() as session:
         query = select(Event)
 
-        if borough:
-            query = query.where(Event.borough == borough)
-        if category:
-            # JSON array containment — check if any category matches
-            query = query.where(
-                Event.categories.op("@>")(f'["{category}"]')
-            )
-        if registration:
-            if registration == "not_listed":
-                query = query.where(Event.registration_status.is_(None))
-            else:
-                query = query.where(Event.registration_status == registration)
-        if location:
-            query = query.where(Event.location_id == location)
-        if date_from:
-            query = query.where(Event.start_date >= date_from)
-        if date_to:
-            query = query.where(Event.start_date <= date_to)
 
         # Count total matching rows
         count_query = select(func.count()).select_from(query.subquery())
@@ -235,7 +206,7 @@ async def list_events(
 
 
 @router.get("/events/{guid}")
-async def get_event(guid: str) -> dict[str, Any]:
+async def get_event(guid: str = Path(min_length=1, max_length=255)) -> dict[str, Any]:
     """Return a single event by its source guid."""
     session_factory = get_session_factory()
     async with session_factory() as session:

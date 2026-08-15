@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from unittest.mock import patch
+from zoneinfo import ZoneInfo
 
 import httpx
 import pytest
@@ -61,7 +62,8 @@ class TestIngestionWithDb:
             select(Event).where(Event.guid == "2,181,767")
         )
         modified_event = result2.scalar_one()
-        assert modified_event.end_datetime.hour == 16
+        local_end = modified_event.end_datetime.astimezone(ZoneInfo("America/New_York"))
+        assert local_end.hour == 16
 
     async def test_source_guid_is_primary_key(self, db_session):
         """Duplicate guid must update, not create a second row."""
@@ -86,6 +88,18 @@ class TestIngestionWithDb:
         event = result.scalar_one()
         assert event.title == "Updated Title"
 
+    async def test_invalid_row_rolls_back_the_whole_snapshot(self, db_session):
+        """A malformed row must not leave a partially ingested Snapshot."""
+        valid = load_fixture("snapshot_a.json")[0]
+        invalid = dict(load_fixture("snapshot_a.json")[1])
+        invalid.pop("guid")
+
+        with pytest.raises(SocrataError, match="guid"):
+            await ingest_rows(db_session, [valid, invalid])
+
+        count = await db_session.scalar(select(func.count()).select_from(Event))
+        assert count == 0
+
 
 class TestNetworkEnforcement:
     """Verify that transport-layer substitution prevents real network access."""
@@ -97,7 +111,9 @@ class TestNetworkEnforcement:
         http_client = httpx.AsyncClient(transport=transport)
 
         with patch("app.socrata.get_settings") as mock_settings:
-            mock_settings.return_value.socrata_query_endpoint = "https://fake.socrata/query"
+            mock_settings.return_value.socrata_query_endpoint = (
+                "https://data.cityofnewyork.us/api/v3/views/w3wp-dpdi/query.json"
+            )
             mock_settings.return_value.socrata_api_key_id = ""
             mock_settings.return_value.socrata_api_key_secret = ""
             mock_settings.return_value.socrata_app_token = ""
