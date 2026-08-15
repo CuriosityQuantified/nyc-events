@@ -10,32 +10,24 @@
 
 ## Current stop condition
 
-**Blocker: Codex CLI has no authentication on this host.**
+**No authentication or Open Design blocker remains.**
 
-The Codex CLI (v0.144.3) is installed at `/opt/homebrew/bin/codex` but `codex login status` returns `Not logged in`. All headless authentication paths have been exhausted:
-
-1. **No OPENAI_API_KEY or CODEX_ACCESS_TOKEN** in the shell environment.
-2. **No keychain entry** — `security find-generic-password` for `codex`, `openai`, and `OPENAI` all return "item not found".
-3. **~/.codex/config.toml** contains only a project trust entry; no credential or token.
-4. **`codex login --device-auth`** requires interactive browser login (device code flow with a one-time code at `auth.openai.com/codex/device`). It cannot complete headlessly.
-5. **`codex login --with-api-key`** and `--with-access-token` read from stdin — no credential source available to pipe.
-
-Three Open Design agents are available: `claude`, `codex`, `hermes`. Codex is the only one that lacks auth. The initial `frontend-design` run succeeded with Claude, but the prior Claude polish run also failed with `auth_required`. Hermes is available and authenticated but the issue instructions specify `agent=codex`.
-
-The two required Open Design skill passes (`impeccable-design-polish` and `web-design-guidelines`) cannot run until Codex is authenticated.
+`codex login status` returns `Logged in using ChatGPT`. Both required final Open Design passes completed successfully and produced valid `preview.html` artifacts.
 
 ## Open Design evidence
 
 | Pass | Skill | Run ID | Agent | Terminal status | Artifact or preview |
 |---|---|---|---|---|---|
-| Initial design | `frontend-design` | `22ac9e6a-c2ab-40bd-9e72-5f3b08376753` | Claude | `succeeded` | Registered `preview.html`; HTTP 200; title `ParkMatch NYC — Walking Skeleton Preview`; 390x844 render inspected |
-| Failed prior Claude polish | `impeccable-design-polish` | `24fb05eb-80fa-4dba-bb77-2da285e05f98` | Claude | `failed`; `auth_required` | None; do not retry with Claude |
-| Failed Codex polish | `impeccable-design-polish` | `5d1584b1-c544-4717-9c5d-af08d0cbb62c` | Codex `gpt-5.6-sol` | `failed`; `AGENT_AUTH_REQUIRED`; HTTP 401 | None |
-| Failed Codex audit | `web-design-guidelines` | `4c6d3e94-ebbd-45dd-9892-553df268a60a` | Codex default | `failed`; `AGENT_AUTH_REQUIRED`; HTTP 401 | None |
+| Initial design | `frontend-design` | `22ac9e6a-c2ab-40bd-9e72-5f3b08376753` | Claude | `succeeded` | Registered `preview.html`; mobile preview inspected |
+| Failed prior Claude polish | `impeccable-design-polish` | `24fb05eb-80fa-4dba-bb77-2da285e05f98` | Claude | `failed`; `auth_required` | Historical only; do not retry |
+| Final polish | `impeccable-design-polish` | `7ed4e731-de0d-4e1b-a067-22522d933247` | Hermes `gpt-5.6-sol` | `succeeded`; deliverable valid | `preview.html`; `impeccable-polish-report.md`; contrast, focus, semantics, touch targets, reduced motion, safe-area and overflow fixes |
+| Final guidelines audit | `web-design-guidelines` | `c5aa9438-c04e-4bbe-acb6-27a3312a3acf` | Codex `gpt-5.6-sol` | `succeeded`; deliverable valid | `preview.html`; `web-design-guidelines-report.md`; skip navigation, live result counts, control state, accessible names and disabled map semantics |
 
-The initial registered preview is credible and complete. It shows the mobile brand, search, filter and date strips, List/Map control, event cards, and fixed bottom navigation.
+The Open Design desktop renderer socket was unavailable, so its report records static DOM/CSS geometry. Repository Playwright remains the authoritative rendered phone/desktop verification and must pass against the exact final Railway revision.
 
-## Codex auth evidence (collected 2026-08-15)
+## Codex auth evidence (historical before user login; resolved 2026-08-15)
+
+The earlier failed checks below explain the original handoff. Current verification is `codex login status` → `Logged in using ChatGPT`.
 
 ```
 $ codex --version
@@ -100,21 +92,23 @@ Tests use only local mock data. No live third-party API calls.
 - Project: `nyc-events` (`05794e8d-aece-4c90-be70-05b5822d2ac4`)
 - Service: `frontend` (`1bd939d3-3c95-4a28-ac78-382fbb861aac`)
 - Production URL: `https://frontend-production-1f632.up.railway.app`
-- First upload: deployment `a8613965-2734-4b44-8b3b-f3b94b692600`, terminal status `SUCCESS`
+- Initial deployment `a8613965-2734-4b44-8b3b-f3b94b692600` reported `SUCCESS` but public requests returned HTTP 502 because Next.js listened on 8080 while the domain targeted 3000
+- Set Railway `PORT=3000`; replacement deployment `95c228dc-b827-4374-80de-233cc8612070` is `SUCCESS` and public requests return HTTP 200
+- The deployed revision is still commit `5ede74d`; production Playwright against it returned 28/30, with the two fail-closed axe checks exposing accessibility defects fixed in later branch commit `a6416e1`
+- Uncommitted lane-owned additions now present: `frontend/playwright.production.config.ts` and `test:production`; missing `PLAYWRIGHT_BASE_URL` fails closed
 
-The first upload contains commit `5ede74d`. Deploy and verify the final pushed commit before completion.
+Deploy and verify the final pushed commit before completion. The exact final revision must pass 30/30 production Playwright at both viewports.
 
 ## Required finish sequence (ordered next actions)
 
-1. **Authenticate Codex CLI** — a human must run `codex login --device-auth` interactively, complete the browser flow, and verify `codex login status` shows authenticated. Alternatively, pipe an API key: `printenv OPENAI_API_KEY | codex login --with-api-key`. Or try `agent=hermes` if the issue owner approves it as an alternative to Codex.
-2. Run `impeccable-design-polish` with `agent=codex` (or approved alternative); poll to terminal success; inspect the real artifact and preview.
-3. Run `web-design-guidelines` with `agent=codex` (or approved alternative); poll to terminal success; inspect the real artifact and preview.
-4. Apply only justified `frontend/` fixes.
-5. Run `npm ci`, `npm test --if-present`, `npm run lint`, `npx tsc --noEmit`, and `npm run build` from `frontend/`.
-6. Deploy the final commit to Railway. Verify at the public origin with phone and desktop viewports: List/Map, keyboard, axe, geometry, viewport intersection, screenshots, and no console or page errors.
-7. Run `PATH="$HOME/.local/bin:$PATH" graphify update .`, stage all tracked outputs, and verify `git diff --exit-code graphify-out/graph.json`.
-8. Remove this handoff only after every blocking criterion is complete.
-9. Commit as `CuriosityQuantified <curiosityquantified@gmail.com>`, push `frontend`, and create exactly one PR to `main` titled `fix #8: Frontend walking skeleton` with `Closes #8`. Do not merge.
+1. Review the successful Open Design polish and guidelines reports; apply only justified changes not already covered by the tested source implementation.
+2. Preserve, validate, and commit `playwright.production.config.ts`, the `test:production` package script, and this handoff update.
+3. Run `npm ci`, `npm test --if-present`, `npm run lint`, `npx tsc --noEmit`, and `npm run build` from `frontend/`.
+4. Run `PATH="$HOME/.local/bin:$PATH" graphify update .`, stage all tracked outputs, and verify a second regeneration has no drift.
+5. Remove this handoff only after every blocking criterion is complete.
+6. Commit as `CuriosityQuantified <curiosityquantified@gmail.com>`, push `frontend`, and create exactly one PR to `main` titled `fix #8: Frontend walking skeleton` with `Closes #8`. Do not merge until protected checks pass.
+7. Deploy the exact final commit to Railway. Run `PLAYWRIGHT_BASE_URL=https://frontend-production-1f632.up.railway.app npm run test:production`; require 30/30 at 390×844 and 1440×900 with axe, keyboard, geometry, screenshots, console/page-error and no-overflow checks.
+8. Record deployment ID, exact revision, Playwright report/traces/screenshots, and CI/CD delta in the PR. Production failure blocks merge.
 
 ## Acceptance criteria status
 
@@ -123,8 +117,8 @@ The first upload contains commit `5ede74d`. Deploy and verify the final pushed c
 - [x] Playwright UAT runs at both viewports (wired through npm test)
 - [x] Production build succeeds
 - [x] Sketch's markup and hand-rolled state machine are not carried over
-- [ ] **BLOCKED** — `impeccable-design-polish` Open Design pass (Codex auth required)
-- [ ] **BLOCKED** — `web-design-guidelines` Open Design pass (Codex auth required)
-- [ ] Deployed and verified at production origin
+- [x] `impeccable-design-polish` Open Design pass succeeded (`7ed4e731-de0d-4e1b-a067-22522d933247`)
+- [x] `web-design-guidelines` Open Design pass succeeded with authenticated Codex (`c5aa9438-c04e-4bbe-acb6-27a3312a3acf`)
+- [ ] Final branch revision deployed and verified at production origin with 30/30 production Playwright
 - [x] Graphify refreshed and committed in `a6416e1`; refresh again after the final Open Design edit
 - [ ] PR created

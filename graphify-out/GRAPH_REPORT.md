@@ -1,16 +1,16 @@
 # Graph Report - nyc-events-frontend  (2026-08-15)
 
 ## Corpus Check
-- 53 files · ~32,037 words
+- 54 files · ~32,124 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 307 nodes · 338 edges · 37 communities (22 shown, 15 thin omitted)
+- 309 nodes · 339 edges · 38 communities (23 shown, 15 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `2b5e2e40`
+- Built from commit: `578c264d`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -52,8 +52,8 @@
 1. `compilerOptions` - 16 edges
 2. `419495f4-0ca6-4d45-b6e3-43e1e35536d5 implementation handoff` - 13 edges
 3. `NYC Events — Handoff Document` - 12 edges
-4. `ContractMockTests` - 10 edges
-5. `scripts` - 10 edges
+4. `scripts` - 11 edges
+5. `ContractMockTests` - 10 edges
 6. `ParkMatch NYC — Initial Frontend Direction` - 10 edges
 7. `Issue #8 handoff — frontend walking skeleton` - 10 edges
 8. `Development pipeline — nyc-events` - 9 edges
@@ -69,7 +69,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (37 total, 15 thin omitted)
+## Communities (38 total, 15 thin omitted)
 
 ### Community 0 - "Development pipeline — nyc-events"
 Cohesion: 0.14
@@ -100,8 +100,8 @@ Cohesion: 0.33
 Nodes (5): EventMatch NYC, Language, People and their lists, Provenance, Source data
 
 ### Community 8 - "scripts"
-Cohesion: 0.10
-Nodes (20): dependencies, next, react, react-dom, name, private, scripts, build (+12 more)
+Cohesion: 0.09
+Nodes (21): dependencies, next, react, react-dom, name, private, scripts, build (+13 more)
 
 ### Community 9 - "pull_request_template.md"
 Cohesion: 0.40
@@ -129,7 +129,7 @@ Nodes (23): @axe-core/playwright, eslint, eslint-config-next, devDependencies, @
 
 ### Community 26 - "Issue #8 handoff — frontend walking skeleton"
 Cohesion: 0.18
-Nodes (10): Acceptance criteria status, Codex auth evidence (collected 2026-08-15), Current stop condition, Implementation and audit work (complete), Issue #8 handoff — frontend walking skeleton, Latest local gates, Open Design evidence, Ownership (+2 more)
+Nodes (10): Acceptance criteria status, Codex auth evidence (historical before user login; resolved 2026-08-15), Current stop condition, Implementation and audit work (complete), Issue #8 handoff — frontend walking skeleton, Latest local gates, Open Design evidence, Ownership (+2 more)
 
 ### Community 27 - "include"
 Cohesion: 0.20
@@ -140,7 +140,7 @@ Cohesion: 0.50
 Nodes (3): Deploy on Vercel, Getting Started, Learn More
 
 ## Knowledge Gaps
-- **157 isolated node(s):** `DayInfo`, `DAY_NAMES`, `categories`, `boroughs`, `ListMapToggleProps` (+152 more)
+- **158 isolated node(s):** `DayInfo`, `DAY_NAMES`, `categories`, `boroughs`, `ListMapToggleProps` (+153 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **15 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -151,10 +151,10 @@ _Questions this graph is uniquely positioned to answer:_
   _High betweenness centrality (0.021) - this node is a cross-community bridge._
 - **Why does `Core screens` connect `Core screens` to `ParkMatch NYC — Initial Frontend Direction`?**
   _High betweenness centrality (0.016) - this node is a cross-community bridge._
-- **Why does `NYC Events — Handoff Document` connect `NYC Events — Handoff Document` to `ParkMatch NYC — Initial Frontend Direction`?**
+- **Why does `devDependencies` connect `devDependencies` to `scripts`?**
   _High betweenness centrality (0.015) - this node is a cross-community bridge._
 - **What connects `DayInfo`, `DAY_NAMES`, `categories` to the rest of the system?**
-  _157 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _158 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Development pipeline — nyc-events` be split into smaller, more focused modules?**
   _Cohesion score 0.14285714285714285 - nodes in this community are weakly interconnected._
 - **Should `page.tsx` be split into smaller, more focused modules?**

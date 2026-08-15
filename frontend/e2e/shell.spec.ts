@@ -163,20 +163,21 @@ test.describe("ParkMatch NYC Walking Skeleton", () => {
   });
 
   test("focus is visible on interactive elements", async ({ page }) => {
-    // Tab to the first interactive element and check focus visibility
+    // The first keyboard stop provides a visible bypass for repeated navigation.
     await page.keyboard.press("Tab");
 
-    const focusedElement = page.locator(":focus-visible");
-    const count = await focusedElement.count();
-    expect(count).toBeGreaterThanOrEqual(1);
+    const skipLink = page.getByRole("link", { name: "Skip to event results" });
+    await expect(skipLink).toBeFocused();
+    await expect(skipLink).toBeInViewport();
 
-    // Check that outline is applied
-    const outlineStyle = await focusedElement.first().evaluate((el) => {
+    const outlineStyle = await skipLink.evaluate((el) => {
       const computed = window.getComputedStyle(el);
       return computed.outlineStyle;
     });
-    // Should have a visible outline (not "none")
     expect(outlineStyle).not.toBe("none");
+
+    await page.keyboard.press("Enter");
+    await expect(page.locator("#main-content")).toBeFocused();
   });
 });
 

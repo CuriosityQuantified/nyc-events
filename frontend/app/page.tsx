@@ -19,10 +19,13 @@ export default function Home() {
 
   return (
     <div className={styles.appLayout}>
+      <a className="skip-link" href="#main-content">
+        Skip to event results
+      </a>
       <DesktopSidebar />
       <div className={styles.mainArea}>
         <Header />
-        <main className={styles.mainContent}>
+        <main id="main-content" className={styles.mainContent} tabIndex={-1}>
           <SearchBar />
           <FilterChips />
           <DateStrip />

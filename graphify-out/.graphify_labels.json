@@ -35,5 +35,6 @@
   "33": "frontend/CLAUDE.md",
   "34": "shell.spec.ts",
   "35": "playwright.config.ts",
-  "36": "vitest.config.mts"
+  "36": "vitest.config.mts",
+  "37": "playwright.production.config.ts"
 }

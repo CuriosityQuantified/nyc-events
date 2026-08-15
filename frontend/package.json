@@ -11,6 +11,7 @@
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "vitest run",
     "test:e2e": "playwright test",
+    "test:production": "playwright test --config playwright.production.config.ts",
     "test:ui": "playwright test --ui"
   },
   "dependencies": {
