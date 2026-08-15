@@ -291,13 +291,17 @@ class TestParseEvent:
     def test_live_registration_url_object_is_normalized_without_mutation(self):
         """The live Socrata URL object must imply registration and stay raw."""
         row = load_fixture("live_registration_url_object.json")[0]
-        original_url = dict(row["registration_url"])
+        original_registration_url = dict(row["registration_url"])
+        original_event_url = dict(row["link"])
 
         parsed = parse_event(row)
 
+        assert parsed["official_event_url"] == original_event_url["url"]
         assert parsed["registration_status"] == "required"
-        assert parsed["raw_data"]["registration_url"] == original_url
-        assert row["registration_url"] == original_url
+        assert parsed["raw_data"]["registration_url"] == original_registration_url
+        assert parsed["raw_data"]["link"] == original_event_url
+        assert row["registration_url"] == original_registration_url
+        assert row["link"] == original_event_url
 
     @pytest.mark.parametrize(
         ("registration_url", "expected_status"),
