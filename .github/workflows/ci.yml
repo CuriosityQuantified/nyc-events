@@ -14,6 +14,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: astral-sh/setup-uv@v5
+
+      - name: Validate shared API contract and golden responses
+        run: uv run contracts/validate_contract.py
+
+      - name: Test contract mock server
+        run: python3 -m unittest discover -s contracts/tests -v
+
       # These checks are required on main from before backend/ exists, so the
       # PR that first creates it is not blocked by its own absence. See
       # docs/adr/0005-tests-never-call-the-live-api.md for why no test here
@@ -22,9 +30,6 @@ jobs:
         run: |
           if [ -d backend ]; then echo "present=true" >> "$GITHUB_OUTPUT"
           else echo "present=false" >> "$GITHUB_OUTPUT"; echo "backend/ absent — nothing to test yet"; fi
-
-      - uses: astral-sh/setup-uv@v5
-        if: steps.probe.outputs.present == 'true'
 
       - name: Install
         if: steps.probe.outputs.present == 'true'
