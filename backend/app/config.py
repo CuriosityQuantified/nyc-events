@@ -12,6 +12,12 @@ class Settings(BaseSettings):
     redis_url: str = "redis://localhost:6379/0"
     environment: str = "development"
 
+    socrata_api_key_id: str = ""
+    socrata_api_key_secret: str = ""
+    socrata_app_token: str = ""
+    socrata_dataset_id: str = ""
+    socrata_query_endpoint: str = ""
+
     model_config = {"env_prefix": "", "case_sensitive": False}
 
 
