@@ -1,16 +1,16 @@
 # Graph Report - nyc-events-frontend  (2026-08-15)
 
 ## Corpus Check
-- 54 files · ~32,124 words
+- 53 files · ~45,788 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 309 nodes · 339 edges · 38 communities (23 shown, 15 thin omitted)
+- 298 nodes · 329 edges · 37 communities (22 shown, 15 thin omitted)
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `578c264d`
+- Built from commit: `f38bcc96`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -39,7 +39,6 @@
 - compilerOptions
 - 419495f4-0ca6-4d45-b6e3-43e1e35536d5 implementation handoff
 - devDependencies
-- Issue #8 handoff — frontend walking skeleton
 - include
 - frontend/README.md
 - layout.tsx
@@ -55,10 +54,10 @@
 4. `scripts` - 11 edges
 5. `ContractMockTests` - 10 edges
 6. `ParkMatch NYC — Initial Frontend Direction` - 10 edges
-7. `Issue #8 handoff — frontend walking skeleton` - 10 edges
-8. `Development pipeline — nyc-events` - 9 edges
-9. `verify_csv_reference()` - 7 edges
-10. `include` - 7 edges
+7. `Development pipeline — nyc-events` - 9 edges
+8. `verify_csv_reference()` - 7 edges
+9. `include` - 7 edges
+10. `Core screens` - 7 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `getNext7Days()` --calls--> `getUpcomingDates()`  [EXTRACTED]
@@ -69,7 +68,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (38 total, 15 thin omitted)
+## Communities (37 total, 15 thin omitted)
 
 ### Community 0 - "Development pipeline — nyc-events"
 Cohesion: 0.14
@@ -127,10 +126,6 @@ Nodes (13): 419495f4-0ca6-4d45-b6e3-43e1e35536d5 implementation handoff, Assets 
 Cohesion: 0.09
 Nodes (23): @axe-core/playwright, eslint, eslint-config-next, devDependencies, @axe-core/playwright, eslint, eslint-config-next, jsdom (+15 more)
 
-### Community 26 - "Issue #8 handoff — frontend walking skeleton"
-Cohesion: 0.18
-Nodes (10): Acceptance criteria status, Codex auth evidence (historical before user login; resolved 2026-08-15), Current stop condition, Implementation and audit work (complete), Issue #8 handoff — frontend walking skeleton, Latest local gates, Open Design evidence, Ownership (+2 more)
-
 ### Community 27 - "include"
 Cohesion: 0.20
 Nodes (9): exclude, include, **/*.mts, .next/dev/types/**/*.ts, next-env.d.ts, .next/types/**/*.ts, node_modules, **/*.ts (+1 more)
@@ -140,7 +135,7 @@ Cohesion: 0.50
 Nodes (3): Deploy on Vercel, Getting Started, Learn More
 
 ## Knowledge Gaps
-- **158 isolated node(s):** `DayInfo`, `DAY_NAMES`, `categories`, `boroughs`, `ListMapToggleProps` (+153 more)
+- **149 isolated node(s):** `DayInfo`, `DAY_NAMES`, `categories`, `boroughs`, `ListMapToggleProps` (+144 more)
   These have ≤1 connection - possible missing edges or undocumented components.
 - **15 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -148,13 +143,13 @@ Nodes (3): Deploy on Vercel, Getting Started, Learn More
 _Questions this graph is uniquely positioned to answer:_
 
 - **Why does `ParkMatch NYC — Initial Frontend Direction` connect `ParkMatch NYC — Initial Frontend Direction` to `Core screens`?**
-  _High betweenness centrality (0.021) - this node is a cross-community bridge._
+  _High betweenness centrality (0.022) - this node is a cross-community bridge._
 - **Why does `Core screens` connect `Core screens` to `ParkMatch NYC — Initial Frontend Direction`?**
-  _High betweenness centrality (0.016) - this node is a cross-community bridge._
+  _High betweenness centrality (0.017) - this node is a cross-community bridge._
 - **Why does `devDependencies` connect `devDependencies` to `scripts`?**
-  _High betweenness centrality (0.015) - this node is a cross-community bridge._
+  _High betweenness centrality (0.016) - this node is a cross-community bridge._
 - **What connects `DayInfo`, `DAY_NAMES`, `categories` to the rest of the system?**
-  _158 weakly-connected nodes found - possible documentation gaps or missing edges._
+  _149 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Development pipeline — nyc-events` be split into smaller, more focused modules?**
   _Cohesion score 0.14285714285714285 - nodes in this community are weakly interconnected._
 - **Should `page.tsx` be split into smaller, more focused modules?**
