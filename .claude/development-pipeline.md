@@ -28,24 +28,48 @@ The repo contains only specification and design artifacts:
   - `frontend/FRONTEND_CONCEPT.md` — consensus frontend direction (mobile-first,
     list-first explorer with optional map, grounded NL search, explicit unknown
     states, official-detail handoffs).
-  - `frontend/nyc-events-mvp-v2.html` — Open Design export, primary entry and
-    the visual contract; `frontend/nyc-events-mvp.html` is the second screen and
+  - `frontend/nyc-events-mvp-v2.html` — Open Design export, primary entry;
+    `frontend/nyc-events-mvp.html` is the second screen and
     `frontend/nyc-events-mvp-preview.png` the render.
   - `frontend/DESIGN-HANDOFF.md` and `frontend/DESIGN-MANIFEST.json` define
-    tokens, responsive matrix, and the screen/module map. Treat these as binding
-    for UI work.
+    tokens, responsive matrix, and the screen/module map.
+
+  **These are sketches, not a contract** (`docs/adr/0007`). Their visual
+  direction carries forward — colour, type hierarchy, card layout, the List/Map
+  toggle, bottom navigation. Their markup and hand-rolled state machine do not.
+  `DESIGN-MANIFEST.json` asserts "Preserve visual hierarchy, responsive behavior,
+  and interactive states" and a one-file-per-screen policy; that clause is
+  **overridden** and must not be treated as binding. It was emitted by a design
+  export tool, not authored as a decision.
 
   The original `nyc-events-frontend-prototype.zip` was removed once its five
   files were confirmed byte-identical to the tracked copies above.
 
+## Stack — decided 2026-08-15
+
+Chosen in a `/grill-with-docs` session; each decision has an ADR in `docs/adr/`.
+`CONTEXT.md` at the repo root is the glossary and binds terminology in code,
+issues, and PRs.
+
+- **Backend**: Python FastAPI, `uv`, Alembic. **Frontend**: Next.js. Separate
+  deployables (`0001`).
+- **Hosting**: Railway — Postgres, Redis, API service, sync worker (`0003`).
+  Cloudflare is DNS/CDN/R2 only; it sells no managed Postgres.
+- **Auth**: Clerk, over anonymous device profiles that may be claimed (`0004`).
+- **Concierge**: `deepagents` inside FastAPI, two tools, no interpreter (`0008`),
+  on OpenRouter `nvidia/nemotron-3.5-lightning:free` with
+  `deepseek/deepseek-v4-flash-0731` as fallback.
+
 ## Gate commands
 
-- **Env**: none provisioned. There is no `package.json`, no venv, no lockfile, no
-  `node_modules`. Stack is not yet chosen — `HANDOFF.md` / `frontend/FRONTEND_CONCEPT.md`
-  imply a web front end plus an API-sync backend, but nothing is committed.
-- **Unit tests**: NOT DEFINED. No test runner is installed or configured.
-- **Regressions**: NOT DEFINED. No e2e/Playwright suite exists.
-- **Build**: NOT DEFINED. No build script.
+- **Env**: not yet provisioned in-tree. No `backend/`, no `frontend/package.json`,
+  no lockfile. The stack above is decided but uncreated — the scaffold issues
+  stand it up.
+- **Unit tests**: `cd backend && uv run pytest -v`. **No test may reach the
+  network** (`docs/adr/0005`); fixtures live in `backend/tests/fixtures/`.
+- **Build**: `cd frontend && npm run build`.
+- **Regressions**: Playwright MCP UAT, from the first UI issue onward, at both a
+  phone and a desktop viewport.
 
 ## Code graph
 
@@ -94,30 +118,113 @@ freshness yet.
 
 ## CI
 
-**There is none.** No `.github/workflows/` directory, and `main` has **no branch
-protection** (`protection.enabled: false`, zero required contexts, verified
-2026-08-15).
+`.github/workflows/ci.yml` defines three jobs. **These names are referenced by
+branch protection — renaming a job silently removes a required check.**
 
-**Fail-closed consequence — read before running the worker here.** §9 of the
-skill requires every *required* check to succeed on the final PR head. This repo
-currently has zero required checks, so "all required checks green" is vacuously
-true and the merge gate provides no protection. Until real CI exists, the first
-issue that touches implementation MUST stand up the four named jobs (`unit`,
-`regressions`, `code-graph` where applicable, `build`) per pipeline §8.8, and
-branch protection should then be enabled on `main`. Do not treat an absent
-workflow as a passing gate.
+- `backend` — `uv sync --frozen` then `uv run pytest -v` in `backend/`.
+- `frontend` — `npm ci`, `npm test --if-present`, `npm run build` in `frontend/`.
+- `secrets` — fails if `.env` is tracked or a Socrata credential is hardcoded.
 
-## Issue map (2026-08-15)
+`backend` and `frontend` each begin with a probe step and **pass trivially when
+their directory does not yet exist**. This is deliberate: protection is enabled
+on `main` before the code exists, so without the probe the PR that first creates
+`backend/` would be blocked by the absence of the thing it is creating. The
+checks start enforcing the moment there is something to run.
 
-- **#2** — train-line map overlays and nearby event discovery (`enhancement`).
-- **#3** — Google Maps with count-scaled location markers (`enhancement`).
+Playwright UAT is not in the gate yet. It joins with the first UI issue, per
+`CLAUDE.md`'s completion requirement — there is nothing to drive before then.
 
-There is no master-spec/umbrella issue to exclude. Both open issues are UI
-features that presuppose an application shell that does not yet exist — verify
-the prerequisite scaffolding before selecting either, and hand off rather than
-silently expanding scope to build the whole app.
+**Branch protection status**: see the Issue map below. Until it is enabled,
+"all required checks green" is vacuously true and the worker's §9 merge gate
+provides no protection. Do not treat an absent or unenforced workflow as a
+passing gate.
+
+## Parallel development lanes
+
+Work runs as **two concurrent agent sessions in separate git worktrees** off this
+repository. See `docs/adr/0009-issues-carry-a-lane-label.md` for the decision;
+this section is the operational detail.
+
+### Claiming work
+
+Every issue carries exactly one of three labels. A session claims only its own:
+
+| Label | Tree it may touch | Concurrency |
+|---|---|---|
+| `backend` | `backend/` | runs alongside `frontend` |
+| `frontend` | `frontend/` | runs alongside `backend` |
+| `fullstack` | both | **serializes — nothing else in flight** |
+
+An unlabelled issue is not claimable. Label it first, or hand off.
+
+### Worktree setup
+
+```bash
+git worktree add ../nyc-events-backend  -b <branch>   # backend session
+git worktree add ../nyc-events-frontend -b <branch>   # frontend session
+```
+
+**`.env` does not follow a worktree.** It is untracked, so a new worktree starts
+without it and every Socrata call fails with a confusing auth error rather than a
+missing-file error. Copy it in before the backend session starts:
+
+```bash
+cp /Users/nicholaspate/Documents/projects/nyc-events/.env ../nyc-events-backend/.env
+```
+
+Never commit it; `secrets` in CI fails the PR if it is tracked.
+
+### Conflict hazards
+
+- **Alembic migrations.** Two branches each adding a revision produce two heads
+  and a merge that appears clean but leaves the schema unapplied. Only the
+  `backend` lane writes migrations; before opening a PR that adds one, confirm
+  `alembic heads` reports exactly one.
+- **Shared root files** — `CONTEXT.md`, `docs/adr/`, `.github/`, `.claude/`,
+  `README`. These belong to neither lane. Change them in their own PR, never
+  bundled into a feature branch, or the two worktrees collide on the files whose
+  conflicts are hardest to resolve correctly.
+- **`graphify-out/graph.json`** is covered by the `merge=graphify` union driver
+  declared in `.gitattributes`, so concurrent rebuilds merge rather than conflict.
+  The driver must be registered in each worktree's git config — re-run
+  `graphify hook install` there if a merge on that file ever conflicts.
+- **Lockfiles** (`uv.lock`, `frontend/package-lock.json`) are lane-scoped and
+  safe, given the directory split holds.
+
+### The contract that makes this parallel at all
+
+The frontend lane cannot build against an API that does not exist. Publishing the
+OpenAPI schema and a mock server **early** — before the endpoints are
+implemented — is what lets both lanes run from the start instead of the frontend
+idling through the entire backend sequence. Treat that contract issue as a
+prerequisite, not a nicety: without it the two-worktree setup buys nothing until
+the backend is essentially finished.
+
+## Issue map
+
+**Labels available**: `backend` (#0E8A16), `frontend` (#1D76DB),
+`fullstack` (#5319E7). Created 2026-08-15. An issue without one of these is not
+claimable by either session.
+
+- **#2** — train-line map overlays and nearby event discovery. Needs a lane label
+  (`fullstack` — nearest-station distance is computed server-side per
+  `docs/adr/0006`) and it presupposes both the map and the API. Late in the order.
+- **#3** — Google Maps with count-scaled location markers. Needs `frontend`.
+  Depends on the events API existing or being mocked.
+
+Neither is claimable yet: both presuppose an application shell that does not
+exist. Do not expand either into "build the whole app" — hand off instead.
+
+The full sequence they belong to is in
+`~/.claude/plans/concurrent-hugging-flamingo.md`, ordered
+ETL → sync → DB/API → list+detail UI → profiles/interests/push → map+subway →
+concierge.
+
+**Branch protection**: not yet enabled on `main` (`protection.enabled: false`,
+zero required contexts as of 2026-08-15). Enabling it with `backend`, `frontend`,
+and `secrets` required is the first issue in the sequence.
 
 ---
 
-**Update this file** once the stack, test runner, and CI workflow land; the
-worker's §6 gate suite is unusable here until then.
+**Update this file** when branch protection lands, when `backend/` and
+`frontend/` are scaffolded, and whenever a new ADR changes a fact recorded here.

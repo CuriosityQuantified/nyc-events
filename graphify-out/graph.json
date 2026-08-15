@@ -18,7 +18,7 @@
       "label": "CI",
       "file_type": "document",
       "source_file": ".claude/development-pipeline.md",
-      "source_location": "L95",
+      "source_location": "L119",
       "_origin": "ast",
       "id": "claude_development_pipeline_ci",
       "community": 0,
@@ -26,15 +26,37 @@
       "norm_label": "ci"
     },
     {
+      "label": "Claiming work",
+      "file_type": "document",
+      "source_file": ".claude/development-pipeline.md",
+      "source_location": "L148",
+      "_origin": "ast",
+      "id": "claude_development_pipeline_claiming_work",
+      "community": 0,
+      "community_name": "Development pipeline \u2014 nyc-events",
+      "norm_label": "claiming work"
+    },
+    {
       "label": "Code graph",
       "file_type": "document",
       "source_file": ".claude/development-pipeline.md",
-      "source_location": "L50",
+      "source_location": "L74",
       "_origin": "ast",
       "id": "claude_development_pipeline_code_graph",
       "community": 0,
       "community_name": "Development pipeline \u2014 nyc-events",
       "norm_label": "code graph"
+    },
+    {
+      "label": "Conflict hazards",
+      "file_type": "document",
+      "source_file": ".claude/development-pipeline.md",
+      "source_location": "L177",
+      "_origin": "ast",
+      "id": "claude_development_pipeline_conflict_hazards",
+      "community": 0,
+      "community_name": "Development pipeline \u2014 nyc-events",
+      "norm_label": "conflict hazards"
     },
     {
       "label": "Current state \u2014 NO application code yet",
@@ -62,7 +84,7 @@
       "label": "Gate commands",
       "file_type": "document",
       "source_file": ".claude/development-pipeline.md",
-      "source_location": "L41",
+      "source_location": "L63",
       "_origin": "ast",
       "id": "claude_development_pipeline_gate_commands",
       "community": 0,
@@ -81,15 +103,59 @@
       "norm_label": "identity"
     },
     {
-      "label": "Issue map (2026-08-15)",
+      "label": "Issue map",
       "file_type": "document",
       "source_file": ".claude/development-pipeline.md",
-      "source_location": "L110",
+      "source_location": "L203",
       "_origin": "ast",
-      "id": "claude_development_pipeline_issue_map_2026_08_15",
+      "id": "claude_development_pipeline_issue_map",
       "community": 0,
       "community_name": "Development pipeline \u2014 nyc-events",
-      "norm_label": "issue map (2026-08-15)"
+      "norm_label": "issue map"
+    },
+    {
+      "label": "Parallel development lanes",
+      "file_type": "document",
+      "source_file": ".claude/development-pipeline.md",
+      "source_location": "L142",
+      "_origin": "ast",
+      "id": "claude_development_pipeline_parallel_development_lanes",
+      "community": 0,
+      "community_name": "Development pipeline \u2014 nyc-events",
+      "norm_label": "parallel development lanes"
+    },
+    {
+      "label": "Stack \u2014 decided 2026-08-15",
+      "file_type": "document",
+      "source_file": ".claude/development-pipeline.md",
+      "source_location": "L48",
+      "_origin": "ast",
+      "id": "claude_development_pipeline_stack_decided_2026_08_15",
+      "community": 0,
+      "community_name": "Development pipeline \u2014 nyc-events",
+      "norm_label": "stack \u2014 decided 2026-08-15"
+    },
+    {
+      "label": "The contract that makes this parallel at all",
+      "file_type": "document",
+      "source_file": ".claude/development-pipeline.md",
+      "source_location": "L194",
+      "_origin": "ast",
+      "id": "claude_development_pipeline_the_contract_that_makes_this_parallel_at_all",
+      "community": 0,
+      "community_name": "Development pipeline \u2014 nyc-events",
+      "norm_label": "the contract that makes this parallel at all"
+    },
+    {
+      "label": "Worktree setup",
+      "file_type": "document",
+      "source_file": ".claude/development-pipeline.md",
+      "source_location": "L160",
+      "_origin": "ast",
+      "id": "claude_development_pipeline_worktree_setup",
+      "community": 0,
+      "community_name": "Development pipeline \u2014 nyc-events",
+      "norm_label": "worktree setup"
     },
     {
       "label": "Accessibility baseline",
@@ -257,6 +323,204 @@
       "norm_label": "visual direction"
     },
     {
+      "label": "0001-split-backend-and-frontend.md",
+      "file_type": "document",
+      "source_file": "docs/adr/0001-split-backend-and-frontend.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_adr_0001_split_backend_and_frontend",
+      "community": 10,
+      "community_name": "0001-split-backend-and-frontend.md",
+      "norm_label": "0001-split-backend-and-frontend.md"
+    },
+    {
+      "label": "Split FastAPI backend and Next.js frontend",
+      "file_type": "document",
+      "source_file": "docs/adr/0001-split-backend-and-frontend.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_adr_0001_split_backend_and_frontend_split_fastapi_backend_and_next_js_frontend",
+      "community": 10,
+      "community_name": "0001-split-backend-and-frontend.md",
+      "norm_label": "split fastapi backend and next.js frontend"
+    },
+    {
+      "label": "0002-event-identity-is-the-source-guid.md",
+      "file_type": "document",
+      "source_file": "docs/adr/0002-event-identity-is-the-source-guid.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_adr_0002_event_identity_is_the_source_guid",
+      "community": 11,
+      "community_name": "0002-event-identity-is-the-source-guid.md",
+      "norm_label": "0002-event-identity-is-the-source-guid.md"
+    },
+    {
+      "label": "An Event is exactly one source row",
+      "file_type": "document",
+      "source_file": "docs/adr/0002-event-identity-is-the-source-guid.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_adr_0002_event_identity_is_the_source_guid_an_event_is_exactly_one_source_row",
+      "community": 11,
+      "community_name": "0002-event-identity-is-the-source-guid.md",
+      "norm_label": "an event is exactly one source row"
+    },
+    {
+      "label": "0003-railway-hosts-everything.md",
+      "file_type": "document",
+      "source_file": "docs/adr/0003-railway-hosts-everything.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_adr_0003_railway_hosts_everything",
+      "community": 12,
+      "community_name": "0003-railway-hosts-everything.md",
+      "norm_label": "0003-railway-hosts-everything.md"
+    },
+    {
+      "label": "Railway hosts Postgres, Redis, and both services",
+      "file_type": "document",
+      "source_file": "docs/adr/0003-railway-hosts-everything.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_adr_0003_railway_hosts_everything_railway_hosts_postgres_redis_and_both_services",
+      "community": 12,
+      "community_name": "0003-railway-hosts-everything.md",
+      "norm_label": "railway hosts postgres, redis, and both services"
+    },
+    {
+      "label": "0004-anonymous-profiles-with-optional-account-claim.md",
+      "file_type": "document",
+      "source_file": "docs/adr/0004-anonymous-profiles-with-optional-account-claim.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_adr_0004_anonymous_profiles_with_optional_account_claim",
+      "community": 13,
+      "community_name": "0004-anonymous-profiles-with-optional-account-claim.md",
+      "norm_label": "0004-anonymous-profiles-with-optional-account-claim.md"
+    },
+    {
+      "label": "Profiles start anonymous and may be claimed",
+      "file_type": "document",
+      "source_file": "docs/adr/0004-anonymous-profiles-with-optional-account-claim.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_adr_0004_anonymous_profiles_with_optional_account_claim_profiles_start_anonymous_and_may_be_claimed",
+      "community": 13,
+      "community_name": "0004-anonymous-profiles-with-optional-account-claim.md",
+      "norm_label": "profiles start anonymous and may be claimed"
+    },
+    {
+      "label": "0005-tests-never-call-the-live-api.md",
+      "file_type": "document",
+      "source_file": "docs/adr/0005-tests-never-call-the-live-api.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_adr_0005_tests_never_call_the_live_api",
+      "community": 14,
+      "community_name": "0005-tests-never-call-the-live-api.md",
+      "norm_label": "0005-tests-never-call-the-live-api.md"
+    },
+    {
+      "label": "Tests run against fixtures, never the live feed",
+      "file_type": "document",
+      "source_file": "docs/adr/0005-tests-never-call-the-live-api.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_adr_0005_tests_never_call_the_live_api_tests_run_against_fixtures_never_the_live_feed",
+      "community": 14,
+      "community_name": "0005-tests-never-call-the-live-api.md",
+      "norm_label": "tests run against fixtures, never the live feed"
+    },
+    {
+      "label": "0006-distance-is-straight-line-only.md",
+      "file_type": "document",
+      "source_file": "docs/adr/0006-distance-is-straight-line-only.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_adr_0006_distance_is_straight_line_only",
+      "community": 15,
+      "community_name": "0006-distance-is-straight-line-only.md",
+      "norm_label": "0006-distance-is-straight-line-only.md"
+    },
+    {
+      "label": "Distances are straight-line, never travel time",
+      "file_type": "document",
+      "source_file": "docs/adr/0006-distance-is-straight-line-only.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_adr_0006_distance_is_straight_line_only_distances_are_straight_line_never_travel_time",
+      "community": 15,
+      "community_name": "0006-distance-is-straight-line-only.md",
+      "norm_label": "distances are straight-line, never travel time"
+    },
+    {
+      "label": "0007-html-prototype-is-a-sketch.md",
+      "file_type": "document",
+      "source_file": "docs/adr/0007-html-prototype-is-a-sketch.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_adr_0007_html_prototype_is_a_sketch",
+      "community": 16,
+      "community_name": "0007-html-prototype-is-a-sketch.md",
+      "norm_label": "0007-html-prototype-is-a-sketch.md"
+    },
+    {
+      "label": "The HTML prototype is a sketch, not a contract",
+      "file_type": "document",
+      "source_file": "docs/adr/0007-html-prototype-is-a-sketch.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_adr_0007_html_prototype_is_a_sketch_the_html_prototype_is_a_sketch_not_a_contract",
+      "community": 16,
+      "community_name": "0007-html-prototype-is-a-sketch.md",
+      "norm_label": "the html prototype is a sketch, not a contract"
+    },
+    {
+      "label": "0008-concierge-tool-surface-is-narrow.md",
+      "file_type": "document",
+      "source_file": "docs/adr/0008-concierge-tool-surface-is-narrow.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_adr_0008_concierge_tool_surface_is_narrow",
+      "community": 17,
+      "community_name": "0008-concierge-tool-surface-is-narrow.md",
+      "norm_label": "0008-concierge-tool-surface-is-narrow.md"
+    },
+    {
+      "label": "The concierge gets two tools and no interpreter",
+      "file_type": "document",
+      "source_file": "docs/adr/0008-concierge-tool-surface-is-narrow.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_adr_0008_concierge_tool_surface_is_narrow_the_concierge_gets_two_tools_and_no_interpreter",
+      "community": 17,
+      "community_name": "0008-concierge-tool-surface-is-narrow.md",
+      "norm_label": "the concierge gets two tools and no interpreter"
+    },
+    {
+      "label": "0009-issues-carry-a-lane-label.md",
+      "file_type": "document",
+      "source_file": "docs/adr/0009-issues-carry-a-lane-label.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_adr_0009_issues_carry_a_lane_label",
+      "community": 18,
+      "community_name": "0009-issues-carry-a-lane-label.md",
+      "norm_label": "0009-issues-carry-a-lane-label.md"
+    },
+    {
+      "label": "Every issue carries exactly one lane label",
+      "file_type": "document",
+      "source_file": "docs/adr/0009-issues-carry-a-lane-label.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "docs_adr_0009_issues_carry_a_lane_label_every_issue_carries_exactly_one_lane_label",
+      "community": 18,
+      "community_name": "0009-issues-carry-a-lane-label.md",
+      "norm_label": "every issue carries exactly one lane label"
+    },
+    {
       "label": "1. Discover",
       "file_type": "document",
       "source_file": "frontend/FRONTEND_CONCEPT.md",
@@ -268,15 +532,15 @@
       "norm_label": "1. discover"
     },
     {
-      "label": "2. Results explorer",
+      "label": "3. Map view",
       "file_type": "document",
       "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L85",
+      "source_location": "L158",
       "_origin": "ast",
-      "id": "frontend_frontend_concept_2_results_explorer",
+      "id": "frontend_frontend_concept_3_map_view",
       "community": 2,
       "community_name": "Core screens",
-      "norm_label": "2. results explorer"
+      "norm_label": "3. map view"
     },
     {
       "label": "4. Event detail",
@@ -345,28 +609,6 @@
       "norm_label": "detail sections"
     },
     {
-      "label": "Event cards",
-      "file_type": "document",
-      "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L89",
-      "_origin": "ast",
-      "id": "frontend_frontend_concept_event_cards",
-      "community": 2,
-      "community_name": "Core screens",
-      "norm_label": "event cards"
-    },
-    {
-      "label": "Filters",
-      "file_type": "document",
-      "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L121",
-      "_origin": "ast",
-      "id": "frontend_frontend_concept_filters",
-      "community": 2,
-      "community_name": "Core screens",
-      "norm_label": "filters"
-    },
-    {
       "label": "Flow",
       "file_type": "document",
       "source_file": "frontend/FRONTEND_CONCEPT.md",
@@ -376,6 +618,17 @@
       "community": 2,
       "community_name": "Core screens",
       "norm_label": "flow"
+    },
+    {
+      "label": "Location identity",
+      "file_type": "document",
+      "source_file": "frontend/FRONTEND_CONCEPT.md",
+      "source_location": "L164",
+      "_origin": "ast",
+      "id": "frontend_frontend_concept_location_identity",
+      "community": 2,
+      "community_name": "Core screens",
+      "norm_label": "location identity"
     },
     {
       "label": "Main elements",
@@ -389,6 +642,28 @@
       "norm_label": "main elements"
     },
     {
+      "label": "Marker sizing",
+      "file_type": "document",
+      "source_file": "frontend/FRONTEND_CONCEPT.md",
+      "source_location": "L170",
+      "_origin": "ast",
+      "id": "frontend_frontend_concept_marker_sizing",
+      "community": 2,
+      "community_name": "Core screens",
+      "norm_label": "marker sizing"
+    },
+    {
+      "label": "Required behavior",
+      "file_type": "document",
+      "source_file": "frontend/FRONTEND_CONCEPT.md",
+      "source_location": "L174",
+      "_origin": "ast",
+      "id": "frontend_frontend_concept_required_behavior",
+      "community": 2,
+      "community_name": "Core screens",
+      "norm_label": "required behavior"
+    },
+    {
       "label": "Saved view",
       "file_type": "document",
       "source_file": "frontend/FRONTEND_CONCEPT.md",
@@ -398,28 +673,6 @@
       "community": 2,
       "community_name": "Core screens",
       "norm_label": "saved view"
-    },
-    {
-      "label": "Shareable state",
-      "file_type": "document",
-      "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L149",
-      "_origin": "ast",
-      "id": "frontend_frontend_concept_shareable_state",
-      "community": 2,
-      "community_name": "Core screens",
-      "norm_label": "shareable state"
-    },
-    {
-      "label": "Sort options",
-      "file_type": "document",
-      "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L138",
-      "_origin": "ast",
-      "id": "frontend_frontend_concept_sort_options",
-      "community": 2,
-      "community_name": "Core screens",
-      "norm_label": "sort options"
     },
     {
       "label": "FRONTEND_CONCEPT.md",
@@ -785,6 +1038,72 @@
       "norm_label": "styles"
     },
     {
+      "label": "CONTEXT.md",
+      "file_type": "document",
+      "source_file": "CONTEXT.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "context",
+      "community": 6,
+      "community_name": "Language",
+      "norm_label": "context.md"
+    },
+    {
+      "label": "EventMatch NYC",
+      "file_type": "document",
+      "source_file": "CONTEXT.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "context_eventmatch_nyc",
+      "community": 6,
+      "community_name": "Language",
+      "norm_label": "eventmatch nyc"
+    },
+    {
+      "label": "Language",
+      "file_type": "document",
+      "source_file": "CONTEXT.md",
+      "source_location": "L5",
+      "_origin": "ast",
+      "id": "context_language",
+      "community": 6,
+      "community_name": "Language",
+      "norm_label": "language"
+    },
+    {
+      "label": "People and their lists",
+      "file_type": "document",
+      "source_file": "CONTEXT.md",
+      "source_location": "L26",
+      "_origin": "ast",
+      "id": "context_people_and_their_lists",
+      "community": 6,
+      "community_name": "Language",
+      "norm_label": "people and their lists"
+    },
+    {
+      "label": "Provenance",
+      "file_type": "document",
+      "source_file": "CONTEXT.md",
+      "source_location": "L42",
+      "_origin": "ast",
+      "id": "context_provenance",
+      "community": 6,
+      "community_name": "Language",
+      "norm_label": "provenance"
+    },
+    {
+      "label": "Source data",
+      "file_type": "document",
+      "source_file": "CONTEXT.md",
+      "source_location": "L7",
+      "_origin": "ast",
+      "id": "context_source_data",
+      "community": 6,
+      "community_name": "Language",
+      "norm_label": "source data"
+    },
+    {
       "label": "CLAUDE.md",
       "file_type": "document",
       "source_file": "CLAUDE.md",
@@ -807,48 +1126,114 @@
       "norm_label": "graphify"
     },
     {
-      "label": "3. Map view",
+      "label": "2. Results explorer",
       "file_type": "document",
       "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L158",
+      "source_location": "L85",
       "_origin": "ast",
-      "id": "frontend_frontend_concept_3_map_view",
+      "id": "frontend_frontend_concept_2_results_explorer",
       "community": 8,
-      "community_name": "3. Map view",
-      "norm_label": "3. map view"
+      "community_name": "2. Results explorer",
+      "norm_label": "2. results explorer"
     },
     {
-      "label": "Location identity",
+      "label": "Event cards",
       "file_type": "document",
       "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L164",
+      "source_location": "L89",
       "_origin": "ast",
-      "id": "frontend_frontend_concept_location_identity",
+      "id": "frontend_frontend_concept_event_cards",
       "community": 8,
-      "community_name": "3. Map view",
-      "norm_label": "location identity"
+      "community_name": "2. Results explorer",
+      "norm_label": "event cards"
     },
     {
-      "label": "Marker sizing",
+      "label": "Filters",
       "file_type": "document",
       "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L170",
+      "source_location": "L121",
       "_origin": "ast",
-      "id": "frontend_frontend_concept_marker_sizing",
+      "id": "frontend_frontend_concept_filters",
       "community": 8,
-      "community_name": "3. Map view",
-      "norm_label": "marker sizing"
+      "community_name": "2. Results explorer",
+      "norm_label": "filters"
     },
     {
-      "label": "Required behavior",
+      "label": "Shareable state",
       "file_type": "document",
       "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L174",
+      "source_location": "L149",
       "_origin": "ast",
-      "id": "frontend_frontend_concept_required_behavior",
+      "id": "frontend_frontend_concept_shareable_state",
       "community": 8,
-      "community_name": "3. Map view",
-      "norm_label": "required behavior"
+      "community_name": "2. Results explorer",
+      "norm_label": "shareable state"
+    },
+    {
+      "label": "Sort options",
+      "file_type": "document",
+      "source_file": "frontend/FRONTEND_CONCEPT.md",
+      "source_location": "L138",
+      "_origin": "ast",
+      "id": "frontend_frontend_concept_sort_options",
+      "community": 8,
+      "community_name": "2. Results explorer",
+      "norm_label": "sort options"
+    },
+    {
+      "label": "pull_request_template.md",
+      "file_type": "document",
+      "source_file": ".github/pull_request_template.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "github_pull_request_template",
+      "community": 9,
+      "community_name": "pull_request_template.md",
+      "norm_label": "pull_request_template.md"
+    },
+    {
+      "label": "Checks",
+      "file_type": "document",
+      "source_file": ".github/pull_request_template.md",
+      "source_location": "L15",
+      "_origin": "ast",
+      "id": "github_pull_request_template_checks",
+      "community": 9,
+      "community_name": "pull_request_template.md",
+      "norm_label": "checks"
+    },
+    {
+      "label": "Lane",
+      "file_type": "document",
+      "source_file": ".github/pull_request_template.md",
+      "source_location": "L5",
+      "_origin": "ast",
+      "id": "github_pull_request_template_lane",
+      "community": 9,
+      "community_name": "pull_request_template.md",
+      "norm_label": "lane"
+    },
+    {
+      "label": "Verification",
+      "file_type": "document",
+      "source_file": ".github/pull_request_template.md",
+      "source_location": "L25",
+      "_origin": "ast",
+      "id": "github_pull_request_template_verification",
+      "community": 9,
+      "community_name": "pull_request_template.md",
+      "norm_label": "verification"
+    },
+    {
+      "label": "What and why",
+      "file_type": "document",
+      "source_file": ".github/pull_request_template.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "github_pull_request_template_what_and_why",
+      "community": 9,
+      "community_name": "pull_request_template.md",
+      "norm_label": "what and why"
     }
   ],
   "links": [
@@ -878,11 +1263,22 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": ".claude/development-pipeline.md",
-      "source_location": "L110",
+      "source_location": "L119",
       "weight": 1.0,
       "_origin": "ast",
       "source": "claude_development_pipeline_development_pipeline_nyc_events",
-      "target": "claude_development_pipeline_issue_map_2026_08_15",
+      "target": "claude_development_pipeline_ci",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/development-pipeline.md",
+      "source_location": "L142",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "claude_development_pipeline_development_pipeline_nyc_events",
+      "target": "claude_development_pipeline_parallel_development_lanes",
       "confidence_score": 1.0
     },
     {
@@ -900,6 +1296,17 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": ".claude/development-pipeline.md",
+      "source_location": "L203",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "claude_development_pipeline_development_pipeline_nyc_events",
+      "target": "claude_development_pipeline_issue_map",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/development-pipeline.md",
       "source_location": "L21",
       "weight": 1.0,
       "_origin": "ast",
@@ -911,7 +1318,18 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": ".claude/development-pipeline.md",
-      "source_location": "L41",
+      "source_location": "L48",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "claude_development_pipeline_development_pipeline_nyc_events",
+      "target": "claude_development_pipeline_stack_decided_2026_08_15",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/development-pipeline.md",
+      "source_location": "L63",
       "weight": 1.0,
       "_origin": "ast",
       "source": "claude_development_pipeline_development_pipeline_nyc_events",
@@ -922,7 +1340,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": ".claude/development-pipeline.md",
-      "source_location": "L50",
+      "source_location": "L74",
       "weight": 1.0,
       "_origin": "ast",
       "source": "claude_development_pipeline_development_pipeline_nyc_events",
@@ -933,11 +1351,198 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": ".claude/development-pipeline.md",
-      "source_location": "L95",
+      "source_location": "L148",
       "weight": 1.0,
       "_origin": "ast",
-      "source": "claude_development_pipeline_development_pipeline_nyc_events",
-      "target": "claude_development_pipeline_ci",
+      "source": "claude_development_pipeline_parallel_development_lanes",
+      "target": "claude_development_pipeline_claiming_work",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/development-pipeline.md",
+      "source_location": "L160",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "claude_development_pipeline_parallel_development_lanes",
+      "target": "claude_development_pipeline_worktree_setup",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/development-pipeline.md",
+      "source_location": "L177",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "claude_development_pipeline_parallel_development_lanes",
+      "target": "claude_development_pipeline_conflict_hazards",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".claude/development-pipeline.md",
+      "source_location": "L194",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "claude_development_pipeline_parallel_development_lanes",
+      "target": "claude_development_pipeline_the_contract_that_makes_this_parallel_at_all",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CONTEXT.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "context",
+      "target": "context_eventmatch_nyc",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CONTEXT.md",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "context_eventmatch_nyc",
+      "target": "context_language",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CONTEXT.md",
+      "source_location": "L26",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "context_language",
+      "target": "context_people_and_their_lists",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CONTEXT.md",
+      "source_location": "L42",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "context_language",
+      "target": "context_provenance",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "CONTEXT.md",
+      "source_location": "L7",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "context_language",
+      "target": "context_source_data",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/adr/0001-split-backend-and-frontend.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_adr_0001_split_backend_and_frontend",
+      "target": "docs_adr_0001_split_backend_and_frontend_split_fastapi_backend_and_next_js_frontend",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/adr/0002-event-identity-is-the-source-guid.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_adr_0002_event_identity_is_the_source_guid",
+      "target": "docs_adr_0002_event_identity_is_the_source_guid_an_event_is_exactly_one_source_row",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/adr/0003-railway-hosts-everything.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_adr_0003_railway_hosts_everything",
+      "target": "docs_adr_0003_railway_hosts_everything_railway_hosts_postgres_redis_and_both_services",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/adr/0004-anonymous-profiles-with-optional-account-claim.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_adr_0004_anonymous_profiles_with_optional_account_claim",
+      "target": "docs_adr_0004_anonymous_profiles_with_optional_account_claim_profiles_start_anonymous_and_may_be_claimed",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/adr/0005-tests-never-call-the-live-api.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_adr_0005_tests_never_call_the_live_api",
+      "target": "docs_adr_0005_tests_never_call_the_live_api_tests_run_against_fixtures_never_the_live_feed",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/adr/0006-distance-is-straight-line-only.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_adr_0006_distance_is_straight_line_only",
+      "target": "docs_adr_0006_distance_is_straight_line_only_distances_are_straight_line_never_travel_time",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/adr/0007-html-prototype-is-a-sketch.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_adr_0007_html_prototype_is_a_sketch",
+      "target": "docs_adr_0007_html_prototype_is_a_sketch_the_html_prototype_is_a_sketch_not_a_contract",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/adr/0008-concierge-tool-surface-is-narrow.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_adr_0008_concierge_tool_surface_is_narrow",
+      "target": "docs_adr_0008_concierge_tool_surface_is_narrow_the_concierge_gets_two_tools_and_no_interpreter",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "docs/adr/0009-issues-carry-a-lane-label.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "docs_adr_0009_issues_carry_a_lane_label",
+      "target": "docs_adr_0009_issues_carry_a_lane_label_every_issue_carries_exactly_one_lane_label",
       "confidence_score": 1.0
     },
     {
@@ -1460,6 +2065,50 @@
     {
       "relation": "contains",
       "confidence": "EXTRACTED",
+      "source_file": ".github/pull_request_template.md",
+      "source_location": "L1",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "github_pull_request_template",
+      "target": "github_pull_request_template_what_and_why",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".github/pull_request_template.md",
+      "source_location": "L15",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "github_pull_request_template",
+      "target": "github_pull_request_template_checks",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".github/pull_request_template.md",
+      "source_location": "L25",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "github_pull_request_template",
+      "target": "github_pull_request_template_verification",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": ".github/pull_request_template.md",
+      "source_location": "L5",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "github_pull_request_template",
+      "target": "github_pull_request_template_lane",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
       "source_file": "HANDOFF.md",
       "source_location": "L1",
       "weight": 1.0,
@@ -1657,5 +2306,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "4a88df7c3900b5204143630c45a84655d315f95d"
+  "built_at_commit": "720fb5128f3572478c82d2413910b0c2624b6b15"
 }

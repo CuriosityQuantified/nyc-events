@@ -1,0 +1,84 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# Job names are referenced by branch protection on main. Renaming a job
+# silently removes a required check — update the protection rule too.
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # These checks are required on main from before backend/ exists, so the
+      # PR that first creates it is not blocked by its own absence. See
+      # docs/adr/0005-tests-never-call-the-live-api.md for why no test here
+      # is permitted to reach the network.
+      - id: probe
+        run: |
+          if [ -d backend ]; then echo "present=true" >> "$GITHUB_OUTPUT"
+          else echo "present=false" >> "$GITHUB_OUTPUT"; echo "backend/ absent — nothing to test yet"; fi
+
+      - uses: astral-sh/setup-uv@v5
+        if: steps.probe.outputs.present == 'true'
+
+      - name: Install
+        if: steps.probe.outputs.present == 'true'
+        working-directory: backend
+        run: uv sync --frozen
+
+      - name: Test
+        if: steps.probe.outputs.present == 'true'
+        working-directory: backend
+        run: uv run pytest -v
+
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: probe
+        run: |
+          if [ -f frontend/package.json ]; then echo "present=true" >> "$GITHUB_OUTPUT"
+          else echo "present=false" >> "$GITHUB_OUTPUT"; echo "no frontend/package.json — nothing to build yet"; fi
+
+      - uses: actions/setup-node@v4
+        if: steps.probe.outputs.present == 'true'
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install
+        if: steps.probe.outputs.present == 'true'
+        working-directory: frontend
+        run: npm ci
+
+      - name: Test
+        if: steps.probe.outputs.present == 'true'
+        working-directory: frontend
+        run: npm test --if-present
+
+      - name: Build
+        if: steps.probe.outputs.present == 'true'
+        working-directory: frontend
+        run: npm run build
+
+  secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Block committed credentials
+        run: |
+          if git ls-files --error-unmatch .env 2>/dev/null; then
+            echo "::error::.env is tracked — it must never be committed"; exit 1
+          fi
+          if git grep -nIE 'SOCRATA_(API_KEY_SECRET|APP_TOKEN)[[:space:]]*=[[:space:]]*[^[:space:]$]' -- ':!*.example' ':!.github/*'; then
+            echo "::error::a Socrata credential appears to be hardcoded"; exit 1
+          fi
+          echo "no credentials found in tracked files"
