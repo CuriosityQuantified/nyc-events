@@ -1,4 +1,4 @@
-# ParkMatch NYC — Initial Frontend Direction
+# EventMatch NYC — Initial Frontend Direction
 
 ## Consensus basis
 
@@ -16,7 +16,7 @@ The core user journey is:
 
 > **Describe an outing → filter trustworthy options → inspect official details → save/share a plan → verify before attending**
 
-ParkMatch should help users answer:
+EventMatch should help users answer:
 
 - What is happening?
 - When and where?
@@ -30,7 +30,7 @@ ParkMatch should help users answer:
 
 ### Desktop
 
-- Header with ParkMatch NYC branding
+- Header with EventMatch NYC branding
 - Prominent natural-language search
 - Date and location shortcuts
 - Main split workspace:
@@ -226,7 +226,7 @@ The detail page is the canonical decision and verification screen.
 Every important field should distinguish among:
 
 - **Stated by NYC Parks**
-- **Derived by ParkMatch**
+- **Derived by EventMatch**
 - **Not listed**
 - **Requires verification**
 
