@@ -14,9 +14,13 @@ Last verified: 2026-08-15.
 
 ## Identity
 
-- **Repo path**: `/Users/nicholaspate/Documents/projects/nyc-events`
+- **Main/coordinator path**: `/Users/halgorithm/workspaces/AI/nyc-events-repo`
   (remote `https://github.com/CuriosityQuantified/nyc-events`, private, `main`).
-- **Commit identity**: `CuriosityQuantified <nicholas.pate1320@gmail.com>`.
+- **Backend worktree**: `/Users/halgorithm/workspaces/AI/nyc-events-backend`
+  on persistent branch `backend`.
+- **Frontend worktree**: `/Users/halgorithm/workspaces/AI/nyc-events-frontend`
+  on persistent branch `frontend`.
+- **Commit identity**: `CuriosityQuantified <curiosityquantified@gmail.com>`.
 
 ## Current state — NO application code yet
 
@@ -76,8 +80,8 @@ issues, and PRs.
 graphify 0.9.43, installed 2026-08-15 via `uv tool install "graphifyy[mcp]"`
 (PyPI package is **`graphifyy`**, double-y; the CLI is `graphify`, at
 `~/.local/bin/graphify`). Rebuild with `graphify update .` (AST-only, no LLM, no
-API cost); stage `graphify-out/` with the commit. There is no CI check enforcing
-freshness yet.
+API cost); stage `graphify-out/` with the commit. The required `graph` CI job
+rebuilds with graphify 0.9.43 and fails on any tracked-output drift.
 
 - **Freshness gate — do NOT compare `GRAPH_REPORT.md`'s `Built from commit:`
   line to `git rev-parse HEAD`.** graphify deliberately leaves outputs untouched
@@ -118,11 +122,12 @@ freshness yet.
 
 ## CI
 
-`.github/workflows/ci.yml` defines three jobs. **These names are referenced by
+`.github/workflows/ci.yml` defines four jobs. **These names are referenced by
 branch protection — renaming a job silently removes a required check.**
 
 - `backend` — `uv sync --frozen` then `uv run pytest -v` in `backend/`.
 - `frontend` — `npm ci`, `npm test --if-present`, `npm run build` in `frontend/`.
+- `graph` — rebuilds graphify and fails if any tracked knowledge-graph output drifts.
 - `secrets` — fails if `.env` is tracked or a Socrata credential is hardcoded.
 
 `backend` and `frontend` each begin with a probe step and **pass trivially when
@@ -134,10 +139,9 @@ checks start enforcing the moment there is something to run.
 Playwright UAT is not in the gate yet. It joins with the first UI issue, per
 `CLAUDE.md`'s completion requirement — there is nothing to drive before then.
 
-**Branch protection status**: see the Issue map below. Until it is enabled,
-"all required checks green" is vacuously true and the worker's §9 merge gate
-provides no protection. Do not treat an absent or unenforced workflow as a
-passing gate.
+**Branch protection status**: enabled on `main`. Pull requests are required and
+the strict required contexts are `backend`, `frontend`, `graph`, and `secrets`.
+Missing, skipped, cancelled, or stale-head checks are not green.
 
 ## Parallel development lanes
 
@@ -157,19 +161,51 @@ Every issue carries exactly one of three labels. A session claims only its own:
 
 An unlabelled issue is not claimable. Label it first, or hand off.
 
+Only issues numbered **#6 or higher** are in the autonomous queue. #5 is the
+umbrella spec and #2/#3 are legacy requests superseded by the numbered delivery
+sequence. A worker also requires `ready-for-agent`, verifies every issue under
+`## Blocked by` is closed, and adds `in-progress` before implementation.
+
+Three isolated cron workers enforce this routing:
+
+| Worker | Job ID | Schedule | Checkout |
+|---|---|---|---|
+| Fullstack | `eccd0c5aebdf` | `10 0,4,8,12,16,20 * * *` | coordinator creates a throwaway worktree |
+| Backend | `045d186768ad` | `40 0,4,8,12,16,20 * * *` | persistent `backend` worktree |
+| Frontend | `f042c1b2752c` | `10 1,5,9,13,17,21 * * *` | persistent `frontend` worktree |
+
+The fullstack worker runs first in each cycle. Backend/frontend workers refuse
+new claims while a fullstack issue is `in-progress`; the fullstack worker refuses
+claims while any issue/PR or lane-ahead work exists. Every worker owns a separate
+Claude Code process, session, task/result files, and checkout.
+
 ### Worktree setup
 
 ```bash
-git worktree add ../nyc-events-backend  -b <branch>   # backend session
-git worktree add ../nyc-events-frontend -b <branch>   # frontend session
+git worktree add /Users/halgorithm/workspaces/AI/nyc-events-backend  backend
+git worktree add /Users/halgorithm/workspaces/AI/nyc-events-frontend frontend
 ```
+
+`backend` and `frontend` are long-lived lane branches, not per-ticket feature
+branches. Each lane handles one issue and one PR at a time. A lane PR must use a
+**merge commit** (`gh pr merge --merge`) and must not delete, squash, rebase, or
+force-push the persistent branch. After merge, that worktree fetches and runs
+`git merge --ff-only origin/main`, then pushes the aligned lane branch before
+claiming another issue. A non-fast-forward is a blocker requiring review.
+
+`fullstack` uses neither persistent lane branch. For each fullstack issue, create
+`feat/<issue>-<slug>` from `origin/main` in a temporary
+`/Users/halgorithm/workspaces/AI/nyc-events-fullstack-<issue>` worktree. It may
+start only when no lane issue or PR is in flight. After green CI, squash-merge,
+delete the remote branch, remove the worktree, and delete the local branch.
 
 **`.env` does not follow a worktree.** It is untracked, so a new worktree starts
 without it and every Socrata call fails with a confusing auth error rather than a
 missing-file error. Copy it in before the backend session starts:
 
 ```bash
-cp /Users/nicholaspate/Documents/projects/nyc-events/.env ../nyc-events-backend/.env
+cp /Users/halgorithm/workspaces/AI/nyc-events/.env \
+  /Users/halgorithm/workspaces/AI/nyc-events-backend/.env
 ```
 
 Never commit it; `secrets` in CI fails the PR if it is tracked.
@@ -220,9 +256,8 @@ The full sequence they belong to is in
 ETL → sync → DB/API → list+detail UI → profiles/interests/push → map+subway →
 concierge.
 
-**Branch protection**: not yet enabled on `main` (`protection.enabled: false`,
-zero required contexts as of 2026-08-15). Enabling it with `backend`, `frontend`,
-and `secrets` required is the first issue in the sequence.
+**Branch protection**: enabled on `main`; PRs and the strict `backend`,
+`frontend`, `graph`, and `secrets` contexts are required.
 
 ---
 
