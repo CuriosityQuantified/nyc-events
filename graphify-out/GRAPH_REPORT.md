@@ -1,4 +1,4 @@
-# Graph Report - nyc-events-frontend  (2026-08-15)
+# Graph Report - nyc-events  (2026-08-15)
 
 ## Corpus Check
 - 66 files · ~32,206 words
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `233e65f2`
+- Built from commit: `92d42f71`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
