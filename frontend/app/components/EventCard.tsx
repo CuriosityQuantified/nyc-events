@@ -40,7 +40,7 @@ export default function EventCard({ event }: EventCardProps) {
       </div>
       <div className={styles.content}>
         <p className={styles.category}>{event.category}</p>
-        <h3 className={styles.title}>{event.title}</h3>
+        <h2 className={styles.title}>{event.title}</h2>
         <div className={styles.meta}>
           <p className={styles.metaItem}>
             <span className={styles.metaIcon} aria-hidden="true">

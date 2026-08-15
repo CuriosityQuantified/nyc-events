@@ -22,11 +22,11 @@ export default function Home() {
       <DesktopSidebar />
       <div className={styles.mainArea}>
         <Header />
-        <SearchBar />
-        <FilterChips />
-        <DateStrip />
-        <ListMapToggle activeView={view} onViewChange={setView} />
-        <main>
+        <main className={styles.mainContent}>
+          <SearchBar />
+          <FilterChips />
+          <DateStrip />
+          <ListMapToggle activeView={view} onViewChange={setView} />
           {view === "list" ? (
             <section
               className={styles.eventList}

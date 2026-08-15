@@ -1,4 +1,23 @@
 import { test, expect } from "@playwright/test";
+import type { Locator } from "@playwright/test";
+import AxeBuilder from "@axe-core/playwright";
+
+type AuditedPage = Record<string, string[]>;
+
+async function expectInViewport(locator: Locator) {
+  const intersects = await locator.evaluate((element) => {
+    const box = element.getBoundingClientRect();
+    return (
+      box.width > 0 &&
+      box.height > 0 &&
+      box.right > 0 &&
+      box.bottom > 0 &&
+      box.left < window.innerWidth &&
+      box.top < window.innerHeight
+    );
+  });
+  expect(intersects).toBe(true);
+}
 
 test.describe("ParkMatch NYC Walking Skeleton", () => {
   test.beforeEach(async ({ page }) => {
@@ -16,13 +35,23 @@ test.describe("ParkMatch NYC Walking Skeleton", () => {
 
     await page.goto("/");
 
-    // Store errors for later assertions
-    (page as unknown as Record<string, string[]>).__consoleErrors = consoleErrors;
+    // Store errors for assertions after every journey.
+    (page as unknown as AuditedPage).__consoleErrors = consoleErrors;
+  });
+
+  test.afterEach(async ({ page }) => {
+    const errors = (page as unknown as AuditedPage).__consoleErrors ?? [];
+    expect(errors, "console and page errors").toEqual([]);
   });
 
   test("page loads without uncaught exceptions", async ({ page }) => {
-    const errors = (page as unknown as Record<string, string[]>).__consoleErrors;
+    const errors = (page as unknown as AuditedPage).__consoleErrors;
     expect(errors).toEqual([]);
+  });
+
+  test("has no automatically detectable accessibility violations", async ({ page }) => {
+    const results = await new AxeBuilder({ page }).analyze();
+    expect(results.violations).toEqual([]);
   });
 
   test("header with ParkMatch text is visible", async ({ page }) => {
@@ -72,6 +101,45 @@ test.describe("ParkMatch NYC Walking Skeleton", () => {
     await listButton.click();
     await expect(eventList).toBeVisible();
     await expect(mapPlaceholder).not.toBeVisible();
+  });
+
+  test("list/map toggle works with the keyboard", async ({ page }) => {
+    const toggle = page.getByTestId("list-map-toggle");
+    const mapButton = toggle.getByRole("button", { name: "Map" });
+    const listButton = toggle.getByRole("button", { name: "List" });
+
+    await mapButton.focus();
+    await page.keyboard.press("Enter");
+    await expect(mapButton).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByTestId("map-placeholder")).toBeVisible();
+
+    await listButton.focus();
+    await page.keyboard.press("Space");
+    await expect(listButton).toHaveAttribute("aria-pressed", "true");
+    await expect(page.getByTestId("event-list")).toBeVisible();
+  });
+
+  test("key shell controls intersect the viewport and screenshot cleanly", async ({ page }, testInfo) => {
+    const header = page.getByTestId("header");
+    const toggle = page.getByTestId("list-map-toggle");
+    await toggle.scrollIntoViewIfNeeded();
+
+    await expectInViewport(header);
+    await expectInViewport(toggle);
+
+    await testInfo.attach(`${testInfo.project.name}-list-viewport`, {
+      body: await page.screenshot({ fullPage: false }),
+      contentType: "image/png",
+    });
+
+    await toggle.getByRole("button", { name: "Map" }).click();
+    const map = page.getByTestId("map-placeholder");
+    await map.scrollIntoViewIfNeeded();
+    await expectInViewport(map);
+    await testInfo.attach(`${testInfo.project.name}-map-viewport`, {
+      body: await page.screenshot({ fullPage: false }),
+      contentType: "image/png",
+    });
   });
 
   test("no horizontal overflow at current viewport", async ({ page }) => {

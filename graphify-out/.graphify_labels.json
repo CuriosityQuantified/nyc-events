@@ -1,10 +1,10 @@
 {
   "0": "Development pipeline — nyc-events",
   "1": "page.tsx",
-  "2": "events.ts",
+  "2": "Core screens",
   "3": "NYC Events — Handoff Document",
   "4": "ContractMockTests",
-  "5": "Core screens",
+  "5": "ParkMatch NYC — Initial Frontend Direction",
   "6": "Language",
   "7": "CLAUDE.md",
   "8": "scripts",
@@ -23,9 +23,9 @@
   "21": "contracts/__init__.py",
   "22": "tests/__init__.py",
   "23": "compilerOptions",
-  "24": "ParkMatch NYC — Initial Frontend Direction",
+  "24": "419495f4-0ca6-4d45-b6e3-43e1e35536d5 implementation handoff",
   "25": "devDependencies",
-  "26": "419495f4-0ca6-4d45-b6e3-43e1e35536d5 implementation handoff",
+  "26": "Issue #8 handoff — frontend walking skeleton",
   "27": "include",
   "28": "frontend/README.md",
   "29": "layout.tsx",
@@ -34,5 +34,6 @@
   "32": "next.config.ts",
   "33": "frontend/CLAUDE.md",
   "34": "shell.spec.ts",
-  "35": "playwright.config.ts"
+  "35": "playwright.config.ts",
+  "36": "vitest.config.mts"
 }
