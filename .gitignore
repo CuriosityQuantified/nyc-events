@@ -2,9 +2,6 @@
 .env.*
 !.env.example
 
-# Local design archive (contents committed under design/)
-nyc-events-frontend-prototype.zip
-
 # graphify: machine-local hook paths (re-create with `graphify claude install`)
 .claude/settings.local.json
 

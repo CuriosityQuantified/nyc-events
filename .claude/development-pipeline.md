@@ -24,18 +24,24 @@ The repo contains only specification and design artifacts:
 
 - `HANDOFF.md` — product concept, NYC Parks "Upcoming 14 Days" data source,
   sync/ingestion requirements. Binds as the project spec.
-- `FRONTEND_CONCEPT.md` — consensus frontend direction (mobile-first, list-first
-  explorer with optional map, grounded NL search, explicit unknown states,
-  official-detail handoffs).
-- `design/` — Open Design export. `design/nyc-events-mvp-v2.html` is the primary
-  entry and the visual contract; `design/DESIGN-HANDOFF.md` and
-  `design/DESIGN-MANIFEST.json` define tokens, responsive matrix, and the
-  screen/module map. Treat these as binding for UI work.
+- `frontend/` — all frontend artifacts, consolidated here 2026-08-15:
+  - `frontend/FRONTEND_CONCEPT.md` — consensus frontend direction (mobile-first,
+    list-first explorer with optional map, grounded NL search, explicit unknown
+    states, official-detail handoffs).
+  - `frontend/nyc-events-mvp-v2.html` — Open Design export, primary entry and
+    the visual contract; `frontend/nyc-events-mvp.html` is the second screen and
+    `frontend/nyc-events-mvp-preview.png` the render.
+  - `frontend/DESIGN-HANDOFF.md` and `frontend/DESIGN-MANIFEST.json` define
+    tokens, responsive matrix, and the screen/module map. Treat these as binding
+    for UI work.
+
+  The original `nyc-events-frontend-prototype.zip` was removed once its five
+  files were confirmed byte-identical to the tracked copies above.
 
 ## Gate commands
 
 - **Env**: none provisioned. There is no `package.json`, no venv, no lockfile, no
-  `node_modules`. Stack is not yet chosen — `HANDOFF.md` / `FRONTEND_CONCEPT.md`
+  `node_modules`. Stack is not yet chosen — `HANDOFF.md` / `frontend/FRONTEND_CONCEPT.md`
   imply a web front end plus an API-sync backend, but nothing is committed.
 - **Unit tests**: NOT DEFINED. No test runner is installed or configured.
 - **Regressions**: NOT DEFINED. No e2e/Playwright suite exists.
