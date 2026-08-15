@@ -231,10 +231,7 @@ Important rules:
 ### Event exploration
 
 - Google Maps JavaScript API and list views using the same filtered result set
-- One circular marker per distinct valid event location, with same-location events aggregated into a numeric count
-- A bounded, monotonically increasing marker size based on the number of filtered events at that location
-- Marker details that expose every filtered event at the location; viewport clustering must remain distinct from same-location aggregation
-- Accessible location/count labels and a list equivalent for events with or without valid coordinates
+- Per-location aggregation, count-scaled advanced markers, and accessible marker/list interactions implemented exactly as defined in [`FRONTEND_CONCEPT.md` § Map view](./FRONTEND_CONCEPT.md#3-map-view), which is authoritative for location identity, coordinate validity, sizing, and marker behavior
 - Park selection with a 14-day event timeline
 - Event detail page
 - Date and time filters
@@ -337,9 +334,10 @@ The first implementation is complete when:
 - It displays the last successful synchronization time.
 - It detects at least one new or changed event between two snapshots.
 - It filters events by date, category, and registration state.
-- It renders one Google Maps marker per distinct valid filtered location, aggregates same-location events, and increases marker size as the count grows.
-- Map marker counts, marker details, and list results remain synchronized after every filter change; events without coordinates remain available in the list.
+- It satisfies every requirement in the authoritative [`FRONTEND_CONCEPT.md` § Map view](./FRONTEND_CONCEPT.md#3-map-view), including exact location identity, the 16–48px sizing formula, `AdvancedMarkerElement`, keyboard activation, and the `(0, 0)` guard.
+- Unit tests cover location grouping, conflicting IDs/coordinates, repeated and multiple event locations, invalid coordinates, `(0, 0)`, accessible labels, and strict bounded marker-size growth.
+- Integration tests verify that every filter change keeps marker presence, count, size, details, and keyboard-accessible list results synchronized.
 - AI responses cite/link the underlying official event records.
 - No credential appears in browser code, logs, commits, or generated social content.
 
-For Google Maps, use a dedicated browser key restricted to approved HTTP referrers and the Maps JavaScript API. Do not reuse it for server-side APIs or unrelated applications.
+Google Maps configuration uses `GOOGLE_MAPS_BROWSER_API_KEY` and `GOOGLE_MAPS_MAP_ID`. Document both without values. The dedicated browser key must be restricted to approved HTTP referrers and the Maps JavaScript API and must not be reused for server-side APIs or unrelated applications.

@@ -159,7 +159,17 @@ Search, filters, sort order, and view should be represented in the URL so users 
 
 The map should answer spatial questions without becoming the product’s authority.
 
-Use the **Google Maps JavaScript API** as the interactive map provider. The browser key must be limited to the app’s approved HTTP referrers and restricted to the Maps JavaScript API; use separate keys for other environments or server-side Google APIs.
+Use the **Google Maps JavaScript API** as the interactive map provider. Read `GOOGLE_MAPS_BROWSER_API_KEY` and `GOOGLE_MAPS_MAP_ID` from environment configuration and map them to the framework’s client-visible convention at build/runtime. The browser key is expected to reach the browser, so it must be limited to the app’s approved HTTP referrers and restricted to the Maps JavaScript API. Use separate keys for local, preview, production, and server-side Google APIs; never commit their values.
+
+#### Location identity
+
+A valid map position contains finite numbers with latitude from `-90` through `90` and longitude from `-180` through `180`, excluding `(0, 0)`. Normalize each valid coordinate to six decimal places; this removes formatting differences without treating nearby positions as identical.
+
+Build the location key from `stable source location ID + normalized latitude + normalized longitude` when the source ID exists, otherwise from `normalized latitude + normalized longitude`. Display names are not identity keys. Different source IDs remain distinct, and conflicting coordinates under one source ID remain distinct unless an explicit canonical-location mapping resolves them. Repeated copies of the same location within one event count once.
+
+#### Marker sizing
+
+For `n >= 1` filtered events at a location, set the visible circular dot diameter to `min(48, 16 + 6 × log2(n))` CSS pixels. This gives one event a 16px dot, grows strictly with each additional event until reaching the 48px maximum, and then remains capped. The interactive target must still be at least 44px. Show the numeric count whenever `n > 1`; size and color are supplemental encodings only.
 
 #### Required behavior
 
@@ -168,18 +178,17 @@ Use the **Google Maps JavaScript API** as the interactive map provider. The brow
 - Selecting a marker highlights and scrolls to its list card
 - Render one circular location marker for every distinct valid event location in the filtered result set
 - Aggregate events that share a location into one marker; its event count and accessible label must update whenever filters change
-- Increase marker diameter monotonically as the location’s event count grows, using a bounded scale so high-volume locations remain usable; do not encode the count by area or color alone
+- Apply the defined count-to-diameter formula without substituting a different scale
 - Show the numeric event count on markers containing multiple events
 - Opening a marker shows every filtered event at that location, without silently dropping recurring occurrences
 - Keep location aggregation separate from viewport clustering: aggregation combines the same physical location, while optional clustering only reduces overlap among nearby locations at low zoom
-- Use stable source location identifiers when available and valid coordinates as the map position; do not merge merely nearby but distinct locations
 - Support an event with multiple valid locations at each location while deduplicating repeated coordinates within the same event
-- Keep events without valid coordinates in the accessible list and clearly label them as unavailable on the map
+- Keep events without valid coordinates in the accessible list and clearly label them as unavailable on the map; never create a fallback `(0, 0)` marker
 - Provide **Search this area** after the user pans
 - Preserve list access on mobile and for assistive technology
 - Show whether a pin is exact or approximate
 
-Use Google Maps advanced markers (or accessible custom marker content) rather than legacy markers. Each location marker must expose the location name and event count to assistive technology and meet the 44px minimum interactive target even when its visual dot is smaller.
+Use `AdvancedMarkerElement`, with the accessible custom HTML circle as that advanced marker’s content; never use legacy `google.maps.Marker`. Every marker must expose the location name and event count, be keyboard focusable, and activate with standard Enter/Space behavior. Preserve an equivalent list interaction and the 44px minimum interactive target even when the visual dot is smaller.
 
 The app should not imply walking time, transit time, or exact meeting points unless those facts come from a verified source.
 
