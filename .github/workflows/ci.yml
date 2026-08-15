@@ -76,17 +76,48 @@ jobs:
   graph:
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          # PR merge refs have a synthetic commit and produce platform-specific
+          # graph metadata. Rebuild the actual head branch instead.
+          ref: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
+          fetch-depth: 0
 
       - uses: astral-sh/setup-uv@v5
 
       - name: Install graphify
         run: uv tool install "graphifyy[mcp]==0.9.43"
 
+      - name: Rebuild committed knowledge graph
+        run: graphify update .
+
+      - name: Commit canonical Linux graph when a repository PR is stale
+        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        run: |
+          if git diff --quiet -- \
+            graphify-out/graph.json \
+            graphify-out/graph.html \
+            graphify-out/GRAPH_REPORT.md \
+            graphify-out/.graphify_labels.json \
+            graphify-out/.graphify_labels.json.sig \
+            graphify-out/.graphify_root; then
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add graphify-out/graph.json graphify-out/graph.html \
+            graphify-out/GRAPH_REPORT.md graphify-out/.graphify_labels.json \
+            graphify-out/.graphify_labels.json.sig graphify-out/.graphify_root
+          git commit -m "chore: rebuild the code knowledge graph"
+          git push origin "HEAD:${{ github.head_ref }}"
+          echo "::error::Graph outputs were stale and have been rebuilt; verify the new head run"
+          exit 1
+
       - name: Verify committed knowledge graph is fresh
         run: |
-          graphify update .
           git diff --exit-code -- \
             graphify-out/graph.json \
             graphify-out/graph.html \
