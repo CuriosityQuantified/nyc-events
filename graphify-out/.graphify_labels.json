@@ -22,7 +22,7 @@
   "20": "EventMatch NYC API contract",
   "21": "contracts/__init__.py",
   "22": "tests/__init__.py",
-  "23": "get_settings",
+  "23": "env.py",
   "24": "load_fixture",
   "25": "TestHealthEndpoint",
   "26": "client",
