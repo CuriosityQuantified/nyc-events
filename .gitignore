@@ -5,10 +5,6 @@
 # Local design archive (contents committed under design/)
 nyc-events-frontend-prototype.zip
 
-# Skill-suite source: tooling, not project content.
-# Installed to ~/.claude/skills — excluded so it stays out of the graphify graph.
-claude-code-issue-worker-skill-suite/
-
 # graphify: machine-local hook paths (re-create with `graphify claude install`)
 .claude/settings.local.json
 
