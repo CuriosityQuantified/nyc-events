@@ -159,16 +159,27 @@ Search, filters, sort order, and view should be represented in the URL so users 
 
 The map should answer spatial questions without becoming the product’s authority.
 
+Use the **Google Maps JavaScript API** as the interactive map provider. The browser key must be limited to the app’s approved HTTP referrers and restricted to the Maps JavaScript API; use separate keys for other environments or server-side Google APIs.
+
 #### Required behavior
 
 - List and map use the same filters and results
 - Selecting a list item highlights its marker
 - Selecting a marker highlights and scrolls to its list card
-- Cluster markers when necessary
-- Show event counts clearly
+- Render one circular location marker for every distinct valid event location in the filtered result set
+- Aggregate events that share a location into one marker; its event count and accessible label must update whenever filters change
+- Increase marker diameter monotonically as the location’s event count grows, using a bounded scale so high-volume locations remain usable; do not encode the count by area or color alone
+- Show the numeric event count on markers containing multiple events
+- Opening a marker shows every filtered event at that location, without silently dropping recurring occurrences
+- Keep location aggregation separate from viewport clustering: aggregation combines the same physical location, while optional clustering only reduces overlap among nearby locations at low zoom
+- Use stable source location identifiers when available and valid coordinates as the map position; do not merge merely nearby but distinct locations
+- Support an event with multiple valid locations at each location while deduplicating repeated coordinates within the same event
+- Keep events without valid coordinates in the accessible list and clearly label them as unavailable on the map
 - Provide **Search this area** after the user pans
 - Preserve list access on mobile and for assistive technology
 - Show whether a pin is exact or approximate
+
+Use Google Maps advanced markers (or accessible custom marker content) rather than legacy markers. Each location marker must expose the location name and event count to assistive technology and meet the 44px minimum interactive target even when its visual dot is smaller.
 
 The app should not imply walking time, transit time, or exact meeting points unless those facts come from a verified source.
 
@@ -350,7 +361,7 @@ Use:
 1. Discover/search screen
 2. List-first results
 3. Date, borough, category, registration, explicit-free, and accessibility-information filters
-4. Basic map/list toggle
+4. Google Maps JavaScript API map/list toggle with per-location, count-scaled event markers
 5. Event detail pages
 6. Official links and source freshness
 7. Explicit unknown/stale/outage states
