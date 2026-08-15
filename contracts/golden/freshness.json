@@ -1,0 +1,5 @@
+{
+  "last_successful_sync": {"value": "2026-08-09T00:00:04-04:00", "provenance": "Derived", "raw": "CSV reference snapshot dated 2026-08-09"},
+  "snapshot_row_count": {"value": 1757, "provenance": "Derived", "raw": "1,757 unique guid values in the committed verification snapshot"},
+  "is_stale": {"value": true, "provenance": "Derived", "raw": "Static contract fixture; not a live Sync Run"}
+}

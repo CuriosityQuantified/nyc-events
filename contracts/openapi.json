@@ -1,0 +1,244 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "EventMatch NYC API contract",
+    "version": "0.1.0",
+    "description": "The shared contract for Event discovery. NYC Parks source facts and EventMatch-derived values remain explicitly distinguishable."
+  },
+  "servers": [{"url": "http://127.0.0.1:4010"}],
+  "paths": {
+    "/events": {
+      "get": {
+        "operationId": "listEvents",
+        "summary": "List Events and compose Facet filters",
+        "parameters": [
+          {"$ref": "#/components/parameters/BoroughFacet"},
+          {"$ref": "#/components/parameters/CategoryFacet"},
+          {"$ref": "#/components/parameters/RegistrationFacet"},
+          {"$ref": "#/components/parameters/LocationFacet"},
+          {"$ref": "#/components/parameters/DateFrom"},
+          {"$ref": "#/components/parameters/DateTo"},
+          {"$ref": "#/components/parameters/Page"},
+          {"$ref": "#/components/parameters/PageSize"}
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of Events",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/EventListResponse"}}}
+          },
+          "400": {
+            "description": "A query parameter is invalid",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
+          }
+        },
+        "x-golden-response": "golden/events-list.json"
+      }
+    },
+    "/events/{guid}": {
+      "get": {
+        "operationId": "getEvent",
+        "summary": "Retrieve one Event by its source guid",
+        "parameters": [{"name": "guid", "in": "path", "required": true, "schema": {"type": "string", "minLength": 1}}],
+        "responses": {
+          "200": {
+            "description": "One Event",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Event"}}}
+          },
+          "404": {
+            "description": "No Event has that source guid",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/Error"}}}
+          }
+        },
+        "x-golden-response": "golden/event-detail.json"
+      }
+    },
+    "/freshness": {
+      "get": {
+        "operationId": "getFreshness",
+        "summary": "Report the last successful Sync Run and current Snapshot freshness",
+        "responses": {
+          "200": {
+            "description": "Snapshot freshness",
+            "content": {"application/json": {"schema": {"$ref": "#/components/schemas/FreshnessResponse"}}}
+          }
+        },
+        "x-golden-response": "golden/freshness.json"
+      }
+    }
+  },
+  "components": {
+    "parameters": {
+      "BoroughFacet": {"name": "borough", "in": "query", "description": "Filter by borough Facet.", "schema": {"type": "string"}},
+      "CategoryFacet": {"name": "category", "in": "query", "description": "Filter by category Facet.", "schema": {"type": "string"}},
+      "RegistrationFacet": {"name": "registration", "in": "query", "description": "Filter by registration-state Facet.", "schema": {"type": "string", "enum": ["required", "not_required", "closed", "not_listed"]}},
+      "LocationFacet": {"name": "location", "in": "query", "description": "Filter by stable source Location identifier.", "schema": {"type": "string"}},
+      "DateFrom": {"name": "date_from", "in": "query", "description": "Include Events on or after this date.", "schema": {"type": "string", "format": "date"}},
+      "DateTo": {"name": "date_to", "in": "query", "description": "Include Events on or before this date.", "schema": {"type": "string", "format": "date"}},
+      "Page": {"name": "page", "in": "query", "schema": {"type": "integer", "minimum": 1, "default": 1}},
+      "PageSize": {"name": "page_size", "in": "query", "schema": {"type": "integer", "minimum": 1, "maximum": 100, "default": 20}}
+    },
+    "schemas": {
+      "Provenance": {"type": "string", "enum": ["Stated", "Derived", "Not listed"]},
+      "TextFact": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["value", "provenance"],
+        "properties": {
+          "value": {"type": ["string", "null"]},
+          "provenance": {"$ref": "#/components/schemas/Provenance"},
+          "raw": {"type": ["string", "null"]}
+        },
+        "allOf": [{"if": {"properties": {"provenance": {"const": "Not listed"}}}, "then": {"properties": {"value": {"type": "null"}}}}]
+      },
+      "DateFact": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["value", "provenance"],
+        "properties": {
+          "value": {"oneOf": [{"type": "string", "format": "date"}, {"type": "null"}]},
+          "provenance": {"$ref": "#/components/schemas/Provenance"},
+          "raw": {"type": ["string", "null"]}
+        },
+        "allOf": [{"if": {"properties": {"provenance": {"const": "Not listed"}}}, "then": {"properties": {"value": {"type": "null"}}}}]
+      },
+      "DateTimeFact": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["value", "provenance"],
+        "properties": {
+          "value": {"oneOf": [{"type": "string", "format": "date-time"}, {"type": "null"}]},
+          "provenance": {"$ref": "#/components/schemas/Provenance"},
+          "raw": {"type": ["string", "null"]}
+        },
+        "allOf": [{"if": {"properties": {"provenance": {"const": "Not listed"}}}, "then": {"properties": {"value": {"type": "null"}}}}]
+      },
+      "UriFact": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["value", "provenance"],
+        "properties": {
+          "value": {"oneOf": [{"type": "string", "format": "uri", "pattern": "^https?://"}, {"type": "null"}]},
+          "provenance": {"$ref": "#/components/schemas/Provenance"},
+          "raw": {"type": ["string", "null"]}
+        },
+        "allOf": [{"if": {"properties": {"provenance": {"const": "Not listed"}}}, "then": {"properties": {"value": {"type": "null"}}}}]
+      },
+      "RegistrationFact": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["value", "provenance"],
+        "properties": {
+          "value": {"oneOf": [{"type": "string", "enum": ["required", "not_required", "closed"]}, {"type": "null"}]},
+          "provenance": {"$ref": "#/components/schemas/Provenance"},
+          "raw": {"type": ["string", "null"]}
+        },
+        "allOf": [{"if": {"properties": {"provenance": {"const": "Not listed"}}}, "then": {"properties": {"value": {"type": "null"}}}}]
+      },
+      "BooleanFact": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["value", "provenance"],
+        "properties": {
+          "value": {"type": ["boolean", "null"]},
+          "provenance": {"$ref": "#/components/schemas/Provenance"},
+          "raw": {"type": ["string", "null"]}
+        },
+        "allOf": [{"if": {"properties": {"provenance": {"const": "Not listed"}}}, "then": {"properties": {"value": {"type": "null"}}}}]
+      },
+      "IntegerFact": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["value", "provenance"],
+        "properties": {
+          "value": {"type": ["integer", "null"]},
+          "provenance": {"$ref": "#/components/schemas/Provenance"},
+          "raw": {"type": ["string", "null"]}
+        },
+        "allOf": [{"if": {"properties": {"provenance": {"const": "Not listed"}}}, "then": {"properties": {"value": {"type": "null"}}}}]
+      },
+      "StringListFact": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["value", "provenance"],
+        "properties": {
+          "value": {"oneOf": [{"type": "array", "items": {"type": "string"}, "uniqueItems": true}, {"type": "null"}]},
+          "provenance": {"$ref": "#/components/schemas/Provenance"},
+          "raw": {"type": ["string", "null"]}
+        },
+        "allOf": [{"if": {"properties": {"provenance": {"const": "Not listed"}}}, "then": {"properties": {"value": {"type": "null"}}}}]
+      },
+      "Coordinate": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["latitude", "longitude"],
+        "properties": {
+          "latitude": {"type": "number", "minimum": -90, "maximum": 90},
+          "longitude": {"type": "number", "minimum": -180, "maximum": 180}
+        }
+      },
+      "CoordinateListFact": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["value", "provenance"],
+        "properties": {
+          "value": {"oneOf": [{"type": "array", "items": {"$ref": "#/components/schemas/Coordinate"}}, {"type": "null"}]},
+          "provenance": {"$ref": "#/components/schemas/Provenance"},
+          "raw": {"type": ["string", "null"]}
+        },
+        "allOf": [{"if": {"properties": {"provenance": {"const": "Not listed"}}}, "then": {"properties": {"value": {"type": "null"}}}}]
+      },
+      "Event": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["guid", "title", "description", "official_event_url", "location_id", "location_name", "start_date", "end_date", "start_datetime", "end_datetime", "categories", "coordinates", "borough", "registration_status", "registration_description", "is_free_explicit", "accessibility_mentioned"],
+        "properties": {
+          "guid": {"type": "string", "minLength": 1, "description": "The source row identity."},
+          "title": {"$ref": "#/components/schemas/TextFact"},
+          "description": {"$ref": "#/components/schemas/TextFact"},
+          "official_event_url": {"$ref": "#/components/schemas/UriFact"},
+          "location_id": {"$ref": "#/components/schemas/TextFact"},
+          "location_name": {"$ref": "#/components/schemas/TextFact"},
+          "start_date": {"$ref": "#/components/schemas/DateFact"},
+          "end_date": {"$ref": "#/components/schemas/DateFact"},
+          "start_datetime": {"$ref": "#/components/schemas/DateTimeFact"},
+          "end_datetime": {"$ref": "#/components/schemas/DateTimeFact"},
+          "categories": {"$ref": "#/components/schemas/StringListFact"},
+          "coordinates": {"$ref": "#/components/schemas/CoordinateListFact"},
+          "borough": {"$ref": "#/components/schemas/TextFact"},
+          "registration_status": {"$ref": "#/components/schemas/RegistrationFact"},
+          "registration_description": {"$ref": "#/components/schemas/TextFact"},
+          "is_free_explicit": {"$ref": "#/components/schemas/BooleanFact"},
+          "accessibility_mentioned": {"$ref": "#/components/schemas/BooleanFact"}
+        }
+      },
+      "EventListResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["events", "page", "page_size", "total", "applied_facets"],
+        "properties": {
+          "events": {"type": "array", "items": {"$ref": "#/components/schemas/Event"}},
+          "page": {"type": "integer", "minimum": 1},
+          "page_size": {"type": "integer", "minimum": 1, "maximum": 100},
+          "total": {"type": "integer", "minimum": 0},
+          "applied_facets": {"type": "object", "additionalProperties": {"type": "array", "items": {"type": "string"}}}
+        }
+      },
+      "FreshnessResponse": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["last_successful_sync", "snapshot_row_count", "is_stale"],
+        "properties": {
+          "last_successful_sync": {"$ref": "#/components/schemas/TextFact"},
+          "snapshot_row_count": {"$ref": "#/components/schemas/IntegerFact"},
+          "is_stale": {"$ref": "#/components/schemas/BooleanFact"}
+        }
+      },
+      "Error": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["error"],
+        "properties": {"error": {"type": "string"}}
+      }
+    }
+  }
+}
