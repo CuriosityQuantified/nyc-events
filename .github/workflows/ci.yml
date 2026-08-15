@@ -6,9 +6,85 @@ on:
   push:
     branches: [main]
 
-# Job names are referenced by branch protection on main. Renaming a job
-# silently removes a required check — update the protection rule too.
+# The protected PR job names are backend, frontend, graph, and secrets.
+# Renaming one silently removes a required check — update protection too.
 jobs:
+  configuration:
+    # Repository secrets never enter pull-request code. This trusted-run job
+    # validates the configured names without checking out or executing source.
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Require configured repository secrets
+        shell: bash
+        env:
+          CLERK_PUBLIC_KEY: ${{ secrets.CLERK_PUBLIC_KEY }}
+          CLERK_SECRET_KEY: ${{ secrets.CLERK_SECRET_KEY }}
+          CLOUDFLARE_ACCESS_KEY_ID: ${{ secrets.CLOUDFLARE_ACCESS_KEY_ID }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_S3_API_ENDPOINT: ${{ secrets.CLOUDFLARE_S3_API_ENDPOINT }}
+          CLOUDFLARE_SECRET_ACCESS_KEY: ${{ secrets.CLOUDFLARE_SECRET_ACCESS_KEY }}
+          FIRECRAWL_API_KEY: ${{ secrets.FIRECRAWL_API_KEY }}
+          GCP_API_KEY: ${{ secrets.GCP_API_KEY }}
+          GOOGLE_AI_STUDIO_API_KEY: ${{ secrets.GOOGLE_AI_STUDIO_API_KEY }}
+          HUGGINGFACE_API_KEY: ${{ secrets.HUGGINGFACE_API_KEY }}
+          LANGSMITH_API_KEY: ${{ secrets.LANGSMITH_API_KEY }}
+          LANGSMITH_PROJECT: ${{ secrets.LANGSMITH_PROJECT }}
+          LANGSMITH_TRACING: ${{ secrets.LANGSMITH_TRACING }}
+          NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ secrets.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY }}
+          OPEN_ROUTER_API_KEY: ${{ secrets.OPEN_ROUTER_API_KEY }}
+          RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
+          REDIS_ACCOUNT_API_KEY: ${{ secrets.REDIS_ACCOUNT_API_KEY }}
+          REDIS_API_KEY: ${{ secrets.REDIS_API_KEY }}
+          SOCRATA_API_KEY_ID: ${{ secrets.SOCRATA_API_KEY_ID }}
+          SOCRATA_API_KEY_SECRET: ${{ secrets.SOCRATA_API_KEY_SECRET }}
+          SOCRATA_APP_SECRET_TOKEN: ${{ secrets.SOCRATA_APP_SECRET_TOKEN }}
+          SOCRATA_APP_TOKEN: ${{ secrets.SOCRATA_APP_TOKEN }}
+          TAVILY_API_KEY: ${{ secrets.TAVILY_API_KEY }}
+        run: |
+          set -euo pipefail
+          expected=(
+            CLERK_PUBLIC_KEY
+            CLERK_SECRET_KEY
+            CLOUDFLARE_ACCESS_KEY_ID
+            CLOUDFLARE_ACCOUNT_ID
+            CLOUDFLARE_API_TOKEN
+            CLOUDFLARE_S3_API_ENDPOINT
+            CLOUDFLARE_SECRET_ACCESS_KEY
+            FIRECRAWL_API_KEY
+            GCP_API_KEY
+            GOOGLE_AI_STUDIO_API_KEY
+            HUGGINGFACE_API_KEY
+            LANGSMITH_API_KEY
+            LANGSMITH_PROJECT
+            LANGSMITH_TRACING
+            NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+            OPEN_ROUTER_API_KEY
+            RAILWAY_API_TOKEN
+            REDIS_ACCOUNT_API_KEY
+            REDIS_API_KEY
+            SOCRATA_API_KEY_ID
+            SOCRATA_API_KEY_SECRET
+            SOCRATA_APP_SECRET_TOKEN
+            SOCRATA_APP_TOKEN
+            TAVILY_API_KEY
+          )
+          missing=()
+          for name in "${expected[@]}"; do
+            if [[ -z "${!name:-}" ]]; then
+              missing+=("$name")
+            fi
+          done
+          if (( ${#missing[@]} )); then
+            for name in "${missing[@]}"; do
+              printf '::error::missing repository secret: %s\n' "$name"
+            done
+            exit 1
+          fi
+          printf 'validated %d configured repository secret names\n' "${#expected[@]}"
+
   backend:
     runs-on: ubuntu-latest
     steps:

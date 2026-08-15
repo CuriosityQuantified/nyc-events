@@ -122,13 +122,24 @@ rebuilds with graphify 0.9.43 and fails on any tracked-output drift.
 
 ## CI
 
-`.github/workflows/ci.yml` defines four jobs. **These names are referenced by
-branch protection — renaming a job silently removes a required check.**
+`.github/workflows/ci.yml` defines five jobs. The protected PR job names are
+`backend`, `frontend`, `graph`, and `secrets`; renaming one silently removes a
+required check unless branch protection is updated too.
 
-- `backend` — `uv sync --frozen` then `uv run pytest -v` in `backend/`.
+- `configuration` — on trusted `main` pushes and manual dispatches only, maps
+  every repository secret explicitly and fails on an empty value without
+  checkout, dependency execution, or value disclosure. It never receives a PR.
+- `backend` — validates the shared contract/mock, then runs `uv sync --frozen`
+  and `uv run pytest -v` in `backend/` when that scaffold exists.
 - `frontend` — `npm ci`, `npm test --if-present`, `npm run build` in `frontend/`.
 - `graph` — rebuilds graphify and fails if any tracked knowledge-graph output drifts.
 - `secrets` — fails if `.env` is tracked or a Socrata credential is hardcoded.
+
+Broad repository credentials are not passed to application tests or package
+install steps. Integration tickets must inject only their smallest required
+subset into a narrow trusted step. `GCP_API_KEY` is not automatically treated
+as `GOOGLE_MAPS_BROWSER_API_KEY`; the latter must remain a dedicated,
+HTTP-referrer-restricted Maps JavaScript API browser credential.
 
 `backend` and `frontend` each begin with a probe step and **pass trivially when
 their directory does not yet exist**. This is deliberate: protection is enabled
