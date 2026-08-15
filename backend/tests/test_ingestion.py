@@ -35,6 +35,17 @@ class TestIngestionWithDb:
         assert event.title == "Summer on the Hudson: Tai Chi"
         assert event.borough == "Manhattan"
 
+    async def test_ingest_live_registration_url_object(self, db_session):
+        """A live Socrata URL object must ingest and retain its raw shape."""
+        rows = load_fixture("live_registration_url_object.json")
+
+        await ingest_rows(db_session, rows)
+
+        event = await db_session.get(Event, "live-object-1")
+        assert event is not None
+        assert event.registration_status == "required"
+        assert event.raw_data["registration_url"] == rows[0]["registration_url"]
+
     async def test_ingest_snapshot_b_delta(self, db_session):
         """Ingesting snapshot_b after snapshot_a must add 1 new event and
         update 1 changed event (endtime changed for guid 2,181,767)."""

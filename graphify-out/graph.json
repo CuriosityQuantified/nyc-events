@@ -130,7 +130,7 @@
       "_origin": "ast",
       "id": "backend_app_config_settings",
       "community": 26,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "settings"
     },
     {
@@ -260,7 +260,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_socrata_testparseevent",
       "community": 45,
-      "community_name": "socrata.py",
+      "community_name": "parse_event",
       "norm_label": "testparseevent"
     },
     {
@@ -290,30 +290,30 @@
       "norm_label": "base"
     },
     {
-      "label": "CredentialFilter",
+      "label": "AlwaysErrorTransport",
       "file_type": "code",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L49",
+      "source_file": "backend/tests/conftest.py",
+      "source_location": "L220",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
-      "id": "backend_app_socrata_credentialfilter",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": "credentialfilter"
+      "id": "backend_tests_conftest_alwayserrortransport",
+      "community": 46,
+      "community_name": "Event",
+      "norm_label": "alwayserrortransport"
     },
     {
-      "label": "SocrataClient",
+      "label": "TestNetworkEnforcement",
       "file_type": "code",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L89",
+      "source_file": "backend/tests/test_ingestion.py",
+      "source_location": "L115",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
-      "id": "backend_app_socrata_socrataclient",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": "socrataclient"
+      "id": "backend_tests_test_ingestion_testnetworkenforcement",
+      "community": 46,
+      "community_name": "Event",
+      "norm_label": "testnetworkenforcement"
     },
     {
       "label": "SocrataError",
@@ -324,22 +324,9 @@
       "_callable_class": true,
       "_origin": "ast",
       "id": "backend_app_socrata_socrataerror",
-      "community": 5,
-      "community_name": "SocrataClient",
+      "community": 48,
+      "community_name": "SocrataError",
       "norm_label": "socrataerror"
-    },
-    {
-      "label": "AlwaysErrorTransport",
-      "file_type": "code",
-      "source_file": "backend/tests/conftest.py",
-      "source_location": "L220",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "id": "backend_tests_conftest_alwayserrortransport",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": "alwayserrortransport"
     },
     {
       "label": "MockTransport",
@@ -351,34 +338,8 @@
       "_origin": "ast",
       "id": "backend_tests_conftest_mocktransport",
       "community": 5,
-      "community_name": "SocrataClient",
+      "community_name": "test_socrata.py",
       "norm_label": "mocktransport"
-    },
-    {
-      "label": "TestNetworkEnforcement",
-      "file_type": "code",
-      "source_file": "backend/tests/test_ingestion.py",
-      "source_location": "L104",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "id": "backend_tests_test_ingestion_testnetworkenforcement",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": "testnetworkenforcement"
-    },
-    {
-      "label": "TestCredentialFiltering",
-      "file_type": "code",
-      "source_file": "backend/tests/test_socrata.py",
-      "source_location": "L119",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "id": "backend_tests_test_socrata_testcredentialfiltering",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": "testcredentialfiltering"
     },
     {
       "label": "TestPagination",
@@ -390,21 +351,8 @@
       "_origin": "ast",
       "id": "backend_tests_test_socrata_testpagination",
       "community": 5,
-      "community_name": "SocrataClient",
+      "community_name": "test_socrata.py",
       "norm_label": "testpagination"
-    },
-    {
-      "label": "TestResponseValidation",
-      "file_type": "code",
-      "source_file": "backend/tests/test_socrata.py",
-      "source_location": "L167",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "id": "backend_tests_test_socrata_testresponsevalidation",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": "testresponsevalidation"
     },
     {
       "label": "TestRetry",
@@ -416,8 +364,60 @@
       "_origin": "ast",
       "id": "backend_tests_test_socrata_testretry",
       "community": 5,
-      "community_name": "SocrataClient",
+      "community_name": "test_socrata.py",
       "norm_label": "testretry"
+    },
+    {
+      "label": "CredentialFilter",
+      "file_type": "code",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L49",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "id": "backend_app_socrata_credentialfilter",
+      "community": 52,
+      "community_name": "CredentialFilter",
+      "norm_label": "credentialfilter"
+    },
+    {
+      "label": "TestCredentialFiltering",
+      "file_type": "code",
+      "source_file": "backend/tests/test_socrata.py",
+      "source_location": "L119",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "id": "backend_tests_test_socrata_testcredentialfiltering",
+      "community": 52,
+      "community_name": "CredentialFilter",
+      "norm_label": "testcredentialfiltering"
+    },
+    {
+      "label": "SocrataClient",
+      "file_type": "code",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L89",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "id": "backend_app_socrata_socrataclient",
+      "community": 54,
+      "community_name": "SocrataClient",
+      "norm_label": "socrataclient"
+    },
+    {
+      "label": "TestResponseValidation",
+      "file_type": "code",
+      "source_file": "backend/tests/test_socrata.py",
+      "source_location": "L167",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "id": "backend_tests_test_socrata_testresponsevalidation",
+      "community": 54,
+      "community_name": "SocrataClient",
+      "norm_label": "testresponsevalidation"
     },
     {
       "label": "BottomNav()",
@@ -716,7 +716,7 @@
       "_origin": "ast",
       "id": "backend_app_config_get_settings",
       "community": 26,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "get_settings()"
     },
     {
@@ -728,8 +728,20 @@
       "_origin": "ast",
       "id": "backend_app_database_get_engine",
       "community": 26,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "get_engine()"
+    },
+    {
+      "label": "get_session_factory()",
+      "file_type": "code",
+      "source_file": "backend/app/database.py",
+      "source_location": "L20",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_app_database_get_session_factory",
+      "community": 26,
+      "community_name": "conftest.py",
+      "norm_label": "get_session_factory()"
     },
     {
       "label": "reset_engine()",
@@ -740,7 +752,7 @@
       "_origin": "ast",
       "id": "backend_app_database_reset_engine",
       "community": 26,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "reset_engine()"
     },
     {
@@ -752,7 +764,7 @@
       "_origin": "ast",
       "id": "backend_app_main_health_check",
       "community": 26,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "health_check()"
     },
     {
@@ -764,8 +776,32 @@
       "_origin": "ast",
       "id": "backend_app_main_lifespan",
       "community": 26,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "lifespan()"
+    },
+    {
+      "label": "_main()",
+      "file_type": "code",
+      "source_file": "backend/app/sync.py",
+      "source_location": "L23",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_app_sync_main",
+      "community": 26,
+      "community_name": "conftest.py",
+      "norm_label": "_main()"
+    },
+    {
+      "label": "run()",
+      "file_type": "code",
+      "source_file": "backend/app/sync.py",
+      "source_location": "L14",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_app_sync_run",
+      "community": 26,
+      "community_name": "conftest.py",
+      "norm_label": "run()"
     },
     {
       "label": "do_run_migrations()",
@@ -776,7 +812,7 @@
       "_origin": "ast",
       "id": "backend_migrations_env_do_run_migrations",
       "community": 26,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "do_run_migrations()"
     },
     {
@@ -788,7 +824,7 @@
       "_origin": "ast",
       "id": "backend_migrations_env_get_url",
       "community": 26,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "get_url()"
     },
     {
@@ -800,7 +836,7 @@
       "_origin": "ast",
       "id": "backend_migrations_env_run_async_migrations",
       "community": 26,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "run_async_migrations()"
     },
     {
@@ -812,7 +848,7 @@
       "_origin": "ast",
       "id": "backend_migrations_env_run_migrations_offline",
       "community": 26,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "run_migrations_offline()"
     },
     {
@@ -824,8 +860,68 @@
       "_origin": "ast",
       "id": "backend_migrations_env_run_migrations_online",
       "community": 26,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "run_migrations_online()"
+    },
+    {
+      "label": "_check_docker()",
+      "file_type": "code",
+      "source_file": "backend/tests/conftest.py",
+      "source_location": "L21",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_tests_conftest_check_docker",
+      "community": 26,
+      "community_name": "conftest.py",
+      "norm_label": "_check_docker()"
+    },
+    {
+      "label": "client()",
+      "file_type": "code",
+      "source_file": "backend/tests/conftest.py",
+      "source_location": "L110",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_tests_conftest_client",
+      "community": 26,
+      "community_name": "conftest.py",
+      "norm_label": "client()"
+    },
+    {
+      "label": "db_session()",
+      "file_type": "code",
+      "source_file": "backend/tests/conftest.py",
+      "source_location": "L129",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_tests_conftest_db_session",
+      "community": 26,
+      "community_name": "conftest.py",
+      "norm_label": "db_session()"
+    },
+    {
+      "label": "_maybe_start_postgres()",
+      "file_type": "code",
+      "source_file": "backend/tests/conftest.py",
+      "source_location": "L54",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_tests_conftest_maybe_start_postgres",
+      "community": 26,
+      "community_name": "conftest.py",
+      "norm_label": "_maybe_start_postgres()"
+    },
+    {
+      "label": "postgres_url()",
+      "file_type": "code",
+      "source_file": "backend/tests/conftest.py",
+      "source_location": "L102",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_tests_conftest_postgres_url",
+      "community": 26,
+      "community_name": "conftest.py",
+      "norm_label": "postgres_url()"
     },
     {
       "label": ".test_health_all_fields_present()",
@@ -1068,6 +1164,18 @@
       "norm_label": ".test_list_events_returns_contract_schema()"
     },
     {
+      "label": ".test_ingest_live_registration_url_object()",
+      "file_type": "code",
+      "source_file": "backend/tests/test_ingestion.py",
+      "source_location": "L38",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_tests_test_ingestion_testingestionwithdb_test_ingest_live_registration_url_object",
+      "community": 38,
+      "community_name": "load_fixture",
+      "norm_label": ".test_ingest_live_registration_url_object()"
+    },
+    {
       "label": ".test_ingest_snapshot_a()",
       "file_type": "code",
       "source_file": "backend/tests/test_ingestion.py",
@@ -1083,7 +1191,7 @@
       "label": ".test_ingest_snapshot_b_delta()",
       "file_type": "code",
       "source_file": "backend/tests/test_ingestion.py",
-      "source_location": "L38",
+      "source_location": "L49",
       "_callable": true,
       "_origin": "ast",
       "id": "backend_tests_test_ingestion_testingestionwithdb_test_ingest_snapshot_b_delta",
@@ -1095,7 +1203,7 @@
       "label": ".test_invalid_row_rolls_back_the_whole_snapshot()",
       "file_type": "code",
       "source_file": "backend/tests/test_ingestion.py",
-      "source_location": "L91",
+      "source_location": "L102",
       "_callable": true,
       "_origin": "ast",
       "id": "backend_tests_test_ingestion_testingestionwithdb_test_invalid_row_rolls_back_the_whole_snapshot",
@@ -1107,7 +1215,7 @@
       "label": ".test_source_guid_is_primary_key()",
       "file_type": "code",
       "source_file": "backend/tests/test_ingestion.py",
-      "source_location": "L68",
+      "source_location": "L79",
       "_callable": true,
       "_origin": "ast",
       "id": "backend_tests_test_ingestion_testingestionwithdb_test_source_guid_is_primary_key",
@@ -1368,148 +1476,28 @@
       "norm_label": ".test_unknown_event_is_404()"
     },
     {
-      "label": "_derive_borough()",
-      "file_type": "code",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L275",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_app_socrata_derive_borough",
-      "community": 45,
-      "community_name": "socrata.py",
-      "norm_label": "_derive_borough()"
-    },
-    {
-      "label": "_derive_registration()",
-      "file_type": "code",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L282",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_app_socrata_derive_registration",
-      "community": 45,
-      "community_name": "socrata.py",
-      "norm_label": "_derive_registration()"
-    },
-    {
-      "label": "ingest_events()",
-      "file_type": "code",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L364",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_app_socrata_ingest_events",
-      "community": 45,
-      "community_name": "socrata.py",
-      "norm_label": "ingest_events()"
-    },
-    {
-      "label": "_location_key()",
-      "file_type": "code",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L306",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_app_socrata_location_key",
-      "community": 45,
-      "community_name": "socrata.py",
-      "norm_label": "_location_key()"
-    },
-    {
-      "label": "_parse_categories()",
-      "file_type": "code",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L299",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_app_socrata_parse_categories",
-      "community": 45,
-      "community_name": "socrata.py",
-      "norm_label": "_parse_categories()"
-    },
-    {
-      "label": "_parse_coordinates()",
-      "file_type": "code",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L246",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_app_socrata_parse_coordinates",
-      "community": 45,
-      "community_name": "socrata.py",
-      "norm_label": "_parse_coordinates()"
-    },
-    {
-      "label": "_parse_date()",
-      "file_type": "code",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L224",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_app_socrata_parse_date",
-      "community": 45,
-      "community_name": "socrata.py",
-      "norm_label": "_parse_date()"
-    },
-    {
-      "label": "_parse_datetime()",
-      "file_type": "code",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L234",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_app_socrata_parse_datetime",
-      "community": 45,
-      "community_name": "socrata.py",
-      "norm_label": "_parse_datetime()"
-    },
-    {
       "label": "parse_event()",
       "file_type": "code",
       "source_file": "backend/app/socrata.py",
-      "source_location": "L319",
+      "source_location": "L354",
       "_callable": true,
       "_origin": "ast",
       "id": "backend_app_socrata_parse_event",
       "community": 45,
-      "community_name": "socrata.py",
+      "community_name": "parse_event",
       "norm_label": "parse_event()"
     },
     {
-      "label": "sync_events()",
+      "label": ".test_live_registration_url_object_is_normalized_without_mutation()",
       "file_type": "code",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L381",
+      "source_file": "backend/tests/test_socrata.py",
+      "source_location": "L291",
       "_callable": true,
       "_origin": "ast",
-      "id": "backend_app_socrata_sync_events",
+      "id": "backend_tests_test_socrata_testparseevent_test_live_registration_url_object_is_normalized_without_mutation",
       "community": 45,
-      "community_name": "socrata.py",
-      "norm_label": "sync_events()"
-    },
-    {
-      "label": "_main()",
-      "file_type": "code",
-      "source_file": "backend/app/sync.py",
-      "source_location": "L23",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_app_sync_main",
-      "community": 45,
-      "community_name": "socrata.py",
-      "norm_label": "_main()"
-    },
-    {
-      "label": "run()",
-      "file_type": "code",
-      "source_file": "backend/app/sync.py",
-      "source_location": "L14",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_app_sync_run",
-      "community": 45,
-      "community_name": "socrata.py",
-      "norm_label": "run()"
+      "community_name": "parse_event",
+      "norm_label": ".test_live_registration_url_object_is_normalized_without_mutation()"
     },
     {
       "label": ".test_parse_event_categories()",
@@ -1520,7 +1508,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_socrata_testparseevent_test_parse_event_categories",
       "community": 45,
-      "community_name": "socrata.py",
+      "community_name": "parse_event",
       "norm_label": ".test_parse_event_categories()"
     },
     {
@@ -1532,7 +1520,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_socrata_testparseevent_test_parse_event_coordinates",
       "community": 45,
-      "community_name": "socrata.py",
+      "community_name": "parse_event",
       "norm_label": ".test_parse_event_coordinates()"
     },
     {
@@ -1544,7 +1532,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_socrata_testparseevent_test_parse_event_derived_fields",
       "community": 45,
-      "community_name": "socrata.py",
+      "community_name": "parse_event",
       "norm_label": ".test_parse_event_derived_fields()"
     },
     {
@@ -1556,7 +1544,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_socrata_testparseevent_test_parse_event_not_listed",
       "community": 45,
-      "community_name": "socrata.py",
+      "community_name": "parse_event",
       "norm_label": ".test_parse_event_not_listed()"
     },
     {
@@ -1568,7 +1556,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_socrata_testparseevent_test_parse_event_registration_not_required",
       "community": 45,
-      "community_name": "socrata.py",
+      "community_name": "parse_event",
       "norm_label": ".test_parse_event_registration_not_required()"
     },
     {
@@ -1580,20 +1568,32 @@
       "_origin": "ast",
       "id": "backend_tests_test_socrata_testparseevent_test_parse_event_stated_fields",
       "community": 45,
-      "community_name": "socrata.py",
+      "community_name": "parse_event",
       "norm_label": ".test_parse_event_stated_fields()"
     },
     {
-      "label": "get_session_factory()",
+      "label": ".test_registration_url_string_and_null_shapes()",
       "file_type": "code",
-      "source_file": "backend/app/database.py",
-      "source_location": "L20",
+      "source_file": "backend/tests/test_socrata.py",
+      "source_location": "L310",
       "_callable": true,
       "_origin": "ast",
-      "id": "backend_app_database_get_session_factory",
-      "community": 46,
-      "community_name": "Event",
-      "norm_label": "get_session_factory()"
+      "id": "backend_tests_test_socrata_testparseevent_test_registration_url_string_and_null_shapes",
+      "community": 45,
+      "community_name": "parse_event",
+      "norm_label": ".test_registration_url_string_and_null_shapes()"
+    },
+    {
+      "label": ".test_unsafe_or_malformed_registration_url_is_rejected()",
+      "file_type": "code",
+      "source_file": "backend/tests/test_socrata.py",
+      "source_location": "L333",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_tests_test_socrata_testparseevent_test_unsafe_or_malformed_registration_url_is_rejected",
+      "community": 45,
+      "community_name": "parse_event",
+      "norm_label": ".test_unsafe_or_malformed_registration_url_is_rejected()"
     },
     {
       "label": "_boolean_fact()",
@@ -1704,64 +1704,52 @@
       "norm_label": "_uri_fact()"
     },
     {
-      "label": "_check_docker()",
+      "label": ".handle_async_request()",
       "file_type": "code",
       "source_file": "backend/tests/conftest.py",
-      "source_location": "L21",
+      "source_location": "L226",
       "_callable": true,
       "_origin": "ast",
-      "id": "backend_tests_conftest_check_docker",
-      "community": 47,
-      "community_name": "conftest.py",
-      "norm_label": "_check_docker()"
+      "id": "backend_tests_conftest_alwayserrortransport_handle_async_request",
+      "community": 46,
+      "community_name": "Event",
+      "norm_label": ".handle_async_request()"
     },
     {
-      "label": "client()",
+      "label": ".__init__()",
       "file_type": "code",
       "source_file": "backend/tests/conftest.py",
-      "source_location": "L110",
+      "source_location": "L223",
       "_callable": true,
       "_origin": "ast",
-      "id": "backend_tests_conftest_client",
-      "community": 47,
-      "community_name": "conftest.py",
-      "norm_label": "client()"
+      "id": "backend_tests_conftest_alwayserrortransport_init",
+      "community": 46,
+      "community_name": "Event",
+      "norm_label": ".__init__()"
     },
     {
-      "label": "db_session()",
+      "label": ".handle_async_request()",
       "file_type": "code",
       "source_file": "backend/tests/conftest.py",
-      "source_location": "L129",
+      "source_location": "L180",
       "_callable": true,
       "_origin": "ast",
-      "id": "backend_tests_conftest_db_session",
-      "community": 47,
-      "community_name": "conftest.py",
-      "norm_label": "db_session()"
+      "id": "backend_tests_conftest_mocktransport_handle_async_request",
+      "community": 46,
+      "community_name": "Event",
+      "norm_label": ".handle_async_request()"
     },
     {
-      "label": "_maybe_start_postgres()",
+      "label": ".test_no_network_enforcement()",
       "file_type": "code",
-      "source_file": "backend/tests/conftest.py",
-      "source_location": "L54",
+      "source_file": "backend/tests/test_ingestion.py",
+      "source_location": "L118",
       "_callable": true,
       "_origin": "ast",
-      "id": "backend_tests_conftest_maybe_start_postgres",
-      "community": 47,
-      "community_name": "conftest.py",
-      "norm_label": "_maybe_start_postgres()"
-    },
-    {
-      "label": "postgres_url()",
-      "file_type": "code",
-      "source_file": "backend/tests/conftest.py",
-      "source_location": "L102",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_tests_conftest_postgres_url",
-      "community": 47,
-      "community_name": "conftest.py",
-      "norm_label": "postgres_url()"
+      "id": "backend_tests_test_ingestion_testnetworkenforcement_test_no_network_enforcement",
+      "community": 46,
+      "community_name": "Event",
+      "norm_label": ".test_no_network_enforcement()"
     },
     {
       "label": "_alembic()",
@@ -1772,7 +1760,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_migrations_alembic",
       "community": 47,
-      "community_name": "conftest.py",
+      "community_name": "test_migrations.py",
       "norm_label": "_alembic()"
     },
     {
@@ -1784,8 +1772,44 @@
       "_origin": "ast",
       "id": "backend_tests_test_migrations_test_events_migration_upgrade_and_idempotency",
       "community": 47,
-      "community_name": "conftest.py",
+      "community_name": "test_migrations.py",
       "norm_label": "test_events_migration_upgrade_and_idempotency()"
+    },
+    {
+      "label": "_derive_registration()",
+      "file_type": "code",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L316",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_app_socrata_derive_registration",
+      "community": 48,
+      "community_name": "SocrataError",
+      "norm_label": "_derive_registration()"
+    },
+    {
+      "label": "_normalize_socrata_url()",
+      "file_type": "code",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L282",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_app_socrata_normalize_socrata_url",
+      "community": 48,
+      "community_name": "SocrataError",
+      "norm_label": "_normalize_socrata_url()"
+    },
+    {
+      "label": "_validated_endpoint()",
+      "file_type": "code",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L71",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_app_socrata_validated_endpoint",
+      "community": 48,
+      "community_name": "SocrataError",
+      "norm_label": "_validated_endpoint()"
     },
     {
       "label": "downgrade()",
@@ -1812,138 +1836,6 @@
       "norm_label": "upgrade()"
     },
     {
-      "label": ".filter()",
-      "file_type": "code",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L56",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_app_socrata_credentialfilter_filter",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": ".filter()"
-    },
-    {
-      "label": ".__init__()",
-      "file_type": "code",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L52",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_app_socrata_credentialfilter_init",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": ".__init__()"
-    },
-    {
-      "label": ".close()",
-      "file_type": "code",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L126",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_app_socrata_socrataclient_close",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": ".close()"
-    },
-    {
-      "label": ".fetch_all_events()",
-      "file_type": "code",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L208",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_app_socrata_socrataclient_fetch_all_events",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": ".fetch_all_events()"
-    },
-    {
-      "label": "._fetch_page()",
-      "file_type": "code",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L192",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_app_socrata_socrataclient_fetch_page",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": "._fetch_page()"
-    },
-    {
-      "label": ".__init__()",
-      "file_type": "code",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L97",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_app_socrata_socrataclient_init",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": ".__init__()"
-    },
-    {
-      "label": "._post_with_retry()",
-      "file_type": "code",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L131",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_app_socrata_socrataclient_post_with_retry",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": "._post_with_retry()"
-    },
-    {
-      "label": "_validated_endpoint()",
-      "file_type": "code",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L71",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_app_socrata_validated_endpoint",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": "_validated_endpoint()"
-    },
-    {
-      "label": ".handle_async_request()",
-      "file_type": "code",
-      "source_file": "backend/tests/conftest.py",
-      "source_location": "L226",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_tests_conftest_alwayserrortransport_handle_async_request",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": ".handle_async_request()"
-    },
-    {
-      "label": ".__init__()",
-      "file_type": "code",
-      "source_file": "backend/tests/conftest.py",
-      "source_location": "L223",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_tests_conftest_alwayserrortransport_init",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": ".__init__()"
-    },
-    {
-      "label": ".handle_async_request()",
-      "file_type": "code",
-      "source_file": "backend/tests/conftest.py",
-      "source_location": "L180",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_tests_conftest_mocktransport_handle_async_request",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": ".handle_async_request()"
-    },
-    {
       "label": ".request_count()",
       "file_type": "code",
       "source_file": "backend/tests/conftest.py",
@@ -1952,32 +1844,8 @@
       "_origin": "ast",
       "id": "backend_tests_conftest_mocktransport_request_count",
       "community": 5,
-      "community_name": "SocrataClient",
+      "community_name": "test_socrata.py",
       "norm_label": ".request_count()"
-    },
-    {
-      "label": ".test_no_network_enforcement()",
-      "file_type": "code",
-      "source_file": "backend/tests/test_ingestion.py",
-      "source_location": "L107",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_tests_test_ingestion_testnetworkenforcement_test_no_network_enforcement",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": ".test_no_network_enforcement()"
-    },
-    {
-      "label": ".test_credentials_not_logged()",
-      "file_type": "code",
-      "source_file": "backend/tests/test_socrata.py",
-      "source_location": "L122",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_tests_test_socrata_testcredentialfiltering_test_credentials_not_logged",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": ".test_credentials_not_logged()"
     },
     {
       "label": ".test_pagination_fetches_all_pages()",
@@ -1988,7 +1856,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_socrata_testpagination_test_pagination_fetches_all_pages",
       "community": 5,
-      "community_name": "SocrataClient",
+      "community_name": "test_socrata.py",
       "norm_label": ".test_pagination_fetches_all_pages()"
     },
     {
@@ -2000,32 +1868,8 @@
       "_origin": "ast",
       "id": "backend_tests_test_socrata_testpagination_test_pagination_stops_on_empty_page",
       "community": 5,
-      "community_name": "SocrataClient",
+      "community_name": "test_socrata.py",
       "norm_label": ".test_pagination_stops_on_empty_page()"
-    },
-    {
-      "label": ".test_malformed_response_is_rejected()",
-      "file_type": "code",
-      "source_file": "backend/tests/test_socrata.py",
-      "source_location": "L199",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_tests_test_socrata_testresponsevalidation_test_malformed_response_is_rejected",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": ".test_malformed_response_is_rejected()"
-    },
-    {
-      "label": ".test_unapproved_endpoint_is_rejected()",
-      "file_type": "code",
-      "source_file": "backend/tests/test_socrata.py",
-      "source_location": "L181",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_tests_test_socrata_testresponsevalidation_test_unapproved_endpoint_is_rejected",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": ".test_unapproved_endpoint_is_rejected()"
     },
     {
       "label": ".test_retry_exhaustion_raises()",
@@ -2036,7 +1880,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_socrata_testretry_test_retry_exhaustion_raises",
       "community": 5,
-      "community_name": "SocrataClient",
+      "community_name": "test_socrata.py",
       "norm_label": ".test_retry_exhaustion_raises()"
     },
     {
@@ -2048,8 +1892,224 @@
       "_origin": "ast",
       "id": "backend_tests_test_socrata_testretry_test_retry_on_server_error",
       "community": 5,
-      "community_name": "SocrataClient",
+      "community_name": "test_socrata.py",
       "norm_label": ".test_retry_on_server_error()"
+    },
+    {
+      "label": "_derive_borough()",
+      "file_type": "code",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L275",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_app_socrata_derive_borough",
+      "community": 51,
+      "community_name": "socrata.py",
+      "norm_label": "_derive_borough()"
+    },
+    {
+      "label": "ingest_events()",
+      "file_type": "code",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L399",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_app_socrata_ingest_events",
+      "community": 51,
+      "community_name": "socrata.py",
+      "norm_label": "ingest_events()"
+    },
+    {
+      "label": "_location_key()",
+      "file_type": "code",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L341",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_app_socrata_location_key",
+      "community": 51,
+      "community_name": "socrata.py",
+      "norm_label": "_location_key()"
+    },
+    {
+      "label": "_parse_categories()",
+      "file_type": "code",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L334",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_app_socrata_parse_categories",
+      "community": 51,
+      "community_name": "socrata.py",
+      "norm_label": "_parse_categories()"
+    },
+    {
+      "label": "_parse_coordinates()",
+      "file_type": "code",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L246",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_app_socrata_parse_coordinates",
+      "community": 51,
+      "community_name": "socrata.py",
+      "norm_label": "_parse_coordinates()"
+    },
+    {
+      "label": "_parse_date()",
+      "file_type": "code",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L224",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_app_socrata_parse_date",
+      "community": 51,
+      "community_name": "socrata.py",
+      "norm_label": "_parse_date()"
+    },
+    {
+      "label": "_parse_datetime()",
+      "file_type": "code",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L234",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_app_socrata_parse_datetime",
+      "community": 51,
+      "community_name": "socrata.py",
+      "norm_label": "_parse_datetime()"
+    },
+    {
+      "label": "sync_events()",
+      "file_type": "code",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L416",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_app_socrata_sync_events",
+      "community": 51,
+      "community_name": "socrata.py",
+      "norm_label": "sync_events()"
+    },
+    {
+      "label": ".filter()",
+      "file_type": "code",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L56",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_app_socrata_credentialfilter_filter",
+      "community": 52,
+      "community_name": "CredentialFilter",
+      "norm_label": ".filter()"
+    },
+    {
+      "label": ".__init__()",
+      "file_type": "code",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L52",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_app_socrata_credentialfilter_init",
+      "community": 52,
+      "community_name": "CredentialFilter",
+      "norm_label": ".__init__()"
+    },
+    {
+      "label": ".__init__()",
+      "file_type": "code",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L97",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_app_socrata_socrataclient_init",
+      "community": 52,
+      "community_name": "CredentialFilter",
+      "norm_label": ".__init__()"
+    },
+    {
+      "label": ".test_credentials_not_logged()",
+      "file_type": "code",
+      "source_file": "backend/tests/test_socrata.py",
+      "source_location": "L122",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_tests_test_socrata_testcredentialfiltering_test_credentials_not_logged",
+      "community": 52,
+      "community_name": "CredentialFilter",
+      "norm_label": ".test_credentials_not_logged()"
+    },
+    {
+      "label": ".close()",
+      "file_type": "code",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L126",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_app_socrata_socrataclient_close",
+      "community": 54,
+      "community_name": "SocrataClient",
+      "norm_label": ".close()"
+    },
+    {
+      "label": ".fetch_all_events()",
+      "file_type": "code",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L208",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_app_socrata_socrataclient_fetch_all_events",
+      "community": 54,
+      "community_name": "SocrataClient",
+      "norm_label": ".fetch_all_events()"
+    },
+    {
+      "label": "._fetch_page()",
+      "file_type": "code",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L192",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_app_socrata_socrataclient_fetch_page",
+      "community": 54,
+      "community_name": "SocrataClient",
+      "norm_label": "._fetch_page()"
+    },
+    {
+      "label": "._post_with_retry()",
+      "file_type": "code",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L131",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_app_socrata_socrataclient_post_with_retry",
+      "community": 54,
+      "community_name": "SocrataClient",
+      "norm_label": "._post_with_retry()"
+    },
+    {
+      "label": ".test_malformed_response_is_rejected()",
+      "file_type": "code",
+      "source_file": "backend/tests/test_socrata.py",
+      "source_location": "L199",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_tests_test_socrata_testresponsevalidation_test_malformed_response_is_rejected",
+      "community": 54,
+      "community_name": "SocrataClient",
+      "norm_label": ".test_malformed_response_is_rejected()"
+    },
+    {
+      "label": ".test_unapproved_endpoint_is_rejected()",
+      "file_type": "code",
+      "source_file": "backend/tests/test_socrata.py",
+      "source_location": "L181",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_tests_test_socrata_testresponsevalidation_test_unapproved_endpoint_is_rejected",
+      "community": 54,
+      "community_name": "SocrataClient",
+      "norm_label": ".test_unapproved_endpoint_is_rejected()"
     },
     {
       "label": "development-pipeline.md",
@@ -3680,6 +3740,17 @@
       "norm_label": "vitest"
     },
     {
+      "label": "async_sessionmaker",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast",
+      "id": "async_sessionmaker",
+      "community": 26,
+      "community_name": "conftest.py",
+      "norm_label": "async_sessionmaker"
+    },
+    {
       "label": "config.py",
       "file_type": "code",
       "source_file": "backend/app/config.py",
@@ -3687,7 +3758,7 @@
       "_origin": "ast",
       "id": "backend_app_config",
       "community": 26,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "config.py"
     },
     {
@@ -3698,8 +3769,19 @@
       "_origin": "ast",
       "id": "backend_app_database",
       "community": 26,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "database.py"
+    },
+    {
+      "label": "AsyncSession",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast",
+      "id": "backend_app_database_py_asyncsession",
+      "community": 26,
+      "community_name": "conftest.py",
+      "norm_label": "asyncsession"
     },
     {
       "label": "main.py",
@@ -3709,7 +3791,7 @@
       "_origin": "ast",
       "id": "backend_app_main",
       "community": 26,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "main.py"
     },
     {
@@ -3720,8 +3802,19 @@
       "_origin": "ast",
       "id": "backend_app_main_py_get",
       "community": 26,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "get"
+    },
+    {
+      "label": "sync.py",
+      "file_type": "code",
+      "source_file": "backend/app/sync.py",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "backend_app_sync",
+      "community": 26,
+      "community_name": "conftest.py",
+      "norm_label": "sync.py"
     },
     {
       "label": "env.py",
@@ -3731,8 +3824,19 @@
       "_origin": "ast",
       "id": "backend_migrations_env",
       "community": 26,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "env.py"
+    },
+    {
+      "label": "conftest.py",
+      "file_type": "code",
+      "source_file": "backend/tests/conftest.py",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "backend_tests_conftest",
+      "community": 26,
+      "community_name": "conftest.py",
+      "norm_label": "conftest.py"
     },
     {
       "label": "BaseSettings",
@@ -3742,7 +3846,7 @@
       "_origin": "ast",
       "id": "basesettings",
       "community": 26,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "basesettings"
     },
     {
@@ -3753,8 +3857,19 @@
       "_origin": "ast",
       "id": "fastapi",
       "community": 26,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "fastapi"
+    },
+    {
+      "label": "fixture",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast",
+      "id": "fixture",
+      "community": 26,
+      "community_name": "conftest.py",
+      "norm_label": "fixture"
     },
     {
       "label": "Application configuration via environment variables.",
@@ -3764,7 +3879,7 @@
       "_origin": "ast",
       "id": "backend_app_config_rationale_1",
       "community": 26,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "application configuration via environment variables."
     },
     {
@@ -3775,7 +3890,7 @@
       "_origin": "ast",
       "id": "backend_app_config_rationale_28",
       "community": 26,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "return a cached settings instance."
     },
     {
@@ -3786,7 +3901,7 @@
       "_origin": "ast",
       "id": "backend_app_config_rationale_9",
       "community": 26,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "settings loaded from environment variables."
     },
     {
@@ -3797,7 +3912,7 @@
       "_origin": "ast",
       "id": "backend_app_database_rationale_1",
       "community": 26,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "async sqlalchemy engine and session factory."
     },
     {
@@ -3808,8 +3923,19 @@
       "_origin": "ast",
       "id": "backend_app_database_rationale_12",
       "community": 26,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "return a singleton async engine."
+    },
+    {
+      "label": "Return a singleton async session factory.",
+      "file_type": "rationale",
+      "source_file": "backend/app/database.py",
+      "source_location": "L21",
+      "_origin": "ast",
+      "id": "backend_app_database_rationale_21",
+      "community": 26,
+      "community_name": "conftest.py",
+      "norm_label": "return a singleton async session factory."
     },
     {
       "label": "Dispose of the current engine. Use for testing or reconfiguration.",
@@ -3819,7 +3945,7 @@
       "_origin": "ast",
       "id": "backend_app_database_rationale_31",
       "community": 26,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "dispose of the current engine. use for testing or reconfiguration."
     },
     {
@@ -3830,7 +3956,7 @@
       "_origin": "ast",
       "id": "backend_app_main_rationale_1",
       "community": 26,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "fastapi application entry point."
     },
     {
@@ -3841,7 +3967,7 @@
       "_origin": "ast",
       "id": "backend_app_main_rationale_17",
       "community": 26,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "manage application startup and shutdown."
     },
     {
@@ -3852,8 +3978,30 @@
       "_origin": "ast",
       "id": "backend_app_main_rationale_28",
       "community": 26,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "check database and redis connectivity. returns 200 with all-healthy status when..."
+    },
+    {
+      "label": "Executable Socrata-to-Postgres synchronization command.",
+      "file_type": "rationale",
+      "source_file": "backend/app/sync.py",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "backend_app_sync_rationale_1",
+      "community": 26,
+      "community_name": "conftest.py",
+      "norm_label": "executable socrata-to-postgres synchronization command."
+    },
+    {
+      "label": "Fetch the complete Snapshot and atomically upsert its Events.",
+      "file_type": "rationale",
+      "source_file": "backend/app/sync.py",
+      "source_location": "L15",
+      "_origin": "ast",
+      "id": "backend_app_sync_rationale_15",
+      "community": 26,
+      "community_name": "conftest.py",
+      "norm_label": "fetch the complete snapshot and atomically upsert its events."
     },
     {
       "label": "Alembic environment configuration for async SQLAlchemy.",
@@ -3863,7 +4011,7 @@
       "_origin": "ast",
       "id": "backend_migrations_env_rationale_1",
       "community": 26,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "alembic environment configuration for async sqlalchemy."
     },
     {
@@ -3874,7 +4022,7 @@
       "_origin": "ast",
       "id": "backend_migrations_env_rationale_22",
       "community": 26,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "return the database url from application settings."
     },
     {
@@ -3885,7 +4033,7 @@
       "_origin": "ast",
       "id": "backend_migrations_env_rationale_27",
       "community": 26,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "run migrations in offline mode (emit sql without connecting)."
     },
     {
@@ -3896,7 +4044,7 @@
       "_origin": "ast",
       "id": "backend_migrations_env_rationale_40",
       "community": 26,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "execute migrations against the provided connection."
     },
     {
@@ -3907,7 +4055,7 @@
       "_origin": "ast",
       "id": "backend_migrations_env_rationale_47",
       "community": 26,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "run migrations in online mode with an async engine."
     },
     {
@@ -3918,8 +4066,63 @@
       "_origin": "ast",
       "id": "backend_migrations_env_rationale_64",
       "community": 26,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "run migrations in online mode."
+    },
+    {
+      "label": "Test fixtures using Testcontainers for real Postgres.",
+      "file_type": "rationale",
+      "source_file": "backend/tests/conftest.py",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "backend_tests_conftest_rationale_1",
+      "community": 26,
+      "community_name": "conftest.py",
+      "norm_label": "test fixtures using testcontainers for real postgres."
+    },
+    {
+      "label": "Return the async Postgres URL (skips if Docker unavailable).",
+      "file_type": "rationale",
+      "source_file": "backend/tests/conftest.py",
+      "source_location": "L103",
+      "_origin": "ast",
+      "id": "backend_tests_conftest_rationale_103",
+      "community": 26,
+      "community_name": "conftest.py",
+      "norm_label": "return the async postgres url (skips if docker unavailable)."
+    },
+    {
+      "label": "Provide an async test client for the FastAPI app.",
+      "file_type": "rationale",
+      "source_file": "backend/tests/conftest.py",
+      "source_location": "L111",
+      "_origin": "ast",
+      "id": "backend_tests_conftest_rationale_111",
+      "community": 26,
+      "community_name": "conftest.py",
+      "norm_label": "provide an async test client for the fastapi app."
+    },
+    {
+      "label": "Provide an async SQLAlchemy session for direct DB operations.",
+      "file_type": "rationale",
+      "source_file": "backend/tests/conftest.py",
+      "source_location": "L130",
+      "_origin": "ast",
+      "id": "backend_tests_conftest_rationale_130",
+      "community": 26,
+      "community_name": "conftest.py",
+      "norm_label": "provide an async sqlalchemy session for direct db operations."
+    },
+    {
+      "label": "Start a PostgreSQL container if Docker is available. This fixture is autouse\u2026",
+      "file_type": "rationale",
+      "source_file": "backend/tests/conftest.py",
+      "source_location": "L55",
+      "_origin": "ast",
+      "id": "backend_tests_conftest_rationale_55",
+      "community": 26,
+      "community_name": "conftest.py",
+      "norm_label": "start a postgresql container if docker is available. this fixture is autouse..."
     },
     {
       "label": "test_health.py",
@@ -4802,6 +5005,17 @@
       "norm_label": "verify event and location identity rules."
     },
     {
+      "label": "A malformed row must not leave a partially ingested Snapshot.",
+      "file_type": "rationale",
+      "source_file": "backend/tests/test_ingestion.py",
+      "source_location": "L103",
+      "_origin": "ast",
+      "id": "backend_tests_test_ingestion_rationale_103",
+      "community": 38,
+      "community_name": "load_fixture",
+      "norm_label": "a malformed row must not leave a partially ingested snapshot."
+    },
+    {
       "label": "Verify snapshot ingestion, deltas, and guid-based identity (needs Postgres).",
       "file_type": "rationale",
       "source_file": "backend/tests/test_ingestion.py",
@@ -4824,12 +5038,23 @@
       "norm_label": "all events from snapshot_a must be stored in the database."
     },
     {
-      "label": "Ingesting snapshot_b after snapshot_a must add 1 new event and update 1 changed\u2026",
+      "label": "A live Socrata URL object must ingest and retain its raw shape.",
       "file_type": "rationale",
       "source_file": "backend/tests/test_ingestion.py",
       "source_location": "L39",
       "_origin": "ast",
       "id": "backend_tests_test_ingestion_rationale_39",
+      "community": 38,
+      "community_name": "load_fixture",
+      "norm_label": "a live socrata url object must ingest and retain its raw shape."
+    },
+    {
+      "label": "Ingesting snapshot_b after snapshot_a must add 1 new event and update 1 changed\u2026",
+      "file_type": "rationale",
+      "source_file": "backend/tests/test_ingestion.py",
+      "source_location": "L50",
+      "_origin": "ast",
+      "id": "backend_tests_test_ingestion_rationale_50",
       "community": 38,
       "community_name": "load_fixture",
       "norm_label": "ingesting snapshot_b after snapshot_a must add 1 new event and update 1 changed..."
@@ -4838,23 +5063,12 @@
       "label": "Duplicate guid must update, not create a second row.",
       "file_type": "rationale",
       "source_file": "backend/tests/test_ingestion.py",
-      "source_location": "L69",
+      "source_location": "L80",
       "_origin": "ast",
-      "id": "backend_tests_test_ingestion_rationale_69",
+      "id": "backend_tests_test_ingestion_rationale_80",
       "community": 38,
       "community_name": "load_fixture",
       "norm_label": "duplicate guid must update, not create a second row."
-    },
-    {
-      "label": "A malformed row must not leave a partially ingested Snapshot.",
-      "file_type": "rationale",
-      "source_file": "backend/tests/test_ingestion.py",
-      "source_location": "L92",
-      "_origin": "ast",
-      "id": "backend_tests_test_ingestion_rationale_92",
-      "community": 38,
-      "community_name": "load_fixture",
-      "norm_label": "a malformed row must not leave a partially ingested snapshot."
     },
     {
       "label": "0001_create_health_checks.py",
@@ -5003,191 +5217,15 @@
       "norm_label": "nyc-events-backend"
     },
     {
-      "label": "socrata.py",
-      "file_type": "code",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "backend_app_socrata",
-      "community": 45,
-      "community_name": "socrata.py",
-      "norm_label": "socrata.py"
-    },
-    {
-      "label": "AsyncSession",
-      "file_type": "code",
-      "source_file": "",
-      "source_location": "",
-      "_origin": "ast",
-      "id": "backend_app_socrata_py_asyncsession",
-      "community": 45,
-      "community_name": "socrata.py",
-      "norm_label": "asyncsession"
-    },
-    {
-      "label": "sync.py",
-      "file_type": "code",
-      "source_file": "backend/app/sync.py",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "backend_app_sync",
-      "community": 45,
-      "community_name": "socrata.py",
-      "norm_label": "sync.py"
-    },
-    {
-      "label": "datetime",
-      "file_type": "code",
-      "source_file": "",
-      "source_location": "",
-      "_origin": "ast",
-      "id": "datetime",
-      "community": 45,
-      "community_name": "socrata.py",
-      "norm_label": "datetime"
-    },
-    {
-      "label": "Socrata NYC Parks Events API client with pagination and retry.",
-      "file_type": "rationale",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "backend_app_socrata_rationale_1",
-      "community": 45,
-      "community_name": "socrata.py",
-      "norm_label": "socrata nyc parks events api client with pagination and retry."
-    },
-    {
-      "label": "Convert MM/DD/YYYY to ISO date string, or return None.",
-      "file_type": "rationale",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L225",
-      "_origin": "ast",
-      "id": "backend_app_socrata_rationale_225",
-      "community": 45,
-      "community_name": "socrata.py",
-      "norm_label": "convert mm/dd/yyyy to iso date string, or return none."
-    },
-    {
-      "label": "Convert 'YYYY-MM-DD HH:MM:SS' to a timezone-aware datetime.",
-      "file_type": "rationale",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L235",
-      "_origin": "ast",
-      "id": "backend_app_socrata_rationale_235",
-      "community": 45,
-      "community_name": "socrata.py",
-      "norm_label": "convert 'yyyy-mm-dd hh:mm:ss' to a timezone-aware datetime."
-    },
-    {
-      "label": "Parse coordinate string into (lat, lon, coordinate_list). Returns the first\u2026",
-      "file_type": "rationale",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L249",
-      "_origin": "ast",
-      "id": "backend_app_socrata_rationale_249",
-      "community": 45,
-      "community_name": "socrata.py",
-      "norm_label": "parse coordinate string into (lat, lon, coordinate_list). returns the first..."
-    },
-    {
-      "label": "Derive borough name from the first character of parkids.",
-      "file_type": "rationale",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L276",
-      "_origin": "ast",
-      "id": "backend_app_socrata_rationale_276",
-      "community": 45,
-      "community_name": "socrata.py",
-      "norm_label": "derive borough name from the first character of parkids."
-    },
-    {
-      "label": "Derive registration status and provenance from source fields.",
-      "file_type": "rationale",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L286",
-      "_origin": "ast",
-      "id": "backend_app_socrata_rationale_286",
-      "community": 45,
-      "community_name": "socrata.py",
-      "norm_label": "derive registration status and provenance from source fields."
-    },
-    {
-      "label": "Split pipe-delimited categories into a list.",
-      "file_type": "rationale",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L300",
-      "_origin": "ast",
-      "id": "backend_app_socrata_rationale_300",
-      "community": 45,
-      "community_name": "socrata.py",
-      "norm_label": "split pipe-delimited categories into a list."
-    },
-    {
-      "label": "Build Location identity from source ID and normalized coordinates.",
-      "file_type": "rationale",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L309",
-      "_origin": "ast",
-      "id": "backend_app_socrata_rationale_309",
-      "community": 45,
-      "community_name": "socrata.py",
-      "norm_label": "build location identity from source id and normalized coordinates."
-    },
-    {
       "label": "Convert a Socrata row dict to Event model field values. Returns a dict suitable\u2026",
       "file_type": "rationale",
       "source_file": "backend/app/socrata.py",
-      "source_location": "L320",
+      "source_location": "L355",
       "_origin": "ast",
-      "id": "backend_app_socrata_rationale_320",
+      "id": "backend_app_socrata_rationale_355",
       "community": 45,
-      "community_name": "socrata.py",
+      "community_name": "parse_event",
       "norm_label": "convert a socrata row dict to event model field values. returns a dict suitable..."
-    },
-    {
-      "label": "Atomically upsert validated source rows by source guid.",
-      "file_type": "rationale",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L365",
-      "_origin": "ast",
-      "id": "backend_app_socrata_rationale_365",
-      "community": 45,
-      "community_name": "socrata.py",
-      "norm_label": "atomically upsert validated source rows by source guid."
-    },
-    {
-      "label": "Fetch the complete source Snapshot and store it in Postgres.",
-      "file_type": "rationale",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L384",
-      "_origin": "ast",
-      "id": "backend_app_socrata_rationale_384",
-      "community": 45,
-      "community_name": "socrata.py",
-      "norm_label": "fetch the complete source snapshot and store it in postgres."
-    },
-    {
-      "label": "Executable Socrata-to-Postgres synchronization command.",
-      "file_type": "rationale",
-      "source_file": "backend/app/sync.py",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "backend_app_sync_rationale_1",
-      "community": 45,
-      "community_name": "socrata.py",
-      "norm_label": "executable socrata-to-postgres synchronization command."
-    },
-    {
-      "label": "Fetch the complete Snapshot and atomically upsert its Events.",
-      "file_type": "rationale",
-      "source_file": "backend/app/sync.py",
-      "source_location": "L15",
-      "_origin": "ast",
-      "id": "backend_app_sync_rationale_15",
-      "community": 45,
-      "community_name": "socrata.py",
-      "norm_label": "fetch the complete snapshot and atomically upsert its events."
     },
     {
       "label": "Verify raw Socrata rows are correctly parsed into Event fields.",
@@ -5197,7 +5235,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_socrata_rationale_218",
       "community": 45,
-      "community_name": "socrata.py",
+      "community_name": "parse_event",
       "norm_label": "verify raw socrata rows are correctly parsed into event fields."
     },
     {
@@ -5208,7 +5246,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_socrata_rationale_221",
       "community": 45,
-      "community_name": "socrata.py",
+      "community_name": "parse_event",
       "norm_label": "stated fields must carry their raw values through."
     },
     {
@@ -5219,7 +5257,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_socrata_rationale_237",
       "community": 45,
-      "community_name": "socrata.py",
+      "community_name": "parse_event",
       "norm_label": "borough, dates, and registration must be derived correctly."
     },
     {
@@ -5230,7 +5268,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_socrata_rationale_255",
       "community": 45,
-      "community_name": "socrata.py",
+      "community_name": "parse_event",
       "norm_label": "absent fields must return none / not listed equivalents."
     },
     {
@@ -5241,7 +5279,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_socrata_rationale_265",
       "community": 45,
-      "community_name": "socrata.py",
+      "community_name": "parse_event",
       "norm_label": "coordinates must be parsed into lat/lon floats."
     },
     {
@@ -5252,7 +5290,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_socrata_rationale_273",
       "community": 45,
-      "community_name": "socrata.py",
+      "community_name": "parse_event",
       "norm_label": "pipe-delimited categories must be split into a list."
     },
     {
@@ -5263,30 +5301,41 @@
       "_origin": "ast",
       "id": "backend_tests_test_socrata_rationale_284",
       "community": 45,
-      "community_name": "socrata.py",
+      "community_name": "parse_event",
       "norm_label": "registration not required.' maps to not_required."
     },
     {
-      "label": "async_sessionmaker",
-      "file_type": "code",
-      "source_file": "",
-      "source_location": "",
+      "label": "The live Socrata URL object must imply registration and stay raw.",
+      "file_type": "rationale",
+      "source_file": "backend/tests/test_socrata.py",
+      "source_location": "L292",
       "_origin": "ast",
-      "id": "async_sessionmaker",
-      "community": 46,
-      "community_name": "Event",
-      "norm_label": "async_sessionmaker"
+      "id": "backend_tests_test_socrata_rationale_292",
+      "community": 45,
+      "community_name": "parse_event",
+      "norm_label": "the live socrata url object must imply registration and stay raw."
     },
     {
-      "label": "AsyncSession",
-      "file_type": "code",
-      "source_file": "",
-      "source_location": "",
+      "label": "String, null, and empty URL shapes must normalize consistently.",
+      "file_type": "rationale",
+      "source_file": "backend/tests/test_socrata.py",
+      "source_location": "L313",
       "_origin": "ast",
-      "id": "backend_app_database_py_asyncsession",
-      "community": 46,
-      "community_name": "Event",
-      "norm_label": "asyncsession"
+      "id": "backend_tests_test_socrata_rationale_313",
+      "community": 45,
+      "community_name": "parse_event",
+      "norm_label": "string, null, and empty url shapes must normalize consistently."
+    },
+    {
+      "label": "Unsupported URL values must fail closed instead of implying registration.",
+      "file_type": "rationale",
+      "source_file": "backend/tests/test_socrata.py",
+      "source_location": "L336",
+      "_origin": "ast",
+      "id": "backend_tests_test_socrata_rationale_336",
+      "community": 45,
+      "community_name": "parse_event",
+      "norm_label": "unsupported url values must fail closed instead of implying registration."
     },
     {
       "label": "event.py",
@@ -5344,6 +5393,28 @@
       "norm_label": "get"
     },
     {
+      "label": "Response",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast",
+      "id": "backend_tests_conftest_py_response",
+      "community": 46,
+      "community_name": "Event",
+      "norm_label": "response"
+    },
+    {
+      "label": "test_ingestion.py",
+      "file_type": "code",
+      "source_file": "backend/tests/test_ingestion.py",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "backend_tests_test_ingestion",
+      "community": 46,
+      "community_name": "Event",
+      "norm_label": "test_ingestion.py"
+    },
+    {
       "label": "DeclarativeBase",
       "file_type": "code",
       "source_file": "",
@@ -5355,15 +5426,15 @@
       "norm_label": "declarativebase"
     },
     {
-      "label": "Return a singleton async session factory.",
-      "file_type": "rationale",
-      "source_file": "backend/app/database.py",
-      "source_location": "L21",
+      "label": "Request",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
       "_origin": "ast",
-      "id": "backend_app_database_rationale_21",
+      "id": "request",
       "community": 46,
       "community_name": "Event",
-      "norm_label": "return a singleton async session factory."
+      "norm_label": "request"
     },
     {
       "label": "Event SQLAlchemy model for NYC Parks events.",
@@ -5520,15 +5591,48 @@
       "norm_label": "convert an event model instance to the contract event shape."
     },
     {
-      "label": "conftest.py",
-      "file_type": "code",
+      "label": "Transport that always returns the given error status code.",
+      "file_type": "rationale",
       "source_file": "backend/tests/conftest.py",
+      "source_location": "L221",
+      "_origin": "ast",
+      "id": "backend_tests_conftest_rationale_221",
+      "community": 46,
+      "community_name": "Event",
+      "norm_label": "transport that always returns the given error status code."
+    },
+    {
+      "label": "Tests for event ingestion \u2014 snapshot deltas, guid identity, network isolation.",
+      "file_type": "rationale",
+      "source_file": "backend/tests/test_ingestion.py",
       "source_location": "L1",
       "_origin": "ast",
-      "id": "backend_tests_conftest",
-      "community": 47,
-      "community_name": "conftest.py",
-      "norm_label": "conftest.py"
+      "id": "backend_tests_test_ingestion_rationale_1",
+      "community": 46,
+      "community_name": "Event",
+      "norm_label": "tests for event ingestion \u2014 snapshot deltas, guid identity, network isolation."
+    },
+    {
+      "label": "Verify that transport-layer substitution prevents real network access.",
+      "file_type": "rationale",
+      "source_file": "backend/tests/test_ingestion.py",
+      "source_location": "L116",
+      "_origin": "ast",
+      "id": "backend_tests_test_ingestion_rationale_116",
+      "community": 46,
+      "community_name": "Event",
+      "norm_label": "verify that transport-layer substitution prevents real network access."
+    },
+    {
+      "label": "The Socrata client with an injected transport must not reach the network. The\u2026",
+      "file_type": "rationale",
+      "source_file": "backend/tests/test_ingestion.py",
+      "source_location": "L119",
+      "_origin": "ast",
+      "id": "backend_tests_test_ingestion_rationale_119",
+      "community": 46,
+      "community_name": "Event",
+      "norm_label": "the socrata client with an injected transport must not reach the network. the..."
     },
     {
       "label": "test_migrations.py",
@@ -5538,7 +5642,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_migrations",
       "community": 47,
-      "community_name": "conftest.py",
+      "community_name": "test_migrations.py",
       "norm_label": "test_migrations.py"
     },
     {
@@ -5549,7 +5653,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_migrations_py_requires_docker",
       "community": 47,
-      "community_name": "conftest.py",
+      "community_name": "test_migrations.py",
       "norm_label": "requires_docker"
     },
     {
@@ -5560,74 +5664,8 @@
       "_origin": "ast",
       "id": "completedprocess",
       "community": 47,
-      "community_name": "conftest.py",
+      "community_name": "test_migrations.py",
       "norm_label": "completedprocess"
-    },
-    {
-      "label": "fixture",
-      "file_type": "code",
-      "source_file": "",
-      "source_location": "",
-      "_origin": "ast",
-      "id": "fixture",
-      "community": 47,
-      "community_name": "conftest.py",
-      "norm_label": "fixture"
-    },
-    {
-      "label": "Test fixtures using Testcontainers for real Postgres.",
-      "file_type": "rationale",
-      "source_file": "backend/tests/conftest.py",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "backend_tests_conftest_rationale_1",
-      "community": 47,
-      "community_name": "conftest.py",
-      "norm_label": "test fixtures using testcontainers for real postgres."
-    },
-    {
-      "label": "Return the async Postgres URL (skips if Docker unavailable).",
-      "file_type": "rationale",
-      "source_file": "backend/tests/conftest.py",
-      "source_location": "L103",
-      "_origin": "ast",
-      "id": "backend_tests_conftest_rationale_103",
-      "community": 47,
-      "community_name": "conftest.py",
-      "norm_label": "return the async postgres url (skips if docker unavailable)."
-    },
-    {
-      "label": "Provide an async test client for the FastAPI app.",
-      "file_type": "rationale",
-      "source_file": "backend/tests/conftest.py",
-      "source_location": "L111",
-      "_origin": "ast",
-      "id": "backend_tests_conftest_rationale_111",
-      "community": 47,
-      "community_name": "conftest.py",
-      "norm_label": "provide an async test client for the fastapi app."
-    },
-    {
-      "label": "Provide an async SQLAlchemy session for direct DB operations.",
-      "file_type": "rationale",
-      "source_file": "backend/tests/conftest.py",
-      "source_location": "L130",
-      "_origin": "ast",
-      "id": "backend_tests_conftest_rationale_130",
-      "community": 47,
-      "community_name": "conftest.py",
-      "norm_label": "provide an async sqlalchemy session for direct db operations."
-    },
-    {
-      "label": "Start a PostgreSQL container if Docker is available. This fixture is autouse\u2026",
-      "file_type": "rationale",
-      "source_file": "backend/tests/conftest.py",
-      "source_location": "L55",
-      "_origin": "ast",
-      "id": "backend_tests_conftest_rationale_55",
-      "community": 47,
-      "community_name": "conftest.py",
-      "norm_label": "start a postgresql container if docker is available. this fixture is autouse..."
     },
     {
       "label": "Migration regression gates for the Events schema.",
@@ -5637,7 +5675,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_migrations_rationale_1",
       "community": 47,
-      "community_name": "conftest.py",
+      "community_name": "test_migrations.py",
       "norm_label": "migration regression gates for the events schema."
     },
     {
@@ -5648,7 +5686,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_migrations_rationale_12",
       "community": 47,
-      "community_name": "conftest.py",
+      "community_name": "test_migrations.py",
       "norm_label": "run alembic exactly as the deployment pre-start gate does."
     },
     {
@@ -5659,8 +5697,63 @@
       "_origin": "ast",
       "id": "backend_tests_test_migrations_rationale_23",
       "community": 47,
-      "community_name": "conftest.py",
+      "community_name": "test_migrations.py",
       "norm_label": "revision 0002 must downgrade, upgrade, and re-upgrade cleanly."
+    },
+    {
+      "label": "Exception",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast",
+      "id": "exception",
+      "community": 48,
+      "community_name": "SocrataError",
+      "norm_label": "exception"
+    },
+    {
+      "label": "Normalize a Socrata URL string or object without changing the raw row.",
+      "file_type": "rationale",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L283",
+      "_origin": "ast",
+      "id": "backend_app_socrata_rationale_283",
+      "community": 48,
+      "community_name": "SocrataError",
+      "norm_label": "normalize a socrata url string or object without changing the raw row."
+    },
+    {
+      "label": "Derive registration status and provenance from source fields.",
+      "file_type": "rationale",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L320",
+      "_origin": "ast",
+      "id": "backend_app_socrata_rationale_320",
+      "community": 48,
+      "community_name": "SocrataError",
+      "norm_label": "derive registration status and provenance from source fields."
+    },
+    {
+      "label": "Raised when the Socrata API returns an unrecoverable error.",
+      "file_type": "rationale",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L68",
+      "_origin": "ast",
+      "id": "backend_app_socrata_rationale_68",
+      "community": 48,
+      "community_name": "SocrataError",
+      "norm_label": "raised when the socrata api returns an unrecoverable error."
+    },
+    {
+      "label": "Allow only the fixed NYC Open Data HTTPS query origin.",
+      "file_type": "rationale",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L72",
+      "_origin": "ast",
+      "id": "backend_app_socrata_rationale_72",
+      "community": 48,
+      "community_name": "SocrataError",
+      "norm_label": "allow only the fixed nyc open data https query origin."
     },
     {
       "label": "0002_create_events.py",
@@ -5674,61 +5767,6 @@
       "norm_label": "0002_create_events.py"
     },
     {
-      "label": "AsyncClient",
-      "file_type": "code",
-      "source_file": "",
-      "source_location": "",
-      "_origin": "ast",
-      "id": "asyncclient",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": "asyncclient"
-    },
-    {
-      "label": "Any",
-      "file_type": "code",
-      "source_file": "",
-      "source_location": "",
-      "_origin": "ast",
-      "id": "backend_app_socrata_py_any",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": "any"
-    },
-    {
-      "label": "Response",
-      "file_type": "code",
-      "source_file": "",
-      "source_location": "",
-      "_origin": "ast",
-      "id": "backend_app_socrata_py_response",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": "response"
-    },
-    {
-      "label": "Response",
-      "file_type": "code",
-      "source_file": "",
-      "source_location": "",
-      "_origin": "ast",
-      "id": "backend_tests_conftest_py_response",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": "response"
-    },
-    {
-      "label": "test_ingestion.py",
-      "file_type": "code",
-      "source_file": "backend/tests/test_ingestion.py",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "backend_tests_test_ingestion",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": "test_ingestion.py"
-    },
-    {
       "label": "test_socrata.py",
       "file_type": "code",
       "source_file": "backend/tests/test_socrata.py",
@@ -5736,140 +5774,8 @@
       "_origin": "ast",
       "id": "backend_tests_test_socrata",
       "community": 5,
-      "community_name": "SocrataClient",
+      "community_name": "test_socrata.py",
       "norm_label": "test_socrata.py"
-    },
-    {
-      "label": "Exception",
-      "file_type": "code",
-      "source_file": "",
-      "source_location": "",
-      "_origin": "ast",
-      "id": "exception",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": "exception"
-    },
-    {
-      "label": "LogRecord",
-      "file_type": "code",
-      "source_file": "",
-      "source_location": "",
-      "_origin": "ast",
-      "id": "logrecord",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": "logrecord"
-    },
-    {
-      "label": "parametrize",
-      "file_type": "code",
-      "source_file": "",
-      "source_location": "",
-      "_origin": "ast",
-      "id": "parametrize",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": "parametrize"
-    },
-    {
-      "label": "Request",
-      "file_type": "code",
-      "source_file": "",
-      "source_location": "",
-      "_origin": "ast",
-      "id": "request",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": "request"
-    },
-    {
-      "label": "Close the HTTP client if this instance created it.",
-      "file_type": "rationale",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L127",
-      "_origin": "ast",
-      "id": "backend_app_socrata_rationale_127",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": "close the http client if this instance created it."
-    },
-    {
-      "label": "POST to the Socrata endpoint with exponential-backoff retry.",
-      "file_type": "rationale",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L134",
-      "_origin": "ast",
-      "id": "backend_app_socrata_rationale_134",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": "post to the socrata endpoint with exponential-backoff retry."
-    },
-    {
-      "label": "Fetch one page of events from the Socrata API.",
-      "file_type": "rationale",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L193",
-      "_origin": "ast",
-      "id": "backend_app_socrata_rationale_193",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": "fetch one page of events from the socrata api."
-    },
-    {
-      "label": "Page through all events until an empty page returns.",
-      "file_type": "rationale",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L209",
-      "_origin": "ast",
-      "id": "backend_app_socrata_rationale_209",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": "page through all events until an empty page returns."
-    },
-    {
-      "label": "Prevent credential values from appearing in log output.",
-      "file_type": "rationale",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L50",
-      "_origin": "ast",
-      "id": "backend_app_socrata_rationale_50",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": "prevent credential values from appearing in log output."
-    },
-    {
-      "label": "Raised when the Socrata API returns an unrecoverable error.",
-      "file_type": "rationale",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L68",
-      "_origin": "ast",
-      "id": "backend_app_socrata_rationale_68",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": "raised when the socrata api returns an unrecoverable error."
-    },
-    {
-      "label": "Allow only the fixed NYC Open Data HTTPS query origin.",
-      "file_type": "rationale",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L72",
-      "_origin": "ast",
-      "id": "backend_app_socrata_rationale_72",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": "allow only the fixed nyc open data https query origin."
-    },
-    {
-      "label": "Async client for the Socrata NYC Parks Events API. Uses HTTP Basic\u2026",
-      "file_type": "rationale",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L90",
-      "_origin": "ast",
-      "id": "backend_app_socrata_rationale_90",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": "async client for the socrata nyc parks events api. uses http basic..."
     },
     {
       "label": "Transport-layer mock that intercepts httpx requests. Returns paginated\u2026",
@@ -5879,52 +5785,8 @@
       "_origin": "ast",
       "id": "backend_tests_conftest_rationale_160",
       "community": 5,
-      "community_name": "SocrataClient",
+      "community_name": "test_socrata.py",
       "norm_label": "transport-layer mock that intercepts httpx requests. returns paginated..."
-    },
-    {
-      "label": "Transport that always returns the given error status code.",
-      "file_type": "rationale",
-      "source_file": "backend/tests/conftest.py",
-      "source_location": "L221",
-      "_origin": "ast",
-      "id": "backend_tests_conftest_rationale_221",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": "transport that always returns the given error status code."
-    },
-    {
-      "label": "Tests for event ingestion \u2014 snapshot deltas, guid identity, network isolation.",
-      "file_type": "rationale",
-      "source_file": "backend/tests/test_ingestion.py",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "backend_tests_test_ingestion_rationale_1",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": "tests for event ingestion \u2014 snapshot deltas, guid identity, network isolation."
-    },
-    {
-      "label": "Verify that transport-layer substitution prevents real network access.",
-      "file_type": "rationale",
-      "source_file": "backend/tests/test_ingestion.py",
-      "source_location": "L105",
-      "_origin": "ast",
-      "id": "backend_tests_test_ingestion_rationale_105",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": "verify that transport-layer substitution prevents real network access."
-    },
-    {
-      "label": "The Socrata client with an injected transport must not reach the network. The\u2026",
-      "file_type": "rationale",
-      "source_file": "backend/tests/test_ingestion.py",
-      "source_location": "L108",
-      "_origin": "ast",
-      "id": "backend_tests_test_ingestion_rationale_108",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": "the socrata client with an injected transport must not reach the network. the..."
     },
     {
       "label": "Tests for the Socrata client \u2014 pagination, retry, credential filtering, parsing.",
@@ -5934,41 +5796,8 @@
       "_origin": "ast",
       "id": "backend_tests_test_socrata_rationale_1",
       "community": 5,
-      "community_name": "SocrataClient",
+      "community_name": "test_socrata.py",
       "norm_label": "tests for the socrata client \u2014 pagination, retry, credential filtering, parsing."
-    },
-    {
-      "label": "Verify that credential values never appear in log output.",
-      "file_type": "rationale",
-      "source_file": "backend/tests/test_socrata.py",
-      "source_location": "L120",
-      "_origin": "ast",
-      "id": "backend_tests_test_socrata_rationale_120",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": "verify that credential values never appear in log output."
-    },
-    {
-      "label": "Log output during a request must not contain API key values.",
-      "file_type": "rationale",
-      "source_file": "backend/tests/test_socrata.py",
-      "source_location": "L123",
-      "_origin": "ast",
-      "id": "backend_tests_test_socrata_rationale_123",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": "log output during a request must not contain api key values."
-    },
-    {
-      "label": "Reject unsafe endpoints and malformed source responses.",
-      "file_type": "rationale",
-      "source_file": "backend/tests/test_socrata.py",
-      "source_location": "L168",
-      "_origin": "ast",
-      "id": "backend_tests_test_socrata_rationale_168",
-      "community": 5,
-      "community_name": "SocrataClient",
-      "norm_label": "reject unsafe endpoints and malformed source responses."
     },
     {
       "label": "Verify the client pages through all results and stops on empty.",
@@ -5978,7 +5807,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_socrata_rationale_20",
       "community": 5,
-      "community_name": "SocrataClient",
+      "community_name": "test_socrata.py",
       "norm_label": "verify the client pages through all results and stops on empty."
     },
     {
@@ -5989,7 +5818,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_socrata_rationale_23",
       "community": 5,
-      "community_name": "SocrataClient",
+      "community_name": "test_socrata.py",
       "norm_label": "the client must fetch all pages and combine the rows."
     },
     {
@@ -6000,7 +5829,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_socrata_rationale_51",
       "community": 5,
-      "community_name": "SocrataClient",
+      "community_name": "test_socrata.py",
       "norm_label": "the client must stop when an empty page is returned."
     },
     {
@@ -6011,7 +5840,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_socrata_rationale_70",
       "community": 5,
-      "community_name": "SocrataClient",
+      "community_name": "test_socrata.py",
       "norm_label": "verify exponential-backoff retry on server errors."
     },
     {
@@ -6022,7 +5851,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_socrata_rationale_73",
       "community": 5,
-      "community_name": "SocrataClient",
+      "community_name": "test_socrata.py",
       "norm_label": "the client must retry on 503 and succeed when the server recovers."
     },
     {
@@ -6033,7 +5862,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_socrata_rationale_98",
       "community": 5,
-      "community_name": "SocrataClient",
+      "community_name": "test_socrata.py",
       "norm_label": "the client must raise after all retries are exhausted."
     },
     {
@@ -6046,6 +5875,292 @@
       "community": 50,
       "community_name": "routes/__init__.py",
       "norm_label": "routes/__init__.py"
+    },
+    {
+      "label": "socrata.py",
+      "file_type": "code",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "backend_app_socrata",
+      "community": 51,
+      "community_name": "socrata.py",
+      "norm_label": "socrata.py"
+    },
+    {
+      "label": "AsyncSession",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast",
+      "id": "backend_app_socrata_py_asyncsession",
+      "community": 51,
+      "community_name": "socrata.py",
+      "norm_label": "asyncsession"
+    },
+    {
+      "label": "datetime",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast",
+      "id": "datetime",
+      "community": 51,
+      "community_name": "socrata.py",
+      "norm_label": "datetime"
+    },
+    {
+      "label": "Socrata NYC Parks Events API client with pagination and retry.",
+      "file_type": "rationale",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "backend_app_socrata_rationale_1",
+      "community": 51,
+      "community_name": "socrata.py",
+      "norm_label": "socrata nyc parks events api client with pagination and retry."
+    },
+    {
+      "label": "Convert MM/DD/YYYY to ISO date string, or return None.",
+      "file_type": "rationale",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L225",
+      "_origin": "ast",
+      "id": "backend_app_socrata_rationale_225",
+      "community": 51,
+      "community_name": "socrata.py",
+      "norm_label": "convert mm/dd/yyyy to iso date string, or return none."
+    },
+    {
+      "label": "Convert 'YYYY-MM-DD HH:MM:SS' to a timezone-aware datetime.",
+      "file_type": "rationale",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L235",
+      "_origin": "ast",
+      "id": "backend_app_socrata_rationale_235",
+      "community": 51,
+      "community_name": "socrata.py",
+      "norm_label": "convert 'yyyy-mm-dd hh:mm:ss' to a timezone-aware datetime."
+    },
+    {
+      "label": "Parse coordinate string into (lat, lon, coordinate_list). Returns the first\u2026",
+      "file_type": "rationale",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L249",
+      "_origin": "ast",
+      "id": "backend_app_socrata_rationale_249",
+      "community": 51,
+      "community_name": "socrata.py",
+      "norm_label": "parse coordinate string into (lat, lon, coordinate_list). returns the first..."
+    },
+    {
+      "label": "Derive borough name from the first character of parkids.",
+      "file_type": "rationale",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L276",
+      "_origin": "ast",
+      "id": "backend_app_socrata_rationale_276",
+      "community": 51,
+      "community_name": "socrata.py",
+      "norm_label": "derive borough name from the first character of parkids."
+    },
+    {
+      "label": "Split pipe-delimited categories into a list.",
+      "file_type": "rationale",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L335",
+      "_origin": "ast",
+      "id": "backend_app_socrata_rationale_335",
+      "community": 51,
+      "community_name": "socrata.py",
+      "norm_label": "split pipe-delimited categories into a list."
+    },
+    {
+      "label": "Build Location identity from source ID and normalized coordinates.",
+      "file_type": "rationale",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L344",
+      "_origin": "ast",
+      "id": "backend_app_socrata_rationale_344",
+      "community": 51,
+      "community_name": "socrata.py",
+      "norm_label": "build location identity from source id and normalized coordinates."
+    },
+    {
+      "label": "Atomically upsert validated source rows by source guid.",
+      "file_type": "rationale",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L400",
+      "_origin": "ast",
+      "id": "backend_app_socrata_rationale_400",
+      "community": 51,
+      "community_name": "socrata.py",
+      "norm_label": "atomically upsert validated source rows by source guid."
+    },
+    {
+      "label": "Fetch the complete source Snapshot and store it in Postgres.",
+      "file_type": "rationale",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L419",
+      "_origin": "ast",
+      "id": "backend_app_socrata_rationale_419",
+      "community": 51,
+      "community_name": "socrata.py",
+      "norm_label": "fetch the complete source snapshot and store it in postgres."
+    },
+    {
+      "label": "AsyncClient",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast",
+      "id": "asyncclient",
+      "community": 52,
+      "community_name": "CredentialFilter",
+      "norm_label": "asyncclient"
+    },
+    {
+      "label": "LogRecord",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast",
+      "id": "logrecord",
+      "community": 52,
+      "community_name": "CredentialFilter",
+      "norm_label": "logrecord"
+    },
+    {
+      "label": "Prevent credential values from appearing in log output.",
+      "file_type": "rationale",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L50",
+      "_origin": "ast",
+      "id": "backend_app_socrata_rationale_50",
+      "community": 52,
+      "community_name": "CredentialFilter",
+      "norm_label": "prevent credential values from appearing in log output."
+    },
+    {
+      "label": "Verify that credential values never appear in log output.",
+      "file_type": "rationale",
+      "source_file": "backend/tests/test_socrata.py",
+      "source_location": "L120",
+      "_origin": "ast",
+      "id": "backend_tests_test_socrata_rationale_120",
+      "community": 52,
+      "community_name": "CredentialFilter",
+      "norm_label": "verify that credential values never appear in log output."
+    },
+    {
+      "label": "Log output during a request must not contain API key values.",
+      "file_type": "rationale",
+      "source_file": "backend/tests/test_socrata.py",
+      "source_location": "L123",
+      "_origin": "ast",
+      "id": "backend_tests_test_socrata_rationale_123",
+      "community": 52,
+      "community_name": "CredentialFilter",
+      "norm_label": "log output during a request must not contain api key values."
+    },
+    {
+      "label": "Any",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast",
+      "id": "backend_app_socrata_py_any",
+      "community": 54,
+      "community_name": "SocrataClient",
+      "norm_label": "any"
+    },
+    {
+      "label": "Response",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast",
+      "id": "backend_app_socrata_py_response",
+      "community": 54,
+      "community_name": "SocrataClient",
+      "norm_label": "response"
+    },
+    {
+      "label": "parametrize",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast",
+      "id": "parametrize",
+      "community": 54,
+      "community_name": "SocrataClient",
+      "norm_label": "parametrize"
+    },
+    {
+      "label": "Close the HTTP client if this instance created it.",
+      "file_type": "rationale",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L127",
+      "_origin": "ast",
+      "id": "backend_app_socrata_rationale_127",
+      "community": 54,
+      "community_name": "SocrataClient",
+      "norm_label": "close the http client if this instance created it."
+    },
+    {
+      "label": "POST to the Socrata endpoint with exponential-backoff retry.",
+      "file_type": "rationale",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L134",
+      "_origin": "ast",
+      "id": "backend_app_socrata_rationale_134",
+      "community": 54,
+      "community_name": "SocrataClient",
+      "norm_label": "post to the socrata endpoint with exponential-backoff retry."
+    },
+    {
+      "label": "Fetch one page of events from the Socrata API.",
+      "file_type": "rationale",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L193",
+      "_origin": "ast",
+      "id": "backend_app_socrata_rationale_193",
+      "community": 54,
+      "community_name": "SocrataClient",
+      "norm_label": "fetch one page of events from the socrata api."
+    },
+    {
+      "label": "Page through all events until an empty page returns.",
+      "file_type": "rationale",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L209",
+      "_origin": "ast",
+      "id": "backend_app_socrata_rationale_209",
+      "community": 54,
+      "community_name": "SocrataClient",
+      "norm_label": "page through all events until an empty page returns."
+    },
+    {
+      "label": "Async client for the Socrata NYC Parks Events API. Uses HTTP Basic\u2026",
+      "file_type": "rationale",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L90",
+      "_origin": "ast",
+      "id": "backend_app_socrata_rationale_90",
+      "community": 54,
+      "community_name": "SocrataClient",
+      "norm_label": "async client for the socrata nyc parks events api. uses http basic..."
+    },
+    {
+      "label": "Reject unsafe endpoints and malformed source responses.",
+      "file_type": "rationale",
+      "source_file": "backend/tests/test_socrata.py",
+      "source_location": "L168",
+      "_origin": "ast",
+      "id": "backend_tests_test_socrata_rationale_168",
+      "community": 54,
+      "community_name": "SocrataClient",
+      "norm_label": "reject unsafe endpoints and malformed source responses."
     },
     {
       "label": "CONTEXT.md",
@@ -6631,7 +6746,19 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/socrata.py",
-      "source_location": "L368",
+      "source_location": "L321",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "backend_app_socrata_derive_registration",
+      "target": "backend_app_socrata_normalize_socrata_url",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L403",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_socrata_ingest_events",
@@ -6643,7 +6770,19 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/socrata.py",
-      "source_location": "L328",
+      "source_location": "L288",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "backend_app_socrata_normalize_socrata_url",
+      "target": "backend_app_socrata_socrataerror",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L363",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_socrata_parse_event",
@@ -6655,7 +6794,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/socrata.py",
-      "source_location": "L332",
+      "source_location": "L367",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_socrata_parse_event",
@@ -6667,7 +6806,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/socrata.py",
-      "source_location": "L334",
+      "source_location": "L369",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_socrata_parse_event",
@@ -6679,7 +6818,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/socrata.py",
-      "source_location": "L345",
+      "source_location": "L380",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_socrata_parse_event",
@@ -6691,7 +6830,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/socrata.py",
-      "source_location": "L348",
+      "source_location": "L383",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_socrata_parse_event",
@@ -6703,7 +6842,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/socrata.py",
-      "source_location": "L350",
+      "source_location": "L385",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_socrata_parse_event",
@@ -6715,7 +6854,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/socrata.py",
-      "source_location": "L352",
+      "source_location": "L387",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_socrata_parse_event",
@@ -6727,7 +6866,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/socrata.py",
-      "source_location": "L355",
+      "source_location": "L390",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_socrata_parse_event",
@@ -6823,7 +6962,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/socrata.py",
-      "source_location": "L389",
+      "source_location": "L424",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_socrata_sync_events",
@@ -7268,6 +7407,30 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "backend/tests/test_ingestion.py",
+      "source_location": "L40",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "backend_tests_test_ingestion_testingestionwithdb_test_ingest_live_registration_url_object",
+      "target": "backend_tests_conftest_load_fixture"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend/tests/test_ingestion.py",
+      "source_location": "L42",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "backend_tests_test_ingestion_testingestionwithdb_test_ingest_live_registration_url_object",
+      "target": "backend_tests_conftest_ingest_rows"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend/tests/test_ingestion.py",
       "source_location": "L23",
       "weight": 1.0,
       "_origin": "ast",
@@ -7292,7 +7455,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "backend/tests/test_ingestion.py",
-      "source_location": "L41",
+      "source_location": "L52",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_tests_test_ingestion_testingestionwithdb_test_ingest_snapshot_b_delta",
@@ -7304,7 +7467,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "backend/tests/test_ingestion.py",
-      "source_location": "L42",
+      "source_location": "L53",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_tests_test_ingestion_testingestionwithdb_test_ingest_snapshot_b_delta",
@@ -7316,7 +7479,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "backend/tests/test_ingestion.py",
-      "source_location": "L93",
+      "source_location": "L104",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_tests_test_ingestion_testingestionwithdb_test_invalid_row_rolls_back_the_whole_snapshot",
@@ -7328,7 +7491,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "backend/tests/test_ingestion.py",
-      "source_location": "L98",
+      "source_location": "L109",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_tests_test_ingestion_testingestionwithdb_test_invalid_row_rolls_back_the_whole_snapshot",
@@ -7340,7 +7503,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "backend/tests/test_ingestion.py",
-      "source_location": "L70",
+      "source_location": "L81",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_tests_test_ingestion_testingestionwithdb_test_source_guid_is_primary_key",
@@ -7352,7 +7515,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "backend/tests/test_ingestion.py",
-      "source_location": "L71",
+      "source_location": "L82",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_tests_test_ingestion_testingestionwithdb_test_source_guid_is_primary_key",
@@ -7364,7 +7527,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "backend/tests/test_ingestion.py",
-      "source_location": "L110",
+      "source_location": "L121",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_tests_test_ingestion_testnetworkenforcement_test_no_network_enforcement",
@@ -7376,7 +7539,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "backend/tests/test_ingestion.py",
-      "source_location": "L122",
+      "source_location": "L133",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_tests_test_ingestion_testnetworkenforcement_test_no_network_enforcement",
@@ -7501,6 +7664,30 @@
       "_origin": "ast",
       "source": "backend_tests_test_socrata_testpagination_test_pagination_stops_on_empty_page",
       "target": "backend_app_socrata_socrataclient"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend/tests/test_socrata.py",
+      "source_location": "L293",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "backend_tests_test_socrata_testparseevent_test_live_registration_url_object_is_normalized_without_mutation",
+      "target": "backend_tests_conftest_load_fixture"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend/tests/test_socrata.py",
+      "source_location": "L296",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "backend_tests_test_socrata_testparseevent_test_live_registration_url_object_is_normalized_without_mutation",
+      "target": "backend_app_socrata_parse_event"
     },
     {
       "relation": "calls",
@@ -7644,6 +7831,54 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_tests_test_socrata_testparseevent_test_parse_event_stated_fields",
+      "target": "backend_app_socrata_parse_event"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend/tests/test_socrata.py",
+      "source_location": "L314",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "backend_tests_test_socrata_testparseevent_test_registration_url_string_and_null_shapes",
+      "target": "backend_tests_conftest_load_fixture"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend/tests/test_socrata.py",
+      "source_location": "L317",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "backend_tests_test_socrata_testparseevent_test_registration_url_string_and_null_shapes",
+      "target": "backend_app_socrata_parse_event"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend/tests/test_socrata.py",
+      "source_location": "L337",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "backend_tests_test_socrata_testparseevent_test_unsafe_or_malformed_registration_url_is_rejected",
+      "target": "backend_tests_conftest_load_fixture"
+    },
+    {
+      "relation": "calls",
+      "context": "call",
+      "confidence": "EXTRACTED",
+      "confidence_score": 1.0,
+      "source_file": "backend/tests/test_socrata.py",
+      "source_location": "L341",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "backend_tests_test_socrata_testparseevent_test_unsafe_or_malformed_registration_url_is_rejected",
       "target": "backend_app_socrata_parse_event"
     },
     {
@@ -8226,6 +8461,30 @@
       "relation": "references",
       "confidence": "EXTRACTED",
       "source_file": "backend/tests/test_socrata.py",
+      "source_location": "L302",
+      "weight": 1.0,
+      "context": "decorator",
+      "_origin": "ast",
+      "source": "backend_tests_test_socrata_testparseevent_test_registration_url_string_and_null_shapes",
+      "target": "parametrize",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "backend/tests/test_socrata.py",
+      "source_location": "L322",
+      "weight": 1.0,
+      "context": "decorator",
+      "_origin": "ast",
+      "source": "backend_tests_test_socrata_testparseevent_test_unsafe_or_malformed_registration_url_is_rejected",
+      "target": "parametrize",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "confidence": "EXTRACTED",
+      "source_file": "backend/tests/test_socrata.py",
       "source_location": "L191",
       "weight": 1.0,
       "context": "decorator",
@@ -8395,7 +8654,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/socrata.py",
-      "source_location": "L364",
+      "source_location": "L399",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_socrata_ingest_events",
@@ -8407,7 +8666,7 @@
       "context": "generic_arg",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/socrata.py",
-      "source_location": "L319",
+      "source_location": "L354",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_socrata_parse_event",
@@ -10159,11 +10418,35 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/socrata.py",
-      "source_location": "L364",
+      "source_location": "L316",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "backend_app_socrata_derive_registration",
+      "target": "backend_app_socrata_py_any",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L399",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_socrata_ingest_events",
       "target": "backend_app_socrata_py_asyncsession",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "references",
+      "context": "parameter_type",
+      "confidence": "EXTRACTED",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L282",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "backend_app_socrata_normalize_socrata_url",
+      "target": "backend_app_socrata_py_any",
       "confidence_score": 1.0
     },
     {
@@ -10183,7 +10466,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/socrata.py",
-      "source_location": "L381",
+      "source_location": "L416",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_socrata_sync_events",
@@ -10195,7 +10478,7 @@
       "context": "parameter_type",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/socrata.py",
-      "source_location": "L381",
+      "source_location": "L416",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_socrata_sync_events",
@@ -10680,6 +10963,17 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_socrata",
+      "target": "backend_app_socrata_normalize_socrata_url",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L316",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "backend_app_socrata",
       "target": "backend_app_socrata_derive_registration",
       "confidence_score": 1.0
     },
@@ -10687,7 +10981,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/socrata.py",
-      "source_location": "L299",
+      "source_location": "L334",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_socrata",
@@ -10698,7 +10992,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/socrata.py",
-      "source_location": "L306",
+      "source_location": "L341",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_socrata",
@@ -10709,7 +11003,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/socrata.py",
-      "source_location": "L319",
+      "source_location": "L354",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_socrata",
@@ -10720,7 +11014,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/socrata.py",
-      "source_location": "L364",
+      "source_location": "L399",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_socrata",
@@ -10731,7 +11025,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/socrata.py",
-      "source_location": "L381",
+      "source_location": "L416",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_socrata",
@@ -11083,7 +11377,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "backend/tests/test_ingestion.py",
-      "source_location": "L104",
+      "source_location": "L115",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_tests_test_ingestion",
@@ -13778,6 +14072,17 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/tests/test_ingestion.py",
+      "source_location": "L102",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "backend_tests_test_ingestion_testingestionwithdb",
+      "target": "backend_tests_test_ingestion_testingestionwithdb_test_invalid_row_rolls_back_the_whole_snapshot",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "backend/tests/test_ingestion.py",
       "source_location": "L21",
       "weight": 1.0,
       "_origin": "ast",
@@ -13793,6 +14098,17 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_tests_test_ingestion_testingestionwithdb",
+      "target": "backend_tests_test_ingestion_testingestionwithdb_test_ingest_live_registration_url_object",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "backend/tests/test_ingestion.py",
+      "source_location": "L49",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "backend_tests_test_ingestion_testingestionwithdb",
       "target": "backend_tests_test_ingestion_testingestionwithdb_test_ingest_snapshot_b_delta",
       "confidence_score": 1.0
     },
@@ -13800,7 +14116,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/tests/test_ingestion.py",
-      "source_location": "L68",
+      "source_location": "L79",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_tests_test_ingestion_testingestionwithdb",
@@ -13811,18 +14127,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "backend/tests/test_ingestion.py",
-      "source_location": "L91",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "backend_tests_test_ingestion_testingestionwithdb",
-      "target": "backend_tests_test_ingestion_testingestionwithdb_test_invalid_row_rolls_back_the_whole_snapshot",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "method",
-      "confidence": "EXTRACTED",
-      "source_file": "backend/tests/test_ingestion.py",
-      "source_location": "L107",
+      "source_location": "L118",
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_tests_test_ingestion_testnetworkenforcement",
@@ -13926,6 +14231,39 @@
       "_origin": "ast",
       "source": "backend_tests_test_socrata_testparseevent",
       "target": "backend_tests_test_socrata_testparseevent_test_parse_event_registration_not_required",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "backend/tests/test_socrata.py",
+      "source_location": "L291",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "backend_tests_test_socrata_testparseevent",
+      "target": "backend_tests_test_socrata_testparseevent_test_live_registration_url_object_is_normalized_without_mutation",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "backend/tests/test_socrata.py",
+      "source_location": "L310",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "backend_tests_test_socrata_testparseevent",
+      "target": "backend_tests_test_socrata_testparseevent_test_registration_url_string_and_null_shapes",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "backend/tests/test_socrata.py",
+      "source_location": "L333",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "backend_tests_test_socrata_testparseevent",
+      "target": "backend_tests_test_socrata_testparseevent_test_unsafe_or_malformed_registration_url_is_rejected",
       "confidence_score": 1.0
     },
     {
@@ -14482,33 +14820,11 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/socrata.py",
-      "source_location": "L286",
+      "source_location": "L283",
       "weight": 1.0,
       "_origin": "ast",
-      "source": "backend_app_socrata_rationale_286",
-      "target": "backend_app_socrata_derive_registration",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "rationale_for",
-      "confidence": "EXTRACTED",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L300",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "backend_app_socrata_rationale_300",
-      "target": "backend_app_socrata_parse_categories",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "rationale_for",
-      "confidence": "EXTRACTED",
-      "source_file": "backend/app/socrata.py",
-      "source_location": "L309",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "backend_app_socrata_rationale_309",
-      "target": "backend_app_socrata_location_key",
+      "source": "backend_app_socrata_rationale_283",
+      "target": "backend_app_socrata_normalize_socrata_url",
       "confidence_score": 1.0
     },
     {
@@ -14519,6 +14835,39 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_app_socrata_rationale_320",
+      "target": "backend_app_socrata_derive_registration",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L335",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "backend_app_socrata_rationale_335",
+      "target": "backend_app_socrata_parse_categories",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L344",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "backend_app_socrata_rationale_344",
+      "target": "backend_app_socrata_location_key",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "backend/app/socrata.py",
+      "source_location": "L355",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "backend_app_socrata_rationale_355",
       "target": "backend_app_socrata_parse_event",
       "confidence_score": 1.0
     },
@@ -14526,10 +14875,10 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/socrata.py",
-      "source_location": "L365",
+      "source_location": "L400",
       "weight": 1.0,
       "_origin": "ast",
-      "source": "backend_app_socrata_rationale_365",
+      "source": "backend_app_socrata_rationale_400",
       "target": "backend_app_socrata_ingest_events",
       "confidence_score": 1.0
     },
@@ -14537,10 +14886,10 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "backend/app/socrata.py",
-      "source_location": "L384",
+      "source_location": "L419",
       "weight": 1.0,
       "_origin": "ast",
-      "source": "backend_app_socrata_rationale_384",
+      "source": "backend_app_socrata_rationale_419",
       "target": "backend_app_socrata_sync_events",
       "confidence_score": 1.0
     },
@@ -14977,10 +15326,21 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "backend/tests/test_ingestion.py",
-      "source_location": "L105",
+      "source_location": "L103",
       "weight": 1.0,
       "_origin": "ast",
-      "source": "backend_tests_test_ingestion_rationale_105",
+      "source": "backend_tests_test_ingestion_rationale_103",
+      "target": "backend_tests_test_ingestion_testingestionwithdb_test_invalid_row_rolls_back_the_whole_snapshot",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "backend/tests/test_ingestion.py",
+      "source_location": "L116",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "backend_tests_test_ingestion_rationale_116",
       "target": "backend_tests_test_ingestion_testnetworkenforcement",
       "confidence_score": 1.0
     },
@@ -14988,10 +15348,10 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "backend/tests/test_ingestion.py",
-      "source_location": "L108",
+      "source_location": "L119",
       "weight": 1.0,
       "_origin": "ast",
-      "source": "backend_tests_test_ingestion_rationale_108",
+      "source": "backend_tests_test_ingestion_rationale_119",
       "target": "backend_tests_test_ingestion_testnetworkenforcement_test_no_network_enforcement",
       "confidence_score": 1.0
     },
@@ -15025,6 +15385,17 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "backend_tests_test_ingestion_rationale_39",
+      "target": "backend_tests_test_ingestion_testingestionwithdb_test_ingest_live_registration_url_object",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "backend/tests/test_ingestion.py",
+      "source_location": "L50",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "backend_tests_test_ingestion_rationale_50",
       "target": "backend_tests_test_ingestion_testingestionwithdb_test_ingest_snapshot_b_delta",
       "confidence_score": 1.0
     },
@@ -15032,22 +15403,11 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "backend/tests/test_ingestion.py",
-      "source_location": "L69",
+      "source_location": "L80",
       "weight": 1.0,
       "_origin": "ast",
-      "source": "backend_tests_test_ingestion_rationale_69",
+      "source": "backend_tests_test_ingestion_rationale_80",
       "target": "backend_tests_test_ingestion_testingestionwithdb_test_source_guid_is_primary_key",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "rationale_for",
-      "confidence": "EXTRACTED",
-      "source_file": "backend/tests/test_ingestion.py",
-      "source_location": "L92",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "backend_tests_test_ingestion_rationale_92",
-      "target": "backend_tests_test_ingestion_testingestionwithdb_test_invalid_row_rolls_back_the_whole_snapshot",
       "confidence_score": 1.0
     },
     {
@@ -15230,6 +15590,39 @@
       "relation": "rationale_for",
       "confidence": "EXTRACTED",
       "source_file": "backend/tests/test_socrata.py",
+      "source_location": "L292",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "backend_tests_test_socrata_rationale_292",
+      "target": "backend_tests_test_socrata_testparseevent_test_live_registration_url_object_is_normalized_without_mutation",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "backend/tests/test_socrata.py",
+      "source_location": "L313",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "backend_tests_test_socrata_rationale_313",
+      "target": "backend_tests_test_socrata_testparseevent_test_registration_url_string_and_null_shapes",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "backend/tests/test_socrata.py",
+      "source_location": "L336",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "backend_tests_test_socrata_rationale_336",
+      "target": "backend_tests_test_socrata_testparseevent_test_unsafe_or_malformed_registration_url_is_rejected",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "rationale_for",
+      "confidence": "EXTRACTED",
+      "source_file": "backend/tests/test_socrata.py",
       "source_location": "L51",
       "weight": 1.0,
       "_origin": "ast",
@@ -15298,7 +15691,7 @@
       "context": "call",
       "confidence": "INFERRED",
       "source_file": "backend/app/socrata.py",
-      "source_location": "L373",
+      "source_location": "L408",
       "weight": 0.8,
       "_origin": "ast",
       "source": "backend_app_socrata_ingest_events",
@@ -15365,6 +15758,17 @@
       "relation": "uses",
       "confidence": "INFERRED",
       "source_file": "backend/tests/test_ingestion.py",
+      "source_location": "L108",
+      "weight": 0.8,
+      "_origin": "ast",
+      "source": "backend_tests_test_ingestion_testingestionwithdb",
+      "target": "backend_app_socrata_socrataerror",
+      "confidence_score": 0.5
+    },
+    {
+      "relation": "uses",
+      "confidence": "INFERRED",
+      "source_file": "backend/tests/test_ingestion.py",
       "source_location": "L27",
       "weight": 0.8,
       "_origin": "ast",
@@ -15376,18 +15780,7 @@
       "relation": "uses",
       "confidence": "INFERRED",
       "source_file": "backend/tests/test_ingestion.py",
-      "source_location": "L97",
-      "weight": 0.8,
-      "_origin": "ast",
-      "source": "backend_tests_test_ingestion_testingestionwithdb",
-      "target": "backend_app_socrata_socrataerror",
-      "confidence_score": 0.5
-    },
-    {
-      "relation": "uses",
-      "confidence": "INFERRED",
-      "source_file": "backend/tests/test_ingestion.py",
-      "source_location": "L110",
+      "source_location": "L121",
       "weight": 0.8,
       "_origin": "ast",
       "source": "backend_tests_test_ingestion_testnetworkenforcement",
@@ -15398,7 +15791,7 @@
       "relation": "uses",
       "confidence": "INFERRED",
       "source_file": "backend/tests/test_ingestion.py",
-      "source_location": "L122",
+      "source_location": "L133",
       "weight": 0.8,
       "_origin": "ast",
       "source": "backend_tests_test_ingestion_testnetworkenforcement",
@@ -15409,7 +15802,7 @@
       "relation": "uses",
       "confidence": "INFERRED",
       "source_file": "backend/tests/test_ingestion.py",
-      "source_location": "L124",
+      "source_location": "L135",
       "weight": 0.8,
       "_origin": "ast",
       "source": "backend_tests_test_ingestion_testnetworkenforcement",
@@ -15469,6 +15862,17 @@
       "_origin": "ast",
       "source": "backend_tests_test_socrata_testpagination",
       "target": "backend_app_socrata_socrataclient",
+      "confidence_score": 0.5
+    },
+    {
+      "relation": "uses",
+      "confidence": "INFERRED",
+      "source_file": "backend/tests/test_socrata.py",
+      "source_location": "L340",
+      "weight": 0.8,
+      "_origin": "ast",
+      "source": "backend_tests_test_socrata_testparseevent",
+      "target": "backend_app_socrata_socrataerror",
       "confidence_score": 0.5
     },
     {
@@ -15574,5 +15978,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "cf508cf8c6d8a4e824a1bd3ae67f3fd880db449c"
+  "built_at_commit": "392b8906f4f5e484dae479b8a0cce44d21f545a3"
 }

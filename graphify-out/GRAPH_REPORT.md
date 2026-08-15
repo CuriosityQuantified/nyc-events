@@ -1,16 +1,16 @@
 # Graph Report - nyc-events  (2026-08-15)
 
 ## Corpus Check
-- 79 files · ~37,466 words
+- 80 files · ~37,839 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 566 nodes · 800 edges · 50 communities (34 shown, 16 thin omitted)
-- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 26 edges (avg confidence: 0.52)
+- 576 nodes · 825 edges · 54 communities (38 shown, 16 thin omitted)
+- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 27 edges (avg confidence: 0.52)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `cf508cf8`
+- Built from commit: `392b8906`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -20,7 +20,7 @@
 - Core screens
 - NYC Events — Handoff Document
 - ContractMockTests
-- SocrataClient
+- test_socrata.py
 - Language
 - CLAUDE.md
 - scripts
@@ -39,7 +39,7 @@
 - compilerOptions
 - 419495f4-0ca6-4d45-b6e3-43e1e35536d5 implementation handoff
 - devDependencies
-- get_settings
+- conftest.py
 - TestHealthEndpoint
 - frontend/README.md
 - layout.tsx
@@ -49,19 +49,23 @@
 - shell.spec.ts
 - load_fixture
 - nyc-events-backend
-- socrata.py
+- parse_event
 - Event
-- conftest.py
+- test_migrations.py
+- SocrataError
+- socrata.py
+- CredentialFilter
+- SocrataClient
 
 ## God Nodes (most connected - your core abstractions)
-1. `load_fixture()` - 28 edges
+1. `load_fixture()` - 32 edges
 2. `SocrataClient` - 23 edges
-3. `parse_event()` - 19 edges
-4. `ingest_rows()` - 19 edges
+3. `parse_event()` - 22 edges
+4. `ingest_rows()` - 20 edges
 5. `Event` - 16 edges
 6. `compilerOptions` - 16 edges
-7. `MockTransport` - 14 edges
-8. `SocrataError` - 13 edges
+7. `SocrataError` - 15 edges
+8. `MockTransport` - 14 edges
 9. `419495f4-0ca6-4d45-b6e3-43e1e35536d5 implementation handoff` - 13 edges
 10. `get_settings()` - 12 edges
 
@@ -80,7 +84,7 @@
 ## Import Cycles
 - None detected.
 
-## Communities (50 total, 16 thin omitted)
+## Communities (54 total, 16 thin omitted)
 
 ### Community 0 - "Development pipeline — nyc-events"
 Cohesion: 0.14
@@ -102,9 +106,9 @@ Nodes (32): Accessibility baseline, Application shell, Consensus basis, Consensu
 Cohesion: 0.11
 Nodes (13): BaseHTTPRequestHandler, ContractHandler, create_server(), fact_value(), filter_events(), load_json(), main(), parse_positive_int() (+5 more)
 
-### Community 5 - "SocrataClient"
-Cohesion: 0.05
-Nodes (42): AsyncClient, CredentialFilter, Any, Response, Close the HTTP client if this instance created it., POST to the Socrata endpoint with exponential-backoff retry., Fetch one page of events from the Socrata API., Page through all events until an empty page returns. (+34 more)
+### Community 5 - "test_socrata.py"
+Cohesion: 0.15
+Nodes (11): MockTransport, Transport-layer mock that intercepts httpx requests. Returns paginated…, Tests for the Socrata client — pagination, retry, credential filtering, parsing., Verify the client pages through all results and stops on empty., The client must fetch all pages and combine the rows., The client must stop when an empty page is returned., Verify exponential-backoff retry on server errors., The client must retry on 503 and succeed when the server recovers. (+3 more)
 
 ### Community 6 - "Language"
 Cohesion: 0.33
@@ -138,9 +142,9 @@ Nodes (13): 419495f4-0ca6-4d45-b6e3-43e1e35536d5 implementation handoff, Assets 
 Cohesion: 0.09
 Nodes (23): @axe-core/playwright, eslint, eslint-config-next, devDependencies, @axe-core/playwright, eslint, eslint-config-next, jsdom (+15 more)
 
-### Community 26 - "get_settings"
-Cohesion: 0.09
-Nodes (29): get_settings(), Application configuration via environment variables., Return a cached Settings instance., Settings loaded from environment variables., Settings, get_engine(), Async SQLAlchemy engine and session factory., Return a singleton async engine. (+21 more)
+### Community 26 - "conftest.py"
+Cohesion: 0.06
+Nodes (48): async_sessionmaker, get_settings(), Application configuration via environment variables., Return a cached Settings instance., Settings loaded from environment variables., Settings, get_engine(), get_session_factory() (+40 more)
 
 ### Community 27 - "TestHealthEndpoint"
 Cohesion: 0.15
@@ -152,19 +156,35 @@ Nodes (3): Deploy on Vercel, Getting Started, Learn More
 
 ### Community 38 - "load_fixture"
 Cohesion: 0.07
-Nodes (33): ingest_rows(), load_fixture(), Any, Load a JSON fixture file by name from the fixtures directory., Parse raw Socrata rows and merge them into the database. This is the shared…, _build_validator(), _load_spec(), Any (+25 more)
+Nodes (34): ingest_rows(), load_fixture(), Any, Load a JSON fixture file by name from the fixtures directory., Parse raw Socrata rows and merge them into the database. This is the shared…, _build_validator(), _load_spec(), Any (+26 more)
 
-### Community 45 - "socrata.py"
-Cohesion: 0.07
-Nodes (35): _derive_borough(), _derive_registration(), ingest_events(), _location_key(), _parse_categories(), _parse_coordinates(), _parse_date(), _parse_datetime() (+27 more)
+### Community 45 - "parse_event"
+Cohesion: 0.13
+Nodes (13): parse_event(), Convert a Socrata row dict to Event model field values. Returns a dict suitable…, Verify raw Socrata rows are correctly parsed into Event fields., Stated fields must carry their raw values through., Borough, dates, and registration must be derived correctly., Absent fields must return None / Not listed equivalents., Coordinates must be parsed into lat/lon floats., Pipe-delimited categories must be split into a list. (+5 more)
 
 ### Community 46 - "Event"
-Cohesion: 0.10
-Nodes (32): async_sessionmaker, get_session_factory(), AsyncSession, Return a singleton async session factory., Event, Event SQLAlchemy model for NYC Parks events., A single NYC Parks event identified by its source guid., Base (+24 more)
+Cohesion: 0.08
+Nodes (36): Event, Event SQLAlchemy model for NYC Parks events., A single NYC Parks event identified by its source guid., Base, SQLAlchemy model definitions., Base class for all SQLAlchemy models., _boolean_fact(), _date_fact() (+28 more)
 
-### Community 47 - "conftest.py"
-Cohesion: 0.14
-Nodes (18): _check_docker(), client(), db_session(), _maybe_start_postgres(), postgres_url(), Test fixtures using Testcontainers for real Postgres., Return the async Postgres URL (skips if Docker unavailable)., Provide an async test client for the FastAPI app. (+10 more)
+### Community 47 - "test_migrations.py"
+Cohesion: 0.29
+Nodes (7): _alembic(), requires_docker, Migration regression gates for the Events schema., Run Alembic exactly as the deployment pre-start gate does., Revision 0002 must downgrade, upgrade, and re-upgrade cleanly., test_events_migration_upgrade_and_idempotency(), CompletedProcess
+
+### Community 48 - "SocrataError"
+Cohesion: 0.22
+Nodes (9): _derive_registration(), _normalize_socrata_url(), Normalize a Socrata URL string or object without changing the raw row., Derive registration status and provenance from source fields., Raised when the Socrata API returns an unrecoverable error., Allow only the fixed NYC Open Data HTTPS query origin., SocrataError, _validated_endpoint() (+1 more)
+
+### Community 51 - "socrata.py"
+Cohesion: 0.12
+Nodes (19): _derive_borough(), ingest_events(), _location_key(), _parse_categories(), _parse_coordinates(), _parse_date(), _parse_datetime(), AsyncSession (+11 more)
+
+### Community 52 - "CredentialFilter"
+Cohesion: 0.22
+Nodes (7): AsyncClient, CredentialFilter, Prevent credential values from appearing in log output., Verify that credential values never appear in log output., Log output during a request must not contain API key values., TestCredentialFiltering, LogRecord
+
+### Community 54 - "SocrataClient"
+Cohesion: 0.17
+Nodes (11): Any, Response, Close the HTTP client if this instance created it., POST to the Socrata endpoint with exponential-backoff retry., Fetch one page of events from the Socrata API., Page through all events until an empty page returns., Async client for the Socrata NYC Parks Events API. Uses HTTP Basic…, SocrataClient (+3 more)
 
 ## Knowledge Gaps
 - **150 isolated node(s):** `nyc-events-backend`, `DayInfo`, `DAY_NAMES`, `categories`, `boroughs` (+145 more)
@@ -174,11 +194,11 @@ Nodes (18): _check_docker(), client(), db_session(), _maybe_start_postgres(), po
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `Event` connect `Event` to `SocrataClient`, `socrata.py`, `load_fixture`, `conftest.py`?**
-  _High betweenness centrality (0.043) - this node is a cross-community bridge._
-- **Why does `load_fixture()` connect `load_fixture` to `socrata.py`, `SocrataClient`, `conftest.py`?**
-  _High betweenness centrality (0.037) - this node is a cross-community bridge._
-- **Why does `get_settings()` connect `get_settings` to `SocrataClient`, `socrata.py`, `conftest.py`?**
+- **Why does `load_fixture()` connect `load_fixture` to `test_socrata.py`, `parse_event`, `Event`, `CredentialFilter`, `conftest.py`?**
+  _High betweenness centrality (0.044) - this node is a cross-community bridge._
+- **Why does `Event` connect `Event` to `conftest.py`, `socrata.py`, `load_fixture`?**
+  _High betweenness centrality (0.044) - this node is a cross-community bridge._
+- **Why does `get_settings()` connect `conftest.py` to `socrata.py`, `CredentialFilter`?**
   _High betweenness centrality (0.034) - this node is a cross-community bridge._
 - **Are the 5 inferred relationships involving `SocrataClient` (e.g. with `TestNetworkEnforcement` and `TestCredentialFiltering`) actually correct?**
   _`SocrataClient` has 5 INFERRED edges - model-reasoned connections that need verification._

@@ -1,0 +1,22 @@
+[
+  {
+    "title": "Live registration URL object regression",
+    "guid": "live-object-1",
+    "link": "https://www.nycgovparks.org/events/2026/08/16/live-registration-url-object-regression",
+    "description": "A deterministic row that matches the Socrata URL object shape.",
+    "registration_url": {
+      "url": "https://example.org/register?id=live-object-1",
+      "description": "Register"
+    },
+    "registration_description": "",
+    "parkids": "M001",
+    "parknames": "Central Park",
+    "startdate": "08/16/2026",
+    "enddate": "08/16/2026",
+    "starttime": "2026-08-16 10:00:00",
+    "endtime": "2026-08-16 11:00:00",
+    "location": "Central Park",
+    "categories": "Nature",
+    "coordinates": "40.78290000000000000, -73.96540000000000000"
+  }
+]
