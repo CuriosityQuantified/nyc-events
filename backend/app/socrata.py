@@ -279,11 +279,46 @@ def _derive_borough(parkids: str | None) -> str | None:
     return BOROUGHS.get(parkids.strip()[0])
 
 
+def _normalize_socrata_url(value: Any, field_name: str) -> str | None:
+    """Normalize a Socrata URL string or object without changing the raw row."""
+    if value is None:
+        return None
+    if isinstance(value, dict):
+        if "url" not in value or not isinstance(value["url"], str):
+            raise SocrataError(f"Socrata {field_name} object must contain a string url")
+        value = value["url"]
+    elif not isinstance(value, str):
+        raise SocrataError(f"Socrata {field_name} must be a string, object, or null")
+
+    normalized = value.strip()
+    if not normalized:
+        return None
+    if any(ord(character) < 32 or ord(character) == 127 for character in normalized):
+        raise SocrataError(f"Socrata {field_name} contains control characters")
+
+    try:
+        parsed = urlparse(normalized)
+        hostname = parsed.hostname
+        port = parsed.port
+    except ValueError as exc:
+        raise SocrataError(f"Socrata {field_name} is malformed") from exc
+    if (
+        parsed.scheme.casefold() not in {"http", "https"}
+        or hostname is None
+        or parsed.username is not None
+        or parsed.password is not None
+        or (port is not None and not 1 <= port <= 65535)
+    ):
+        raise SocrataError(f"Socrata {field_name} is not a safe HTTP URL")
+    return normalized
+
+
 def _derive_registration(
-    registration_url: str | None,
+    registration_url: Any,
     registration_description: str | None,
 ) -> tuple[str | None, str]:
     """Derive registration status and provenance from source fields."""
+    normalized_url = _normalize_socrata_url(registration_url, "registration_url")
     desc = (registration_description or "").strip()
     lowered = desc.casefold()
 
@@ -291,7 +326,7 @@ def _derive_registration(
         return "closed", "Derived"
     if "not required" in lowered:
         return "not_required", "Derived"
-    if (registration_url or "").strip() or "required" in lowered:
+    if normalized_url or "required" in lowered:
         return "required", "Derived"
     return None, "Not listed"
 

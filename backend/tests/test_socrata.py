@@ -287,3 +287,55 @@ class TestParseEvent:
         row["registration_url"] = ""
         parsed = parse_event(row)
         assert parsed["registration_status"] == "not_required"
+
+    def test_live_registration_url_object_is_normalized_without_mutation(self):
+        """The live Socrata URL object must imply registration and stay raw."""
+        row = load_fixture("live_registration_url_object.json")[0]
+        original_url = dict(row["registration_url"])
+
+        parsed = parse_event(row)
+
+        assert parsed["registration_status"] == "required"
+        assert parsed["raw_data"]["registration_url"] == original_url
+        assert row["registration_url"] == original_url
+
+    @pytest.mark.parametrize(
+        ("registration_url", "expected_status"),
+        [
+            (" https://example.org/register ", "required"),
+            (None, None),
+            ("", None),
+        ],
+    )
+    def test_registration_url_string_and_null_shapes(
+        self, registration_url, expected_status
+    ):
+        """String, null, and empty URL shapes must normalize consistently."""
+        row = dict(load_fixture("snapshot_a.json")[0])
+        row["registration_url"] = registration_url
+
+        parsed = parse_event(row)
+
+        assert parsed["registration_status"] == expected_status
+        assert parsed["raw_data"]["registration_url"] == registration_url
+
+    @pytest.mark.parametrize(
+        "registration_url",
+        [
+            {"description": "Missing URL"},
+            {"url": 42},
+            ["https://example.org/register"],
+            "javascript:alert(1)",
+            "https://user:password@example.org/register",
+            "https:///missing-host",
+        ],
+    )
+    def test_unsafe_or_malformed_registration_url_is_rejected(
+        self, registration_url
+    ):
+        """Unsupported URL values must fail closed instead of implying registration."""
+        row = dict(load_fixture("snapshot_a.json")[0])
+        row["registration_url"] = registration_url
+
+        with pytest.raises(SocrataError, match="registration_url"):
+            parse_event(row)
