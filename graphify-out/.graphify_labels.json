@@ -25,7 +25,7 @@
   "23": "compilerOptions",
   "24": "419495f4-0ca6-4d45-b6e3-43e1e35536d5 implementation handoff",
   "25": "devDependencies",
-  "26": "conftest.py",
+  "26": "get_settings",
   "27": "TestHealthEndpoint",
   "28": "frontend/README.md",
   "29": "layout.tsx",
@@ -45,9 +45,8 @@
   "43": "backend/tests/__init__.py",
   "44": "nyc-events-backend",
   "45": "socrata.py",
-  "46": "events.py",
-  "47": "test_migrations.py",
-  "48": "event.py",
+  "46": "Event",
+  "47": "conftest.py",
   "49": "0002_create_events.py",
   "50": "routes/__init__.py"
 }
