@@ -1,0 +1,36 @@
+.wrapper {
+  display: flex;
+  justify-content: center;
+  padding: var(--space-3) var(--space-4);
+}
+
+.toggle {
+  display: flex;
+  background-color: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.button {
+  padding: var(--space-2) var(--space-6);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-foreground-secondary);
+  min-height: var(--touch-min);
+  transition: background-color 0.15s ease, color 0.15s ease;
+  border-radius: var(--radius-full);
+}
+
+.button:hover {
+  color: var(--color-foreground);
+}
+
+.buttonActive {
+  background-color: var(--color-accent);
+  color: var(--color-accent-foreground);
+}
+
+.buttonActive:hover {
+  color: var(--color-accent-foreground);
+}
