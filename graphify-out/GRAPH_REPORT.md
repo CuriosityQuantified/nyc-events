@@ -1,16 +1,16 @@
 # Graph Report - nyc-events-frontend  (2026-08-15)
 
 ## Corpus Check
-- 53 files · ~45,788 words
+- 66 files · ~32,206 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 298 nodes · 329 edges · 37 communities (22 shown, 15 thin omitted)
-- Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
+- 373 nodes · 422 edges · 45 communities (29 shown, 16 thin omitted)
+- Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS · INFERRED: 1 edges (avg confidence: 0.5)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `f38bcc96`
+- Built from commit: `233e65f2`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -39,36 +39,45 @@
 - compilerOptions
 - 419495f4-0ca6-4d45-b6e3-43e1e35536d5 implementation handoff
 - devDependencies
-- include
+- get_settings
+- TestHealthEndpoint
 - frontend/README.md
 - layout.tsx
 - AGENTS.md
 - eslint.config.mjs
 - next.config.ts
 - shell.spec.ts
+- conftest.py
+- nyc-events-backend
 
 ## God Nodes (most connected - your core abstractions)
 1. `compilerOptions` - 16 edges
 2. `419495f4-0ca6-4d45-b6e3-43e1e35536d5 implementation handoff` - 13 edges
 3. `NYC Events — Handoff Document` - 12 edges
 4. `scripts` - 11 edges
-5. `ContractMockTests` - 10 edges
-6. `ParkMatch NYC — Initial Frontend Direction` - 10 edges
-7. `Development pipeline — nyc-events` - 9 edges
-8. `verify_csv_reference()` - 7 edges
-9. `include` - 7 edges
-10. `Core screens` - 7 edges
+5. `get_settings()` - 10 edges
+6. `ContractMockTests` - 10 edges
+7. `ParkMatch NYC — Initial Frontend Direction` - 10 edges
+8. `Development pipeline — nyc-events` - 9 edges
+9. `TestHealthEndpoint` - 7 edges
+10. `verify_csv_reference()` - 7 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `getNext7Days()` --calls--> `getUpcomingDates()`  [EXTRACTED]
-  frontend/app/components/DateStrip.tsx → frontend/app/data/dates.ts
-- `EventCardProps` --references--> `ParkEvent`  [EXTRACTED]
-  frontend/app/components/EventCard.tsx → frontend/app/data/events.ts
+- `client()` --calls--> `reset_engine()`  [EXTRACTED]
+  backend/tests/conftest.py → backend/app/database.py
+- `get_engine()` --calls--> `get_settings()`  [EXTRACTED]
+  backend/app/database.py → backend/app/config.py
+- `health_check()` --calls--> `get_settings()`  [EXTRACTED]
+  backend/app/main.py → backend/app/config.py
+- `get_url()` --calls--> `get_settings()`  [EXTRACTED]
+  backend/migrations/env.py → backend/app/config.py
+- `health_check()` --calls--> `get_engine()`  [EXTRACTED]
+  backend/app/main.py → backend/app/database.py
 
 ## Import Cycles
 - None detected.
 
-## Communities (37 total, 15 thin omitted)
+## Communities (45 total, 16 thin omitted)
 
 ### Community 0 - "Development pipeline — nyc-events"
 Cohesion: 0.14
@@ -115,8 +124,8 @@ Cohesion: 0.50
 Nodes (3): EventMatch NYC API contract, Run the mock, Validate
 
 ### Community 23 - "compilerOptions"
-Cohesion: 0.11
-Nodes (19): compilerOptions, allowJs, esModuleInterop, incremental, isolatedModules, jsx, lib, module (+11 more)
+Cohesion: 0.07
+Nodes (28): compilerOptions, allowJs, esModuleInterop, incremental, isolatedModules, jsx, lib, module (+20 more)
 
 ### Community 24 - "419495f4-0ca6-4d45-b6e3-43e1e35536d5 implementation handoff"
 Cohesion: 0.14
@@ -126,30 +135,38 @@ Nodes (13): 419495f4-0ca6-4d45-b6e3-43e1e35536d5 implementation handoff, Assets 
 Cohesion: 0.09
 Nodes (23): @axe-core/playwright, eslint, eslint-config-next, devDependencies, @axe-core/playwright, eslint, eslint-config-next, jsdom (+15 more)
 
-### Community 27 - "include"
-Cohesion: 0.20
-Nodes (9): exclude, include, **/*.mts, .next/dev/types/**/*.ts, next-env.d.ts, .next/types/**/*.ts, node_modules, **/*.ts (+1 more)
+### Community 26 - "get_settings"
+Cohesion: 0.07
+Nodes (37): async_sessionmaker, AsyncSession, get_settings(), Application configuration via environment variables., Return a cached Settings instance., Settings loaded from environment variables., Settings, get_engine() (+29 more)
+
+### Community 27 - "TestHealthEndpoint"
+Cohesion: 0.15
+Nodes (8): Tests for the /health endpoint., Verify the health endpoint reports service status correctly., The health endpoint must return a JSON body with status, database, and redis…, With a real Postgres container, database must report connected., Without a running Redis, the endpoint must return 503 and degraded status., Response must contain exactly the three required fields., TestHealthEndpoint, requires_docker
 
 ### Community 28 - "frontend/README.md"
 Cohesion: 0.50
 Nodes (3): Deploy on Vercel, Getting Started, Learn More
 
+### Community 38 - "conftest.py"
+Cohesion: 0.23
+Nodes (11): _check_docker(), client(), postgres_url(), Test fixtures using Testcontainers for real Postgres., Provide an async test client for the FastAPI app., Start a PostgreSQL container for the test session. Yields the async connection…, Set DATABASE_URL and REDIS_URL for the test session. Redis is pointed at a non-…, Run Alembic migrations against the Testcontainers database. (+3 more)
+
 ## Knowledge Gaps
-- **149 isolated node(s):** `DayInfo`, `DAY_NAMES`, `categories`, `boroughs`, `ListMapToggleProps` (+144 more)
+- **150 isolated node(s):** `nyc-events-backend`, `DayInfo`, `DAY_NAMES`, `categories`, `boroughs` (+145 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **15 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **16 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `ParkMatch NYC — Initial Frontend Direction` connect `ParkMatch NYC — Initial Frontend Direction` to `Core screens`?**
-  _High betweenness centrality (0.022) - this node is a cross-community bridge._
-- **Why does `Core screens` connect `Core screens` to `ParkMatch NYC — Initial Frontend Direction`?**
+- **Why does `get_settings()` connect `get_settings` to `conftest.py`?**
   _High betweenness centrality (0.017) - this node is a cross-community bridge._
-- **Why does `devDependencies` connect `devDependencies` to `scripts`?**
-  _High betweenness centrality (0.016) - this node is a cross-community bridge._
-- **What connects `DayInfo`, `DAY_NAMES`, `categories` to the rest of the system?**
-  _149 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Why does `ParkMatch NYC — Initial Frontend Direction` connect `ParkMatch NYC — Initial Frontend Direction` to `Core screens`?**
+  _High betweenness centrality (0.014) - this node is a cross-community bridge._
+- **Why does `Core screens` connect `Core screens` to `ParkMatch NYC — Initial Frontend Direction`?**
+  _High betweenness centrality (0.011) - this node is a cross-community bridge._
+- **What connects `nyc-events-backend`, `DayInfo`, `DAY_NAMES` to the rest of the system?**
+  _150 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Development pipeline — nyc-events` be split into smaller, more focused modules?**
   _Cohesion score 0.14285714285714285 - nodes in this community are weakly interconnected._
 - **Should `page.tsx` be split into smaller, more focused modules?**
