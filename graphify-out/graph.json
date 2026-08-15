@@ -879,7 +879,7 @@
       "label": "RootLayout()",
       "file_type": "code",
       "source_file": "frontend/app/layout.tsx",
-      "source_location": "L10",
+      "source_location": "L14",
       "_callable": true,
       "_origin": "ast",
       "id": "frontend_app_layout_rootlayout",
@@ -4153,6 +4153,17 @@
       "norm_label": "desktop"
     },
     {
+      "label": "EventMatch NYC \u2014 Initial Frontend Direction",
+      "file_type": "document",
+      "source_file": "frontend/FRONTEND_CONCEPT.md",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "frontend_frontend_concept_eventmatch_nyc_initial_frontend_direction",
+      "community": 3,
+      "community_name": "NYC Events \u2014 Handoff Document",
+      "norm_label": "eventmatch nyc \u2014 initial frontend direction"
+    },
+    {
       "label": "Global freshness banner",
       "file_type": "document",
       "source_file": "frontend/FRONTEND_CONCEPT.md",
@@ -4195,17 +4206,6 @@
       "community": 3,
       "community_name": "NYC Events \u2014 Handoff Document",
       "norm_label": "mobile"
-    },
-    {
-      "label": "ParkMatch NYC \u2014 Initial Frontend Direction",
-      "file_type": "document",
-      "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "frontend_frontend_concept_parkmatch_nyc_initial_frontend_direction",
-      "community": 3,
-      "community_name": "NYC Events \u2014 Handoff Document",
-      "norm_label": "parkmatch nyc \u2014 initial frontend direction"
     },
     {
       "label": "Product definition",
@@ -12062,7 +12062,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/app/layout.tsx",
-      "source_location": "L10",
+      "source_location": "L14",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_app_layout",
@@ -12275,7 +12275,7 @@
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_frontend_concept",
-      "target": "frontend_frontend_concept_parkmatch_nyc_initial_frontend_direction",
+      "target": "frontend_frontend_concept_eventmatch_nyc_initial_frontend_direction",
       "confidence_score": 1.0
     },
     {
@@ -12502,6 +12502,105 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/FRONTEND_CONCEPT.md",
+      "source_location": "L13",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "frontend_frontend_concept_eventmatch_nyc_initial_frontend_direction",
+      "target": "frontend_frontend_concept_product_definition",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/FRONTEND_CONCEPT.md",
+      "source_location": "L29",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "frontend_frontend_concept_eventmatch_nyc_initial_frontend_direction",
+      "target": "frontend_frontend_concept_application_shell",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/FRONTEND_CONCEPT.md",
+      "source_location": "L293",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "frontend_frontend_concept_eventmatch_nyc_initial_frontend_direction",
+      "target": "frontend_frontend_concept_trust_and_system_states",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/FRONTEND_CONCEPT.md",
+      "source_location": "L3",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "frontend_frontend_concept_eventmatch_nyc_initial_frontend_direction",
+      "target": "frontend_frontend_concept_consensus_basis",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/FRONTEND_CONCEPT.md",
+      "source_location": "L325",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "frontend_frontend_concept_eventmatch_nyc_initial_frontend_direction",
+      "target": "frontend_frontend_concept_accessibility_baseline",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/FRONTEND_CONCEPT.md",
+      "source_location": "L350",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "frontend_frontend_concept_eventmatch_nyc_initial_frontend_direction",
+      "target": "frontend_frontend_concept_visual_direction",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/FRONTEND_CONCEPT.md",
+      "source_location": "L366",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "frontend_frontend_concept_eventmatch_nyc_initial_frontend_direction",
+      "target": "frontend_frontend_concept_initial_mvp_scope",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/FRONTEND_CONCEPT.md",
+      "source_location": "L395",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "frontend_frontend_concept_eventmatch_nyc_initial_frontend_direction",
+      "target": "frontend_frontend_concept_consensus_summary",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/FRONTEND_CONCEPT.md",
+      "source_location": "L56",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "frontend_frontend_concept_eventmatch_nyc_initial_frontend_direction",
+      "target": "frontend_frontend_concept_core_screens",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "frontend/FRONTEND_CONCEPT.md",
       "source_location": "L368",
       "weight": 1.0,
       "_origin": "ast",
@@ -12518,105 +12617,6 @@
       "_origin": "ast",
       "source": "frontend_frontend_concept_initial_mvp_scope",
       "target": "frontend_frontend_concept_defer",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L13",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "frontend_frontend_concept_parkmatch_nyc_initial_frontend_direction",
-      "target": "frontend_frontend_concept_product_definition",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L29",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "frontend_frontend_concept_parkmatch_nyc_initial_frontend_direction",
-      "target": "frontend_frontend_concept_application_shell",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L293",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "frontend_frontend_concept_parkmatch_nyc_initial_frontend_direction",
-      "target": "frontend_frontend_concept_trust_and_system_states",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L3",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "frontend_frontend_concept_parkmatch_nyc_initial_frontend_direction",
-      "target": "frontend_frontend_concept_consensus_basis",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L325",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "frontend_frontend_concept_parkmatch_nyc_initial_frontend_direction",
-      "target": "frontend_frontend_concept_accessibility_baseline",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L350",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "frontend_frontend_concept_parkmatch_nyc_initial_frontend_direction",
-      "target": "frontend_frontend_concept_visual_direction",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L366",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "frontend_frontend_concept_parkmatch_nyc_initial_frontend_direction",
-      "target": "frontend_frontend_concept_initial_mvp_scope",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L395",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "frontend_frontend_concept_parkmatch_nyc_initial_frontend_direction",
-      "target": "frontend_frontend_concept_consensus_summary",
-      "confidence_score": 1.0
-    },
-    {
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L56",
-      "weight": 1.0,
-      "_origin": "ast",
-      "source": "frontend_frontend_concept_parkmatch_nyc_initial_frontend_direction",
-      "target": "frontend_frontend_concept_core_screens",
       "confidence_score": 1.0
     },
     {
@@ -15574,5 +15574,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "caa2ce3c1c703b86aabd2f69842daed9c696d898"
+  "built_at_commit": "cf508cf8c6d8a4e824a1bd3ae67f3fd880db449c"
 }

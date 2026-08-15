@@ -1,7 +1,7 @@
 # Graph Report - nyc-events  (2026-08-15)
 
 ## Corpus Check
-- 79 files · ~37,440 words
+- 79 files · ~37,466 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `caa2ce3c`
+- Built from commit: `cf508cf8`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -96,7 +96,7 @@ Nodes (19): 1. Discover, 2. Results explorer, 3. Map view, 4. Event detail, 5. A
 
 ### Community 3 - "NYC Events — Handoff Document"
 Cohesion: 0.06
-Nodes (32): Accessibility baseline, Application shell, Consensus basis, Consensus summary, Defer, Desktop, Global freshness banner, Include (+24 more)
+Nodes (32): Accessibility baseline, Application shell, Consensus basis, Consensus summary, Defer, Desktop, EventMatch NYC — Initial Frontend Direction, Global freshness banner (+24 more)
 
 ### Community 4 - "ContractMockTests"
 Cohesion: 0.11
