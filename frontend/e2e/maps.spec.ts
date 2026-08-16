@@ -30,11 +30,29 @@ const invalid: ParkEvent = {
   coordinates: [{ latitude: 0, longitude: 0 }],
   positionAccuracy: "not-listed",
 };
-const events = [source[0], shared, source[1], multiple, invalid];
+const unlocatable: ParkEvent = {
+  ...source[1],
+  id: "unlocatable",
+  guid: "unlocatable",
+  title: "Location Unknown Event",
+  location: "Location not listed",
+  locationId: null,
+  coordinates: [],
+  positionAccuracy: "not-listed",
+};
+const events = [source[0], shared, source[1], multiple, invalid, unlocatable];
 
 type AuditedPage = Page & { __mapErrors?: string[] };
 
+const TILE_PNG = Buffer.from(
+  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+  "base64",
+);
+
 async function installRoutes(page: Page): Promise<void> {
+  await page.route("https://tile.openstreetmap.org/**", (route) =>
+    route.fulfill({ body: TILE_PNG, contentType: "image/png" }),
+  );
   await page.route("**/api/events?*", async (route) => {
     const params = new URL(route.request().url()).searchParams;
     const filtered = params.get("borough")
@@ -121,7 +139,7 @@ test.describe("Issue #26 maps", () => {
     await expect(coordinateMap).toHaveAttribute("data-fit-bounds", "true");
     await coordinateMap.scrollIntoViewIfNeeded();
     const markers = page.getByTestId("map-marker");
-    await expect(markers).toHaveCount(3);
+    await expect(markers).toHaveCount(2);
     for (const marker of await markers.all()) {
       expect(
         await marker.evaluate((element) => {
@@ -153,6 +171,9 @@ test.describe("Issue #26 maps", () => {
     await distinctMarker.focus();
     await page.keyboard.press("Space");
     await expect(panel).toContainText(source[1].title);
+    await expect(panel).toContainText(multiple.title);
+    await expect(panel).toContainText(invalid.title);
+    await expect(panel.getByText("3 events", { exact: true })).toBeVisible();
     await expect(panel).not.toContainText(source[0].title);
 
     await sharedMarker.focus();
@@ -160,7 +181,7 @@ test.describe("Issue #26 maps", () => {
     await expect(panel).toContainText(source[0].title);
     await expect(panel).toContainText(shared.title);
     await expect(panel.locator("ul").first()).not.toContainText(invalid.title);
-    await expect(panel).toContainText(invalid.title);
+    await expect(panel).toContainText(unlocatable.title);
     await expect(panel.getByText("2 events", { exact: true })).toBeVisible();
     await expect(
       page.getByText("1 events are available in the list only"),
