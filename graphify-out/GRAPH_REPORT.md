@@ -1,16 +1,16 @@
-# Graph Report - nyc-events-fullstack-38  (2026-08-15)
+# Graph Report - nyc-events  (2026-08-16)
 
 ## Corpus Check
-- 92 files · ~43,873 words
+- 92 files · ~43,888 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 676 nodes · 1017 edges · 64 communities (45 shown, 19 thin omitted)
-- Extraction: 95% EXTRACTED · 5% INFERRED · 0% AMBIGUOUS · INFERRED: 50 edges (avg confidence: 0.51)
+- 677 nodes · 995 edges · 62 communities (44 shown, 18 thin omitted)
+- Extraction: 97% EXTRACTED · 3% INFERRED · 0% AMBIGUOUS · INFERRED: 32 edges (avg confidence: 0.52)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `5c8f4623`
+- Built from commit: `d422f6cf`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -20,7 +20,7 @@
 - Core screens
 - NYC Events — Handoff Document
 - ContractMockTests
-- MockTransport
+- SocrataClient
 - Language
 - CLAUDE.md
 - scripts
@@ -39,7 +39,7 @@
 - compilerOptions
 - 419495f4-0ca6-4d45-b6e3-43e1e35536d5 implementation handoff
 - devDependencies
-- conftest.py
+- events.py
 - TestHealthEndpoint
 - frontend/README.md
 - layout.tsx
@@ -50,14 +50,12 @@
 - load_fixture
 - nyc-events-backend
 - parse_event
-- events.py
-- test_migrations.py
-- AlwaysErrorTransport
+- env.py
+- conftest.py
+- get_settings
 - socrata.py
-- CredentialFilter
+- ingest_events
 - SocrataError
-- SocrataClient
-- .handle_async_request
 - railway_release.py
 - validate_workflows
 - tsconfig.tests.json
@@ -68,32 +66,32 @@
 
 ## God Nodes (most connected - your core abstractions)
 1. `load_fixture()` - 32 edges
-2. `SocrataClient` - 26 edges
+2. `SocrataClient` - 23 edges
 3. `parse_event()` - 23 edges
-4. `Event` - 21 edges
-5. `ingest_rows()` - 20 edges
-6. `SocrataError` - 18 edges
-7. `MockTransport` - 16 edges
-8. `AlwaysErrorTransport` - 16 edges
-9. `TestParseEvent` - 16 edges
-10. `compilerOptions` - 16 edges
+4. `ingest_rows()` - 20 edges
+5. `Event` - 16 edges
+6. `compilerOptions` - 16 edges
+7. `SocrataError` - 15 edges
+8. `MockTransport` - 14 edges
+9. `validate_workflows()` - 14 edges
+10. `scripts` - 13 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `CredentialFilter` --uses--> `Event`  [INFERRED]
+- `_event_to_contract()` --uses--> `Event`  [INFERRED]
+  backend/app/routes/events.py → backend/app/models/event.py
+- `get_event()` --uses--> `Event`  [INFERRED]
+  backend/app/routes/events.py → backend/app/models/event.py
+- `list_events()` --uses--> `Event`  [INFERRED]
+  backend/app/routes/events.py → backend/app/models/event.py
+- `ingest_events()` --uses--> `Event`  [INFERRED]
   backend/app/socrata.py → backend/app/models/event.py
-- `SocrataClient` --uses--> `Event`  [INFERRED]
-  backend/app/socrata.py → backend/app/models/event.py
-- `SocrataError` --uses--> `Event`  [INFERRED]
-  backend/app/socrata.py → backend/app/models/event.py
-- `AlwaysErrorTransport` --uses--> `Event`  [INFERRED]
-  backend/tests/conftest.py → backend/app/models/event.py
-- `MockTransport` --uses--> `Event`  [INFERRED]
+- `db_session()` --uses--> `Event`  [INFERRED]
   backend/tests/conftest.py → backend/app/models/event.py
 
 ## Import Cycles
 - None detected.
 
-## Communities (64 total, 19 thin omitted)
+## Communities (62 total, 18 thin omitted)
 
 ### Community 0 - "Development pipeline — nyc-events"
 Cohesion: 0.14
@@ -115,9 +113,9 @@ Nodes (32): Accessibility baseline, Application shell, Consensus basis, Consensu
 Cohesion: 0.11
 Nodes (13): BaseHTTPRequestHandler, ContractHandler, create_server(), fact_value(), filter_events(), load_json(), main(), parse_positive_int() (+5 more)
 
-### Community 5 - "MockTransport"
-Cohesion: 0.16
-Nodes (10): MockTransport, Transport-layer mock that intercepts httpx requests. Returns paginated…, Verify that credential values never appear in log output., Log output during a request must not contain API key values., Verify the client pages through all results and stops on empty., The client must fetch all pages and combine the rows., The client must stop when an empty page is returned., The client must retry on 503 and succeed when the server recovers. (+2 more)
+### Community 5 - "SocrataClient"
+Cohesion: 0.07
+Nodes (31): AsyncClient, CredentialFilter, Close the HTTP client if this instance created it., Prevent credential values from appearing in log output., Async client for the Socrata NYC Parks Events API. Uses HTTP Basic…, SocrataClient, AlwaysErrorTransport, MockTransport (+23 more)
 
 ### Community 6 - "Language"
 Cohesion: 0.33
@@ -132,8 +130,8 @@ Cohesion: 0.40
 Nodes (4): Checks, Lane, Verification, What and why
 
 ### Community 19 - "validate_contract.py"
-Cohesion: 0.37
-Nodes (12): derived_registration(), load_json(), local_iso(), main(), parsed_coordinates(), Any, Path, reject_nonlocal_refs() (+4 more)
+Cohesion: 0.11
+Nodes (25): _build_validator(), _load_spec(), Any, requires_docker, Contract tests — validate API responses against the OpenAPI schema., Load the OpenAPI spec., Build a JSON Schema validator for a given $ref in the OpenAPI spec., Validate real API responses against the OpenAPI contract schema. (+17 more)
 
 ### Community 20 - "EventMatch NYC API contract"
 Cohesion: 0.50
@@ -151,53 +149,49 @@ Nodes (13): 419495f4-0ca6-4d45-b6e3-43e1e35536d5 implementation handoff, Assets 
 Cohesion: 0.08
 Nodes (25): @axe-core/playwright, eslint, eslint-config-next, devDependencies, @axe-core/playwright, eslint, eslint-config-next, jsdom (+17 more)
 
-### Community 26 - "conftest.py"
+### Community 26 - "events.py"
 Cohesion: 0.07
-Nodes (42): async_sessionmaker, AsyncClient, AsyncEngine, get_engine(), get_session_factory(), AsyncSession, Async SQLAlchemy engine and session factory., Return a singleton async engine. (+34 more)
+Nodes (45): async_sessionmaker, AsyncEngine, get_engine(), get_session_factory(), AsyncSession, Async SQLAlchemy engine and session factory., Return a singleton async engine., Return a singleton async session factory. (+37 more)
 
 ### Community 27 - "TestHealthEndpoint"
-Cohesion: 0.11
-Nodes (11): requires_docker, Tests for the /health endpoint., Verify the health endpoint reports service status correctly., Return JSON with status, database, and Redis keys., With a real Postgres container, database must report connected., The integration gate requires both real backing services., Without a running Redis, the endpoint must return 503 and degraded status., Verify deployment cutover can identify the exact running revision. (+3 more)
+Cohesion: 0.15
+Nodes (8): requires_docker, Verify the health endpoint reports service status correctly., Return JSON with status, database, and Redis keys., With a real Postgres container, database must report connected., The integration gate requires both real backing services., Without a running Redis, the endpoint must return 503 and degraded status., Response must contain exactly the three required fields., TestHealthEndpoint
 
 ### Community 28 - "frontend/README.md"
 Cohesion: 0.50
 Nodes (3): Deploy on Vercel, Getting Started, Learn More
 
 ### Community 38 - "load_fixture"
-Cohesion: 0.07
-Nodes (34): ingest_rows(), load_fixture(), Any, Load a JSON fixture file by name from the fixtures directory., Parse raw Socrata rows and merge them into the database. This is the shared…, _build_validator(), _load_spec(), Any (+26 more)
+Cohesion: 0.06
+Nodes (32): ingest_rows(), load_fixture(), Any, Load a JSON fixture file by name from the fixtures directory., Parse raw Socrata rows and merge them into the database. This is the shared…, requires_docker, Tests for the events API endpoints., Verify that GET /events returns stored Events in contract shape. (+24 more)
 
 ### Community 45 - "parse_event"
-Cohesion: 0.11
-Nodes (18): _derive_registration(), _normalize_socrata_url(), parse_event(), Any, Normalize a Socrata URL string or object without changing the raw row., Derive registration status and provenance from source fields., Convert a Socrata row dict to Event model field values. Returns a dict suitable…, Verify raw Socrata rows are correctly parsed into Event fields. (+10 more)
-
-### Community 46 - "events.py"
 Cohesion: 0.17
-Nodes (21): _boolean_fact(), _date_fact(), _datetime_fact(), _event_to_contract(), get_event(), list_events(), Any, get (+13 more)
+Nodes (12): _derive_borough(), _location_key(), _parse_categories(), _parse_coordinates(), _parse_date(), parse_event(), Convert MM/DD/YYYY to ISO date string, or return None., Parse coordinate string into (lat, lon, coordinate_list). Returns the first… (+4 more)
 
-### Community 47 - "test_migrations.py"
-Cohesion: 0.24
-Nodes (9): _alembic(), requires_docker, Migration regression gates for the Events schema., Run Alembic exactly as the deployment pre-start gate does., Revision 0002 must downgrade, upgrade, and re-upgrade cleanly., Parallel migration work must not leave an undeployable split head., test_events_migration_upgrade_and_idempotency(), test_migration_history_has_exactly_one_head() (+1 more)
+### Community 46 - "env.py"
+Cohesion: 0.23
+Nodes (11): do_run_migrations(), get_url(), Alembic environment configuration for async SQLAlchemy., Return the database URL from application settings., Run migrations in offline mode (emit SQL without connecting)., Execute migrations against the provided connection., Run migrations in online mode with an async engine., Run migrations in online mode. (+3 more)
 
-### Community 48 - "AlwaysErrorTransport"
-Cohesion: 0.28
-Nodes (6): AlwaysErrorTransport, Transport that always returns the given error status code., Tests for the Socrata client — pagination, retry, credential filtering, parsing., The client must raise after all retries are exhausted., Verify exponential-backoff retry on server errors., TestRetry
+### Community 47 - "conftest.py"
+Cohesion: 0.09
+Nodes (23): _check_docker(), client(), db_session(), _maybe_start_postgres(), postgres_url(), Test fixtures using Testcontainers for real Postgres., Return the async Postgres URL (skips if Docker unavailable)., Provide an async test client for the FastAPI app. (+15 more)
+
+### Community 48 - "get_settings"
+Cohesion: 0.33
+Nodes (6): get_settings(), Application configuration via environment variables., Return a cached Settings instance., Settings loaded from environment variables., Settings, BaseSettings
 
 ### Community 51 - "socrata.py"
-Cohesion: 0.06
-Nodes (39): get_settings(), Application configuration via environment variables., Return a cached Settings instance., Settings loaded from environment variables., Settings, Event, Event SQLAlchemy model for NYC Parks events., A single NYC Parks event identified by its source guid. (+31 more)
+Cohesion: 0.19
+Nodes (12): Event, Event SQLAlchemy model for NYC Parks events., A single NYC Parks event identified by its source guid., Base, SQLAlchemy model definitions., Base class for all SQLAlchemy models., _parse_datetime(), Socrata NYC Parks Events API client with pagination and retry. (+4 more)
 
-### Community 52 - "CredentialFilter"
-Cohesion: 0.29
-Nodes (5): CredentialFilter, Prevent credential values from appearing in log output., Allow only the fixed NYC Open Data HTTPS query origin., _validated_endpoint(), LogRecord
+### Community 52 - "ingest_events"
+Cohesion: 0.50
+Nodes (5): ingest_events(), AsyncSession, Atomically upsert validated source rows by source guid., Fetch the complete source Snapshot and store it in Postgres., sync_events()
 
 ### Community 53 - "SocrataError"
-Cohesion: 0.22
-Nodes (7): Response, POST to the Socrata endpoint with exponential-backoff retry., Fetch one page of events from the Socrata API., Page through all events until an empty page returns., Raised when the Socrata API returns an unrecoverable error., SocrataError, Exception
-
-### Community 54 - "SocrataClient"
-Cohesion: 0.25
-Nodes (8): Async client for the Socrata NYC Parks Events API. Uses HTTP Basic…, SocrataClient, Verify that transport-layer substitution prevents real network access., The Socrata client with an injected transport must not reach the network. The…, TestNetworkEnforcement, Reject unsafe endpoints and malformed source responses., TestResponseValidation, parametrize
+Cohesion: 0.15
+Nodes (14): _derive_registration(), _normalize_socrata_url(), Any, Response, POST to the Socrata endpoint with exponential-backoff retry., Fetch one page of events from the Socrata API., Page through all events until an empty page returns., Normalize a Socrata URL string or object without changing the raw row. (+6 more)
 
 ### Community 56 - "railway_release.py"
 Cohesion: 0.17
@@ -220,24 +214,24 @@ Cohesion: 0.50
 Nodes (3): CI/CD extension matrix, Clean-runner commands, Trust boundary
 
 ## Knowledge Gaps
-- **170 isolated node(s):** `nyc-events-backend`, `DayInfo`, `DAY_NAMES`, `categories`, `boroughs` (+165 more)
+- **172 isolated node(s):** `nyc-events-backend`, `dynamic`, `DayInfo`, `DAY_NAMES`, `categories` (+167 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **19 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+- **18 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `Event` connect `socrata.py` to `MockTransport`, `load_fixture`, `events.py`, `AlwaysErrorTransport`, `CredentialFilter`, `SocrataError`, `SocrataClient`, `conftest.py`?**
-  _High betweenness centrality (0.039) - this node is a cross-community bridge._
-- **Why does `load_fixture()` connect `load_fixture` to `MockTransport`, `parse_event`, `AlwaysErrorTransport`, `socrata.py`, `conftest.py`?**
-  _High betweenness centrality (0.029) - this node is a cross-community bridge._
-- **Why does `get_settings()` connect `socrata.py` to `conftest.py`, `CredentialFilter`?**
-  _High betweenness centrality (0.026) - this node is a cross-community bridge._
-- **Are the 8 inferred relationships involving `SocrataClient` (e.g. with `Event` and `TestIngestionWithDb`) actually correct?**
-  _`SocrataClient` has 8 INFERRED edges - model-reasoned connections that need verification._
-- **Are the 11 inferred relationships involving `Event` (e.g. with `Base` and `CredentialFilter`) actually correct?**
-  _`Event` has 11 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `nyc-events-backend`, `DayInfo`, `DAY_NAMES` to the rest of the system?**
-  _170 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Why does `load_fixture()` connect `load_fixture` to `socrata.py`, `validate_contract.py`, `SocrataClient`, `conftest.py`?**
+  _High betweenness centrality (0.033) - this node is a cross-community bridge._
+- **Why does `Event` connect `socrata.py` to `events.py`, `ingest_events`, `load_fixture`, `conftest.py`?**
+  _High betweenness centrality (0.030) - this node is a cross-community bridge._
+- **Why does `get_settings()` connect `get_settings` to `SocrataClient`, `env.py`, `conftest.py`, `socrata.py`, `events.py`?**
+  _High betweenness centrality (0.027) - this node is a cross-community bridge._
+- **Are the 5 inferred relationships involving `SocrataClient` (e.g. with `TestNetworkEnforcement` and `TestCredentialFiltering`) actually correct?**
+  _`SocrataClient` has 5 INFERRED edges - model-reasoned connections that need verification._
+- **Are the 7 inferred relationships involving `Event` (e.g. with `_event_to_contract()` and `get_event()`) actually correct?**
+  _`Event` has 7 INFERRED edges - model-reasoned connections that need verification._
+- **What connects `nyc-events-backend`, `dynamic`, `DayInfo` to the rest of the system?**
+  _172 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Development pipeline — nyc-events` be split into smaller, more focused modules?**
   _Cohesion score 0.14285714285714285 - nodes in this community are weakly interconnected._
