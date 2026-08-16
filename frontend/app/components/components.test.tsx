@@ -100,7 +100,7 @@ describe("EventCard", () => {
       screen.getByRole("heading", { level: 2, name: event.title }),
     ).toBeTruthy();
     expect(screen.getByText("Venue or park: Long Meadow")).toBeTruthy();
-    expect(screen.getByText("Neighborhood: Not listed")).toBeTruthy();
+    expect(screen.queryByText(/Neighborhood/)).toBeNull();
     expect(screen.getByText("Borough: Brooklyn")).toBeTruthy();
     expect(screen.getByText("Address: Not listed")).toBeTruthy();
     expect(screen.getByText("Aug 16, 2026 · 7:30 AM")).toBeTruthy();

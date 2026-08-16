@@ -389,11 +389,6 @@ export function EventDetailContent({ event }: { event: ApiEvent }) {
                 provenance={location.provenance}
               />
               <FactRow
-                label="Neighborhood"
-                value="Not listed"
-                provenance="Not listed"
-              />
-              <FactRow
                 label="Borough"
                 value={borough.value}
                 provenance={borough.provenance}

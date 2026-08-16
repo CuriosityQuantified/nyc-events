@@ -115,7 +115,6 @@ test.describe("Issue #26 maps", () => {
     await page.goto("/", { waitUntil: "networkidle" });
     const cards = page.getByTestId("event-card");
     await expect(cards).toHaveCount(events.length);
-    await expect(cards.first()).toContainText("Neighborhood: Not listed");
     await expect(cards.first()).toContainText("Address: Not listed");
     await expect(page.getByTestId("map-thumbnail")).toHaveCount(0);
     await expect(page.getByTestId("map-thumbnail-fallback")).toHaveCount(0);
