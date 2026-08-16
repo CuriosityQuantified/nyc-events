@@ -8,7 +8,6 @@ import {
   FreshnessBanner,
 } from "@/app/components/TrustStatus";
 import {
-  apiToUiEvent,
   eventLifecycleStatus,
   parseEventResponse,
   safeOfficialUrl,
@@ -17,7 +16,6 @@ import {
   type Freshness,
   type Provenance,
 } from "@/app/data/events";
-import MapThumbnail from "@/app/components/MapThumbnail";
 import styles from "./EventDetail.module.css";
 
 type EventDetailProps = {
@@ -283,7 +281,6 @@ function VerificationPanel({ officialUrl }: { officialUrl: string | null }) {
 }
 
 export function EventDetailContent({ event }: { event: ApiEvent }) {
-  const mapEvent = apiToUiEvent(event);
   const officialUrl = safeOfficialUrl(event.official_event_url.value);
   const title = presentFact(event.title, "Untitled event", String);
   const description = presentFact(
@@ -367,10 +364,6 @@ export function EventDetailContent({ event }: { event: ApiEvent }) {
             </div>
             <ProvenanceBadge provenance={description.provenance} />
           </section>
-
-          <div className={styles.detailMap}>
-            <MapThumbnail event={mapEvent} variant="detail" />
-          </div>
 
           <section className={styles.section} aria-labelledby="facts-heading">
             <h2 id="facts-heading">Plan your visit</h2>

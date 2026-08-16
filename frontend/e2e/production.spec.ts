@@ -45,6 +45,12 @@ test("live Snapshot reaches the API proxy and rendered list", async ({
 }, testInfo) => {
   const consoleErrors: string[] = [];
   const failedRequests: string[] = [];
+  const thumbnailRequests: string[] = [];
+  page.on("request", (request) => {
+    if (new URL(request.url()).pathname === "/api/maps/thumbnail") {
+      thumbnailRequests.push(request.url());
+    }
+  });
   page.on("console", (message) => {
     if (message.type() === "error") consoleErrors.push(message.text());
   });
@@ -78,6 +84,18 @@ test("live Snapshot reaches the API proxy and rendered list", async ({
   await expect(firstCard.getByRole("heading", { level: 2 })).toHaveText(
     apiPage.events[0].title,
   );
+  expect(thumbnailRequests, "Static Maps thumbnails are deferred").toEqual([]);
+
+  await page
+    .getByTestId("list-map-toggle")
+    .getByRole("button", { name: "Map", exact: true })
+    .click();
+  const map = page.getByTestId("event-map");
+  await expect(map).toHaveAttribute("data-map-status", "ready", {
+    timeout: 20_000,
+  });
+  expect(new URL(page.url()).searchParams.get("view")).toBe("map");
+  expect(thumbnailRequests, "map view must not request thumbnails").toEqual([]);
 
   const accessibility = await new AxeBuilder({ page }).analyze();
   expect(accessibility.violations).toEqual([]);

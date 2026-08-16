@@ -1,7 +1,6 @@
 import Link from "next/link";
 import type { ParkEvent } from "@/app/data/events";
 import { EventLifecycleStatus } from "./TrustStatus";
-import MapThumbnail from "./MapThumbnail";
 import styles from "./EventCard.module.css";
 
 interface EventCardProps {
@@ -77,7 +76,6 @@ export default function EventCard({ event, returnQuery = "" }: EventCardProps) {
           <p className={styles.metaItem}>{event.accessibility}</p>
         </div>
       </div>
-      <MapThumbnail event={event} variant="compact" />
       <div className={styles.actions}>
         <Link
           className={styles.detailLink}

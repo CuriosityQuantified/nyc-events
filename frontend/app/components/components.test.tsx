@@ -97,9 +97,8 @@ describe("EventCard", () => {
     expect(screen.getByText("Address: Not listed")).toBeTruthy();
     expect(screen.getByText("Aug 16, 2026 · 7:30 AM")).toBeTruthy();
     expect(screen.getByText("Free")).toBeTruthy();
-    expect(screen.getByRole("status").textContent).toContain(
-      "Map Image Is Loading",
-    );
+    expect(screen.queryByTestId("map-thumbnail")).toBeNull();
+    expect(screen.queryByTestId("map-thumbnail-fallback")).toBeNull();
     expect(screen.getByText(event.registration)).toBeTruthy();
     expect(screen.getByText(event.accessibility)).toBeTruthy();
     expect(
@@ -137,7 +136,7 @@ describe("EventCard", () => {
     expect(screen.getByRole("link", { name: /View details/ })).toBeTruthy();
   });
 
-  it("does not request a map for an invalid source location", () => {
+  it("does not render a thumbnail for an invalid source location", () => {
     render(
       <EventCard
         event={{
@@ -148,9 +147,8 @@ describe("EventCard", () => {
       />,
     );
 
-    expect(
-      screen.getByText("Map Image Unavailable", { selector: "strong" }),
-    ).toBeTruthy();
+    expect(screen.queryByTestId("map-thumbnail")).toBeNull();
+    expect(screen.queryByTestId("map-thumbnail-fallback")).toBeNull();
     expect(screen.queryByRole("img")).toBeNull();
     expect(screen.queryByRole("link", { name: /Google Maps/ })).toBeNull();
   });

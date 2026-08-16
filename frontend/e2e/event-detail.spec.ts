@@ -78,6 +78,27 @@ test.describe("Issue #14 event detail", () => {
     ).toEqual(expectedErrors);
   });
 
+  test("detail journey makes no Static Maps thumbnail request", async ({
+    page,
+  }) => {
+    const thumbnailRequests: string[] = [];
+    page.on("request", (request) => {
+      if (new URL(request.url()).pathname === "/api/maps/thumbnail") {
+        thumbnailRequests.push(request.url());
+      }
+    });
+
+    await page.goto(`/events/${encodeURIComponent(eventDetail.guid)}`, {
+      waitUntil: "networkidle",
+    });
+    await expect(
+      page.getByRole("heading", { level: 1, name: eventDetail.title.value }),
+    ).toBeVisible();
+    await expect(page.getByTestId("map-thumbnail")).toHaveCount(0);
+    await expect(page.getByTestId("map-thumbnail-fallback")).toHaveCount(0);
+    expect(thumbnailRequests).toEqual([]);
+  });
+
   test("opens a grounded detail, exposes provenance, and returns to filters", async ({
     page,
   }, testInfo) => {
