@@ -19,6 +19,7 @@ from app.concierge import (
     create_default_concierge_agent,
     save_event_tool,
 )
+from app.concierge_config import ConciergeSettings
 from app.main import app
 from app.models.profile import SavedEvent
 from app.services.current_event_search import CurrentEventSearch, search_current_events
@@ -105,6 +106,27 @@ def test_model_search_payload_keeps_event_id_and_drops_raw_duplicates() -> None:
     assert "raw_data" not in compact
 
 
+def test_default_model_chain_ends_with_deepseek(monkeypatch) -> None:
+    for key in (
+        "CONCIERGE_MODEL_PRIMARY",
+        "CONCIERGE_MODEL_FALLBACK",
+        "CONCIERGE_MODEL_FALLBACK_2",
+        "CONCIERGE_MODEL_FALLBACK_3",
+        "CONCIERGE_MODEL_FALLBACK_4",
+    ):
+        monkeypatch.delenv(key, raising=False)
+
+    settings = ConciergeSettings(_env_file=None)
+
+    assert settings.model_chain == (
+        "nvidia/nemotron-3.5-lightning:free",
+        "nvidia/nemotron-3-super-120b-a12b:free",
+        "dots-studio/dots-3-note-preview:free",
+        "poolside/laguna-xs-2.1:free",
+        "deepseek/deepseek-v4-flash-0731",
+    )
+
+
 def _sse_events(body: str) -> list[tuple[str, dict[str, Any]]]:
     events: list[tuple[str, dict[str, Any]]] = []
     for block in body.strip().split("\n\n"):
@@ -136,8 +158,13 @@ def test_default_openrouter_model_builds_with_a_valid_harness_key(
     class Settings:
         openrouter_api_key = "test-key"
         openrouter_base_url = "https://openrouter.test/v1"
-        concierge_model_primary = "provider/model:free"
-        concierge_model_fallback = "provider/fallback:free"
+        model_chain = (
+            "provider/model:free",
+            "provider/fallback-1:free",
+            "provider/fallback-2:free",
+            "provider/fallback-3:free",
+            "provider/fallback-4:free",
+        )
 
     monkeypatch.setattr("app.concierge.get_concierge_settings", Settings)
 
