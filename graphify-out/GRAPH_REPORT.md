@@ -1,7 +1,7 @@
-# Graph Report - nyc-events-concierge.ISdIVO  (2026-08-16)
+# Graph Report - nyc-events-wt-neighborhood  (2026-08-16)
 
 ## Corpus Check
-- 177 files · ~113,857 words
+- 177 files · ~113,689 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `1594c991`
+- Built from commit: `ad3d5c59`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -108,7 +108,7 @@
 - Application shell
 - SavedView.tsx
 - FollowFacets.tsx
-- Trust and system states
+- Initial MVP scope
 - profile.spec.ts
 - dependencies
 - TestGetEvent
@@ -245,7 +245,7 @@ Nodes (12): MatchesSection(), FACET_TYPE_LABELS, ProfileView(), dismissMatch(), 
 
 ### Community 51 - "EventMatch NYC — Initial Frontend Direction"
 Cohesion: 0.18
-Nodes (9): Accessibility baseline, Consensus basis, Consensus summary, Defer, EventMatch NYC — Initial Frontend Direction, Include, Initial MVP scope, Product definition (+1 more)
+Nodes (9): Accessibility baseline, Consensus basis, Consensus summary, EventMatch NYC — Initial Frontend Direction, Global freshness banner, Product definition, Required states, Trust and system states (+1 more)
 
 ### Community 52 - "0003_current_repository_sync_runs.py"
 Cohesion: 0.50
@@ -439,9 +439,9 @@ Nodes (11): BottomNav(), DesktopSidebar(), boroughs, Header(), isMonthKey(), new
 Cohesion: 0.43
 Nodes (6): Followable, followableFacets(), FollowFacets(), filterLabel(), FacetType, followInterest()
 
-### Community 110 - "Trust and system states"
+### Community 110 - "Initial MVP scope"
 Cohesion: 0.67
-Nodes (3): Global freshness banner, Required states, Trust and system states
+Nodes (3): Defer, Include, Initial MVP scope
 
 ### Community 112 - "dependencies"
 Cohesion: 0.18

@@ -4816,7 +4816,7 @@
       "label": "EventDetail()",
       "file_type": "code",
       "source_file": "frontend/app/components/EventDetail.tsx",
-      "source_location": "L454",
+      "source_location": "L449",
       "_callable": true,
       "_origin": "ast",
       "id": "frontend_app_components_eventdetail_eventdetail",
@@ -4828,7 +4828,7 @@
       "label": "load()",
       "file_type": "code",
       "source_file": "frontend/app/components/EventDetail.tsx",
-      "source_location": "L463",
+      "source_location": "L458",
       "_callable": true,
       "_origin": "ast",
       "id": "frontend_app_components_eventdetail_eventdetail_load",
@@ -8796,37 +8796,37 @@
       "norm_label": "an event is exactly one source row"
     },
     {
-      "label": "Global freshness banner",
+      "label": "Defer",
       "file_type": "document",
       "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L297",
+      "source_location": "L383",
       "_origin": "ast",
-      "id": "frontend_frontend_concept_global_freshness_banner",
+      "id": "frontend_frontend_concept_defer",
       "community": 110,
-      "community_name": "Trust and system states",
-      "norm_label": "global freshness banner"
+      "community_name": "Initial MVP scope",
+      "norm_label": "defer"
     },
     {
-      "label": "Required states",
+      "label": "Include",
       "file_type": "document",
       "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L311",
+      "source_location": "L368",
       "_origin": "ast",
-      "id": "frontend_frontend_concept_required_states",
+      "id": "frontend_frontend_concept_include",
       "community": 110,
-      "community_name": "Trust and system states",
-      "norm_label": "required states"
+      "community_name": "Initial MVP scope",
+      "norm_label": "include"
     },
     {
-      "label": "Trust and system states",
+      "label": "Initial MVP scope",
       "file_type": "document",
       "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L293",
+      "source_location": "L366",
       "_origin": "ast",
-      "id": "frontend_frontend_concept_trust_and_system_states",
+      "id": "frontend_frontend_concept_initial_mvp_scope",
       "community": 110,
-      "community_name": "Trust and system states",
-      "norm_label": "trust and system states"
+      "community_name": "Initial MVP scope",
+      "norm_label": "initial mvp scope"
     },
     {
       "label": "profile.spec.ts",
@@ -12176,17 +12176,6 @@
       "norm_label": "consensus summary"
     },
     {
-      "label": "Defer",
-      "file_type": "document",
-      "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L383",
-      "_origin": "ast",
-      "id": "frontend_frontend_concept_defer",
-      "community": 51,
-      "community_name": "EventMatch NYC \u2014 Initial Frontend Direction",
-      "norm_label": "defer"
-    },
-    {
       "label": "EventMatch NYC \u2014 Initial Frontend Direction",
       "file_type": "document",
       "source_file": "frontend/FRONTEND_CONCEPT.md",
@@ -12198,26 +12187,15 @@
       "norm_label": "eventmatch nyc \u2014 initial frontend direction"
     },
     {
-      "label": "Include",
+      "label": "Global freshness banner",
       "file_type": "document",
       "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L368",
+      "source_location": "L297",
       "_origin": "ast",
-      "id": "frontend_frontend_concept_include",
+      "id": "frontend_frontend_concept_global_freshness_banner",
       "community": 51,
       "community_name": "EventMatch NYC \u2014 Initial Frontend Direction",
-      "norm_label": "include"
-    },
-    {
-      "label": "Initial MVP scope",
-      "file_type": "document",
-      "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L366",
-      "_origin": "ast",
-      "id": "frontend_frontend_concept_initial_mvp_scope",
-      "community": 51,
-      "community_name": "EventMatch NYC \u2014 Initial Frontend Direction",
-      "norm_label": "initial mvp scope"
+      "norm_label": "global freshness banner"
     },
     {
       "label": "Product definition",
@@ -12229,6 +12207,28 @@
       "community": 51,
       "community_name": "EventMatch NYC \u2014 Initial Frontend Direction",
       "norm_label": "product definition"
+    },
+    {
+      "label": "Required states",
+      "file_type": "document",
+      "source_file": "frontend/FRONTEND_CONCEPT.md",
+      "source_location": "L311",
+      "_origin": "ast",
+      "id": "frontend_frontend_concept_required_states",
+      "community": 51,
+      "community_name": "EventMatch NYC \u2014 Initial Frontend Direction",
+      "norm_label": "required states"
+    },
+    {
+      "label": "Trust and system states",
+      "file_type": "document",
+      "source_file": "frontend/FRONTEND_CONCEPT.md",
+      "source_location": "L293",
+      "_origin": "ast",
+      "id": "frontend_frontend_concept_trust_and_system_states",
+      "community": 51,
+      "community_name": "EventMatch NYC \u2014 Initial Frontend Direction",
+      "norm_label": "trust and system states"
     },
     {
       "label": "Visual direction",
@@ -22352,7 +22352,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "frontend/app/components/EventDetail.tsx",
-      "source_location": "L495",
+      "source_location": "L490",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_app_components_eventdetail_eventdetail_load",
@@ -24835,7 +24835,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "frontend/app/components/EventDetail.tsx",
-      "source_location": "L463",
+      "source_location": "L458",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_app_components_eventdetail_eventdetail",
@@ -40141,7 +40141,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/app/components/EventDetail.tsx",
-      "source_location": "L454",
+      "source_location": "L449",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_app_components_eventdetail",
@@ -50444,5 +50444,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "1594c9914679478192e808c3236c20a9073b1dc4"
+  "built_at_commit": "ad3d5c594f19b04cd2b5856bf112bc4ea874b7c7"
 }
