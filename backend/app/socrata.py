@@ -18,6 +18,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
 from app.models.event import CurrentEvent, EventRepository, SyncRun
+from app.provenance import accessibility_evidence, explicit_free_evidence
 
 logger = logging.getLogger(__name__)
 
@@ -403,6 +404,8 @@ def parse_event(row: dict[str, Any]) -> dict[str, Any]:
         row.get("registration_url"),
         registration_description,
     )
+    free_evidence = explicit_free_evidence(row)
+    access_evidence = accessibility_evidence(row)
 
     return {
         "guid": guid,
@@ -422,8 +425,8 @@ def parse_event(row: dict[str, Any]) -> dict[str, Any]:
         "borough": _derive_borough(location_id),
         "registration_status": reg_status,
         "registration_description": registration_description,
-        "is_free_explicit": None,
-        "accessibility_mentioned": None,
+        "is_free_explicit": True if free_evidence is not None else None,
+        "accessibility_mentioned": True if access_evidence is not None else None,
         "raw_data": row,
     }
 
