@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import subprocess
 import sys
 import unittest
 from pathlib import Path
@@ -168,6 +169,26 @@ class WorkflowPolicyTests(unittest.TestCase):
         backend_text = str(backend)
         self.assertIn("--identity-file", backend_text)
         self.assertIn("RAILWAY_SSH_IDENTITY", backend_text)
+
+    def test_backend_remote_execution_pins_the_railway_host_key(self) -> None:
+        backend_text = str(self.deploy["jobs"]["deploy-backend"])
+        known_hosts = ROOT / "scripts/deploy/railway_known_hosts"
+
+        self.assertIn("UserKnownHostsFile", backend_text)
+        self.assertIn("StrictHostKeyChecking yes", backend_text)
+        self.assertIn("BatchMode yes", backend_text)
+        self.assertNotIn("StrictHostKeyChecking no", backend_text)
+        self.assertNotIn("StrictHostKeyChecking accept-new", backend_text)
+        result = subprocess.run(
+            ["ssh-keygen", "-lf", str(known_hosts)],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        self.assertIn(
+            "SHA256:+S1xg92FrnHz6pY3bpkmh1OGtWQGNANXilPzlxA7B1g",
+            result.stdout,
+        )
 
     def test_rollbacks_wait_for_terminal_deployment_before_revision(self) -> None:
         rollback_steps = [

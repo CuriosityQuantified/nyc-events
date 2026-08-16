@@ -79,9 +79,22 @@ jobs:
           set -euo pipefail
           umask 077
           RAILWAY_SSH_IDENTITY="$RUNNER_TEMP/railway-ci-ssh"
+          RAILWAY_SSH_KNOWN_HOSTS="$RUNNER_TEMP/railway-known-hosts"
           printf '%s\n' "$RAILWAY_SSH_PRIVATE_KEY" > "$RAILWAY_SSH_IDENTITY"
           chmod 600 "$RAILWAY_SSH_IDENTITY"
+          install -d -m 700 "$HOME/.ssh"
+          install -m 600 scripts/deploy/railway_known_hosts "$RAILWAY_SSH_KNOWN_HOSTS"
+          test "$(ssh-keygen -lf "$RAILWAY_SSH_KNOWN_HOSTS" | cut -d' ' -f2)" = \
+            "SHA256:+S1xg92FrnHz6pY3bpkmh1OGtWQGNANXilPzlxA7B1g"
+          cat >> "$HOME/.ssh/config" <<EOF
+          Host ssh.railway.com
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $RAILWAY_SSH_KNOWN_HOSTS
+          EOF
+          chmod 600 "$HOME/.ssh/config"
           printf 'RAILWAY_SSH_IDENTITY=%s\n' "$RAILWAY_SSH_IDENTITY" >> "$GITHUB_ENV"
+          printf 'RAILWAY_SSH_KNOWN_HOSTS=%s\n' "$RAILWAY_SSH_KNOWN_HOSTS" >> "$GITHUB_ENV"
 
       - name: Discover the exact backend service and public origin
         id: railway
@@ -216,7 +229,7 @@ jobs:
       - name: Remove the Railway SSH identity from the runner
         if: always()
         shell: bash
-        run: rm -f "$RAILWAY_SSH_IDENTITY"
+        run: rm -f "$RAILWAY_SSH_IDENTITY" "$RAILWAY_SSH_KNOWN_HOSTS"
 
       - name: Snapshot the verified backend before the rollback drill
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.rollback_drill }}
