@@ -9,6 +9,7 @@ import EventCard from "@/app/components/EventCard";
 import AddToCalendar from "@/app/components/AddToCalendar";
 import SavedCalendar, { isMonthKey } from "@/app/components/SavedCalendar";
 import { useSaved } from "@/app/components/SavedProvider";
+import MatchesSection from "@/app/components/MatchesSection";
 import type { ParkEvent } from "@/app/data/events";
 import pageStyles from "@/app/page.module.css";
 import styles from "./SavedView.module.css";
@@ -189,6 +190,7 @@ export default function SavedView() {
               </div>
             </section>
           )}
+          <MatchesSection />
         </main>
         <BottomNav />
       </div>

@@ -1,0 +1,101 @@
+.section {
+  margin-top: 32px;
+  border-top: 1px solid #e5e7eb;
+  padding-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  /* Clear the fixed bottom navigation on phones, like .eventList does. */
+  padding-bottom: calc(var(--space-16) + var(--space-8));
+}
+
+@media (min-width: 1024px) {
+  .section {
+    padding-bottom: 0;
+  }
+}
+
+.heading {
+  margin: 0;
+  font-size: 20px;
+}
+
+.explainer,
+.state {
+  margin: 0;
+  color: #4b5563;
+  font-size: 14px;
+}
+
+.error {
+  margin: 0;
+  color: #b91c1c;
+  font-size: 14px;
+}
+
+.retry {
+  border: none;
+  background: none;
+  padding: 4px;
+  color: #1d4ed8;
+  font-size: 14px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.actions {
+  display: flex;
+  gap: 8px;
+}
+
+.promote,
+.dismiss {
+  min-height: 44px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.promote {
+  border: 1px solid #1d4ed8;
+  background: #1d4ed8;
+  color: #ffffff;
+}
+
+.promote:hover {
+  background: #1e40af;
+}
+
+.dismiss {
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: #374151;
+}
+
+.dismiss:hover {
+  background: #f3f4f6;
+}
+
+.promote:focus-visible,
+.dismiss:focus-visible,
+.retry:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 2px;
+}
