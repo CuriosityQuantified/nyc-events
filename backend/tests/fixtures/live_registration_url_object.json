@@ -2,7 +2,10 @@
   {
     "title": "Live registration URL object regression",
     "guid": "live-object-1",
-    "link": "https://www.nycgovparks.org/events/2026/08/16/live-registration-url-object-regression",
+    "link": {
+      "url": "https://www.nycgovparks.org/events/2026/08/16/live-registration-url-object-regression",
+      "description": "Event details"
+    },
     "description": "A deterministic row that matches the Socrata URL object shape.",
     "registration_url": {
       "url": "https://example.org/register?id=live-object-1",

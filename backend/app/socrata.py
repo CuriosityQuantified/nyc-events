@@ -366,6 +366,7 @@ def parse_event(row: dict[str, Any]) -> dict[str, Any]:
 
     lat, lon, coordinates = _parse_coordinates(row.get("coordinates"))
     location_id = row.get("parkids")
+    official_event_url = _normalize_socrata_url(row.get("link"), "link")
     reg_status, _reg_prov = _derive_registration(
         row.get("registration_url"),
         row.get("registration_description"),
@@ -376,7 +377,7 @@ def parse_event(row: dict[str, Any]) -> dict[str, Any]:
         "guid": guid,
         "title": title,
         "description": row.get("description"),
-        "official_event_url": row.get("link"),
+        "official_event_url": official_event_url,
         "location_key": _location_key(location_id, coordinates),
         "location_id": location_id,
         "location_name": row.get("location"),

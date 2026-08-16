@@ -43,8 +43,10 @@ class TestIngestionWithDb:
 
         event = await db_session.get(Event, "live-object-1")
         assert event is not None
+        assert event.official_event_url == rows[0]["link"]["url"]
         assert event.registration_status == "required"
         assert event.raw_data["registration_url"] == rows[0]["registration_url"]
+        assert event.raw_data["link"] == rows[0]["link"]
 
     async def test_ingest_snapshot_b_delta(self, db_session):
         """Ingesting snapshot_b after snapshot_a must add 1 new event and
