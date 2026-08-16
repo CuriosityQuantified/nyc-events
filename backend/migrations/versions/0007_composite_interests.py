@@ -23,7 +23,19 @@ def upgrade() -> None:
         "interests",
         sa.Column("facets", sa.JSON(), nullable=True),
     )
+    op.drop_constraint("ck_interests_facet_type", "interests", type_="check")
+    op.create_check_constraint(
+        "ck_interests_facet_type",
+        "interests",
+        "facet_type IN ('borough', 'category', 'registration', 'composite')",
+    )
 
 
 def downgrade() -> None:
+    op.drop_constraint("ck_interests_facet_type", "interests", type_="check")
+    op.create_check_constraint(
+        "ck_interests_facet_type",
+        "interests",
+        "facet_type IN ('borough', 'category', 'registration')",
+    )
     op.drop_column("interests", "facets")
