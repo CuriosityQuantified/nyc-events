@@ -86,6 +86,12 @@ test("live Snapshot reaches the API proxy and rendered list", async ({
   );
   expect(thumbnailRequests, "Static Maps thumbnails are deferred").toEqual([]);
 
+  await page.keyboard.press("Tab");
+  const skipLink = page.getByRole("link", { name: "Skip to event results" });
+  await expect(skipLink).toBeFocused();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#main-content")).toBeFocused();
+
   await page
     .getByTestId("list-map-toggle")
     .getByRole("button", { name: "Map", exact: true })
@@ -99,12 +105,6 @@ test("live Snapshot reaches the API proxy and rendered list", async ({
 
   const accessibility = await new AxeBuilder({ page }).analyze();
   expect(accessibility.violations).toEqual([]);
-
-  await page.keyboard.press("Tab");
-  const skipLink = page.getByRole("link", { name: "Skip to event results" });
-  await expect(skipLink).toBeFocused();
-  await page.keyboard.press("Enter");
-  await expect(page.locator("#main-content")).toBeFocused();
 
   const header = page.getByTestId("header");
   const toggle = page.getByTestId("list-map-toggle");
