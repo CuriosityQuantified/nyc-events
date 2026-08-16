@@ -159,7 +159,7 @@ Search, filters, sort order, and view should be represented in the URL so users 
 
 The map should answer spatial questions without becoming the product’s authority.
 
-Use the **Google Maps JavaScript API** as the interactive map provider. Read `GOOGLE_MAPS_BROWSER_API_KEY` and `GOOGLE_MAPS_MAP_ID` from environment configuration and map them to the framework’s client-visible convention at build/runtime. The browser key is expected to reach the browser, so it must be limited to the app’s approved HTTP referrers and restricted to the Maps JavaScript API. Use separate keys for local, preview, production, and server-side Google APIs; never commit their values.
+For MVP, use a credential-free coordinate map. Plot grouped source coordinates with keyboard-operable markers and a synchronized event panel. It must not call a browser map service or Static Maps endpoint. Google provider integration and per-event thumbnails are post-MVP.
 
 #### Location identity
 
@@ -370,7 +370,7 @@ Use:
 1. Discover/search screen
 2. List-first results
 3. Date, borough, category, registration, explicit-free, and accessibility-information filters
-4. Google Maps JavaScript API map/list toggle with per-location, count-scaled event markers
+4. Credential-free map/list toggle with per-location, count-scaled event markers
 5. Event detail pages
 6. Official links and source freshness
 7. Explicit unknown/stale/outage states

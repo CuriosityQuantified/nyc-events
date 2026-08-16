@@ -61,82 +61,6 @@ async function installRoutes(page: Page): Promise<void> {
   );
 }
 
-async function installFakeGoogle(page: Page): Promise<void> {
-  await page.addInitScript(() => {
-    class FakeMap {
-      element: HTMLElement;
-      listeners = new Map<string, () => void>();
-
-      constructor(element: HTMLElement) {
-        this.element = element;
-        queueMicrotask(() => this.listeners.get("idle")?.());
-      }
-
-      setCenter() {}
-
-      fitBounds() {
-        this.element.dataset.fitBounds = "true";
-      }
-
-      addListener(name: string, callback: () => void) {
-        this.listeners.set(name, callback);
-        return { remove: () => this.listeners.delete(name) };
-      }
-    }
-
-    class FakeLatLngBounds {
-      extend() {}
-    }
-
-    class FakeAdvancedMarkerElement {
-      private static nextIndex = 0;
-      private content: HTMLElement;
-      private currentMap: FakeMap | null = null;
-
-      constructor(options: { map: FakeMap; content: HTMLElement }) {
-        this.content = options.content;
-        const positions = [
-          { left: "34%", top: "38%" },
-          { left: "66%", top: "54%" },
-          { left: "48%", top: "72%" },
-        ];
-        const position =
-          positions[FakeAdvancedMarkerElement.nextIndex % positions.length];
-        FakeAdvancedMarkerElement.nextIndex += 1;
-        Object.assign(this.content.style, {
-          position: "absolute",
-          left: position.left,
-          top: position.top,
-          transform: "translate(-50%, -50%)",
-        });
-        this.map = options.map;
-      }
-
-      set map(value: FakeMap | null) {
-        this.currentMap = value;
-        if (value) value.element.append(this.content);
-        else this.content.remove();
-      }
-
-      get map() {
-        return this.currentMap;
-      }
-    }
-
-    (window as unknown as Record<string, unknown>).google = {
-      maps: {
-        Map: FakeMap,
-        LatLngBounds: FakeLatLngBounds,
-        marker: { AdvancedMarkerElement: FakeAdvancedMarkerElement },
-      },
-    };
-  });
-}
-
-function mapSvg(): string {
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360" viewBox="0 0 640 360"><rect width="640" height="360" fill="#dce9ed"/><path d="M20 290L610 40" stroke="#fff" stroke-width="22"/><path d="M120 40L500 340" stroke="#fff" stroke-width="16"/><circle cx="330" cy="180" r="18" fill="#16825d" stroke="#fff" stroke-width="5"/><text x="584" y="348" font-size="12">Google</text></svg>`;
-}
-
 test.describe("Issue #26 maps", () => {
   test.beforeEach(async ({ page }) => {
     const errors: string[] = [];
@@ -155,135 +79,42 @@ test.describe("Issue #26 maps", () => {
     ).toEqual([]);
   });
 
-  test("renders protected responsive thumbnails, textual facts, and stable fallback", async ({
+  test("ordinary Explore journeys make no Static Maps requests", async ({
     page,
-  }, testInfo) => {
-    let releaseImages: (() => void) | undefined;
-    const imageGate = new Promise<void>((resolve) => {
-      releaseImages = resolve;
-    });
+  }) => {
     const thumbnailRequests: string[] = [];
-    await page.route("**/api/maps/thumbnail?*", async (route) => {
-      thumbnailRequests.push(route.request().url());
-      await imageGate;
-      await route.fulfill({ contentType: "image/svg+xml", body: mapSvg() });
+    page.on("request", (request) => {
+      if (new URL(request.url()).pathname === "/api/maps/thumbnail") {
+        thumbnailRequests.push(request.url());
+      }
     });
 
-    await page.goto("/", { waitUntil: "domcontentloaded" });
+    await page.goto("/", { waitUntil: "networkidle" });
     const cards = page.getByTestId("event-card");
     await expect(cards).toHaveCount(events.length);
-    const secondCard = cards.nth(1);
-    const before = await secondCard.evaluate(
-      (element) => element.getBoundingClientRect().top,
-    );
-    releaseImages?.();
-
-    const thumbnails = page.getByTestId("map-thumbnail");
-    await expect(thumbnails).toHaveCount(4);
-    await expect(page.getByTestId("map-thumbnail-fallback")).toHaveCount(1);
-    await expect(thumbnails.first().getByRole("img")).toHaveJSProperty(
-      "complete",
-      true,
-    );
-    const after = await secondCard.evaluate(
-      (element) => element.getBoundingClientRect().top,
-    );
-    expect(after).toBeCloseTo(before, 0);
-
-    for (let index = 0; index < 4; index += 1) {
-      await thumbnails.nth(index).scrollIntoViewIfNeeded();
-    }
-    await expect(thumbnails.getByRole("img")).toHaveCount(4);
-
-    const firstThumbnail = thumbnails.first();
-    const box = await firstThumbnail.boundingBox();
-    expect(box).not.toBeNull();
-    expect(box!.width / box!.height).toBeCloseTo(16 / 9, 1);
-    const image = firstThumbnail.getByRole("img");
-    await expect(image).toHaveAttribute("width", "640");
-    await expect(image).toHaveAttribute("height", "360");
-    await expect(image).toHaveAttribute("loading", "lazy");
-    await expect(image).toHaveAttribute("alt", /Google map showing/);
-    const imageUrl = new URL((await image.getAttribute("src"))!, page.url());
-    expect(imageUrl.origin).toBe(new URL(page.url()).origin);
-    expect(imageUrl.href).not.toContain("key=");
-    expect(imageUrl.href).not.toContain("maps.googleapis.com");
-
-    const handoff = firstThumbnail.getByRole("link");
-    await expect(handoff).toHaveAttribute("target", "_blank");
-    await expect(handoff).toHaveAttribute("rel", /noopener/);
-    await expect(handoff).toHaveAttribute(
-      "href",
-      /^https:\/\/www\.google\.com\/maps\/dir\//,
-    );
     await expect(cards.first()).toContainText("Neighborhood: Not listed");
     await expect(cards.first()).toContainText("Address: Not listed");
-
-    await firstThumbnail.scrollIntoViewIfNeeded();
-    expect(
-      await firstThumbnail.evaluate((element) => {
-        const bounds = element.getBoundingClientRect();
-        const hit = document.elementFromPoint(
-          bounds.right - 6,
-          bounds.bottom - 6,
-        );
-        return Boolean(hit?.closest("figure") === element);
-      }),
-    ).toBe(true);
-    expect(thumbnailRequests).toHaveLength(4);
-    expect(
-      thumbnailRequests.every(
-        (url) => new URL(url).origin === new URL(page.url()).origin,
-      ),
-    ).toBe(true);
-    expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
-    await testInfo.attach(`${testInfo.project.name}-static-maps`, {
-      body: await page.screenshot({ fullPage: true }),
-      contentType: "image/png",
-    });
-
-    await page.unroute("**/api/maps/thumbnail?*");
-    let failedRequests = 0;
-    await page.route("**/api/maps/thumbnail?*", (route) => {
-      failedRequests += 1;
-      return route.fulfill({ status: 503 });
-    });
-    await page.reload();
-    for (const card of await page.getByTestId("event-card").all()) {
-      await card.scrollIntoViewIfNeeded();
-    }
-    await expect(page.getByTestId("map-thumbnail-fallback")).toHaveCount(5);
-    const fallbackLinks = page.getByRole("link", {
-      name: "Open location in Google Maps",
-    });
-    await expect(fallbackLinks).toHaveCount(4);
-    await expect(fallbackLinks.first()).toHaveAttribute("target", "_blank");
-    await expect(fallbackLinks.first()).toHaveAttribute("rel", /noopener/);
-    expect(failedRequests).toBe(4);
-    const expectedNetworkErrors = (page as AuditedPage).__mapErrors ?? [];
-    expect(expectedNetworkErrors).toHaveLength(4);
-    expect(
-      expectedNetworkErrors.every((error) =>
-        error.includes("503 (Service Unavailable)"),
-      ),
-    ).toBe(true);
-    expectedNetworkErrors.length = 0;
+    await expect(page.getByTestId("map-thumbnail")).toHaveCount(0);
+    await expect(page.getByTestId("map-thumbnail-fallback")).toHaveCount(0);
+    expect(thumbnailRequests).toEqual([]);
   });
 
   test("groups stable locations and supports keyboard marker selection at both viewports", async ({
     page,
   }, testInfo) => {
-    await installFakeGoogle(page);
-    await page.route("**/api/maps/thumbnail?*", (route) =>
-      route.fulfill({ contentType: "image/svg+xml", body: mapSvg() }),
-    );
+    const thumbnailRequests: string[] = [];
+    page.on("request", (request) => {
+      if (new URL(request.url()).pathname === "/api/maps/thumbnail") {
+        thumbnailRequests.push(request.url());
+      }
+    });
     await page.goto("/?view=map");
 
     const map = page.getByTestId("event-map");
     await expect(map).toHaveAttribute("data-map-status", "ready");
-    const googleMap = page.getByTestId("google-map");
-    await expect(googleMap).toHaveAttribute("data-fit-bounds", "true");
-    await googleMap.scrollIntoViewIfNeeded();
+    const coordinateMap = page.getByTestId("coordinate-map");
+    await expect(coordinateMap).toHaveAttribute("data-fit-bounds", "true");
+    await coordinateMap.scrollIntoViewIfNeeded();
     const markers = page.getByTestId("map-marker");
     await expect(markers).toHaveCount(3);
     for (const marker of await markers.all()) {
@@ -340,6 +171,7 @@ test.describe("Issue #26 maps", () => {
       toggle.getByRole("button", { name: "Map", exact: true }),
     ).toHaveAttribute("aria-pressed", "true");
     await expect(map).toBeVisible();
+    expect(thumbnailRequests).toEqual([]);
 
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
     await testInfo.attach(`${testInfo.project.name}-location-map`, {
@@ -348,13 +180,13 @@ test.describe("Issue #26 maps", () => {
     });
   });
 
-  test("fails closed without Google and keeps every filtered event reachable", async ({
+  test("works without credentials and keeps every filtered event reachable", async ({
     page,
   }) => {
     await page.goto("/?borough=Manhattan&view=map");
     const map = page.getByTestId("event-map");
-    await expect(map).toHaveAttribute("data-map-status", "error");
-    await expect(map.getByRole("alert")).toContainText("Map Could Not Load");
+    await expect(map).toHaveAttribute("data-map-status", "ready");
+    await expect(page.getByTestId("coordinate-map")).toBeVisible();
     await expect(
       page
         .getByTestId("list-map-toggle")
