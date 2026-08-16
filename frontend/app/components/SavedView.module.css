@@ -1,0 +1,67 @@
+.savedHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.title {
+  margin: 0;
+  font-size: 22px;
+}
+
+.subtitle {
+  margin: 4px 0 0;
+  color: #6b7280;
+  font-size: 14px;
+}
+
+.viewToggle {
+  display: inline-flex;
+  border: 1px solid #d1d5db;
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.viewButton {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 8px 18px;
+  border: none;
+  background: #ffffff;
+  font-size: 15px;
+  font-weight: 600;
+  color: #374151;
+  cursor: pointer;
+}
+
+.viewButton:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: -3px;
+}
+
+.viewButtonActive {
+  background: #1d4ed8;
+  color: #ffffff;
+}
+
+.savedItem {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.calendarLayout {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.undatedNote,
+.dayHint {
+  margin: 0;
+  color: #6b7280;
+  font-size: 14px;
+}

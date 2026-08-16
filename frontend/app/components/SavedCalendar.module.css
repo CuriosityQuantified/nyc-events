@@ -1,0 +1,129 @@
+.calendar {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 12px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.monthTitle {
+  font-size: 18px;
+  margin: 0;
+}
+
+.controls {
+  display: flex;
+  gap: 6px;
+}
+
+.control {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 6px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  background: #ffffff;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.control:hover {
+  background: #eff6ff;
+}
+
+.control:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 2px;
+}
+
+.weekdays,
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+
+.weekday {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: #6b7280;
+  padding: 4px 0;
+}
+
+.blank {
+  min-height: 44px;
+}
+
+.day {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 52px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: #f9fafb;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.day:hover {
+  background: #eff6ff;
+}
+
+.day:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 1px;
+}
+
+.dayToday {
+  border-color: #1d4ed8;
+  font-weight: 700;
+}
+
+.daySelected {
+  background: #1d4ed8;
+  color: #ffffff;
+}
+
+.daySelected .count {
+  background: #ffffff;
+  color: #1d4ed8;
+}
+
+.dayHasEvents {
+  background: #eff6ff;
+}
+
+.daySelected.dayHasEvents {
+  background: #1d4ed8;
+}
+
+.dayNumber {
+  line-height: 1;
+}
+
+.count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9999px;
+  background: #dc2626;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 700;
+}

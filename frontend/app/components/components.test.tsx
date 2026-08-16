@@ -1,5 +1,13 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+
+const routerPush = vi.fn();
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: routerPush }),
+  usePathname: () => "/",
+  useSearchParams: () => new URLSearchParams(),
+}));
+
 import BottomNav from "./BottomNav";
 import EventCard from "./EventCard";
 import FilterChips from "./FilterChips";
@@ -155,15 +163,28 @@ describe("EventCard", () => {
 });
 
 describe("BottomNav", () => {
-  it("moves aria-current when a navigation item is selected", () => {
+  it("marks the current route and navigates to Saved on click", () => {
     render(<BottomNav />);
 
     const explore = screen.getByRole("button", { name: /Explore/ });
-    const saved = screen.getByRole("button", { name: /Saved/ });
+    const saved = screen.getByRole("button", { name: /^Saved/ });
     expect(explore.getAttribute("aria-current")).toBe("page");
+    expect(saved.hasAttribute("aria-current")).toBe(false);
 
     fireEvent.click(saved);
-    expect(explore.hasAttribute("aria-current")).toBe(false);
-    expect(saved.getAttribute("aria-current")).toBe("page");
+    expect(routerPush).toHaveBeenCalledWith("/saved");
+  });
+
+  it("keeps Explore, Saved, Concierge, Profile in order with no Calendar tab", () => {
+    render(<BottomNav />);
+    const labels = screen
+      .getAllByRole("button")
+      .map((button) => button.textContent);
+    expect(labels).toHaveLength(4);
+    expect(labels[0]).toContain("Explore");
+    expect(labels[1]).toContain("Saved");
+    expect(labels[2]).toContain("Concierge");
+    expect(labels[3]).toContain("Profile");
+    expect(labels.join(" ")).not.toContain("Calendar");
   });
 });
