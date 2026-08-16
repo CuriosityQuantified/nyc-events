@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
+import json
 import logging
 import re
 from datetime import UTC, date, datetime
@@ -12,7 +14,7 @@ from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
 import httpx
-from sqlalchemy import delete
+from sqlalchemy import delete, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -48,6 +50,8 @@ _RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 504}
 _DEFAULT_PAGE_SIZE = 1000
 _ALLOWED_SOCRATA_HOST = "data.cityofnewyork.us"
 _SOCRATA_QUERY = "SELECT * ORDER BY startdate ASC, starttime ASC"
+
+_CANCELLED_VALUES = {"cancelled", "canceled"}
 
 
 class CredentialFilter(logging.Filter):
@@ -371,6 +375,67 @@ def _location_key(
     return f"{stable_id}|{normalized}"
 
 
+def _content_hash(row: dict[str, Any]) -> str:
+    """Return a stable digest of the complete source row."""
+    canonical = json.dumps(
+        row,
+        ensure_ascii=False,
+        allow_nan=False,
+        sort_keys=True,
+        separators=(",", ":"),
+    )
+    return hashlib.sha256(canonical.encode()).hexdigest()
+
+
+def _is_explicitly_cancelled(row: dict[str, Any]) -> bool:
+    """Recognize only explicit source cancellation evidence."""
+    for field in ("cancelled", "canceled", "is_cancelled", "is_canceled"):
+        if row.get(field) is True:
+            return True
+    for field in ("status", "event_status", "cancellation_status"):
+        value = row.get(field)
+        if isinstance(value, str) and value.strip().casefold() in _CANCELLED_VALUES:
+            return True
+    title = row.get("title")
+    if not isinstance(title, str):
+        return False
+    normalized = title.strip().casefold()
+    return any(
+        normalized == value
+        or normalized.startswith(f"{value}:")
+        or normalized.startswith(f"{value} -")
+        for value in _CANCELLED_VALUES
+    )
+
+
+def _missing_classification(event: EventRepository, snapshot_at: datetime) -> str:
+    """Classify an absent row without treating absence as cancellation."""
+    if event.lifecycle_status == "cancelled":
+        return "cancelled"
+    if event.end_datetime is not None:
+        end_datetime = event.end_datetime
+        if end_datetime.tzinfo is None:
+            end_datetime = end_datetime.replace(tzinfo=UTC)
+        if end_datetime.astimezone(UTC) < snapshot_at:
+            return "expired"
+    if event.end_date is not None and event.end_date < snapshot_at.date():
+        return "expired"
+    return "removed"
+
+
+def _present_classification(
+    values: dict[str, Any], existing: EventRepository | None
+) -> str:
+    """Classify one row that is present in the new Snapshot."""
+    if _is_explicitly_cancelled(values["raw_data"]):
+        return "cancelled"
+    if existing is None:
+        return "new"
+    if existing.content_hash != values["content_hash"]:
+        return "changed"
+    return "unchanged"
+
+
 def parse_event(row: dict[str, Any]) -> dict[str, Any]:
     """Convert a Socrata row dict to Event model field values.
 
@@ -428,6 +493,7 @@ def parse_event(row: dict[str, Any]) -> dict[str, Any]:
         "is_free_explicit": True if free_evidence is not None else None,
         "accessibility_mentioned": True if access_evidence is not None else None,
         "raw_data": row,
+        "content_hash": _content_hash(row),
     }
 
 
@@ -452,6 +518,20 @@ async def ingest_events(session: AsyncSession, rows: list[dict[str, Any]]) -> in
         parsed.append(values)
 
     try:
+        existing_events = {
+            event.guid: event
+            for event in (await session.scalars(select(EventRepository))).all()
+        }
+        for values in parsed:
+            existing = existing_events.get(values["guid"])
+            values["lifecycle_status"] = _present_classification(values, existing)
+
+        absent_guids = set(existing_events) - seen
+        for guid in absent_guids:
+            existing_events[guid].lifecycle_status = _missing_classification(
+                existing_events[guid], snapshot_at
+            )
+
         mutable = {
             column.name
             for column in EventRepository.__table__.columns
