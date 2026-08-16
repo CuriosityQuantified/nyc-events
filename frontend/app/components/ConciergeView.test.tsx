@@ -4,6 +4,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -73,6 +74,29 @@ describe("ConciergeView", () => {
         onToken: expect.any(Function),
       }),
     );
+  });
+
+  it("renders Concierge answers as Markdown", async () => {
+    streamConciergeMessage.mockResolvedValue({
+      conversationId,
+      status: "completed",
+      response: "## Weekend picks\n\n- **Free** family event",
+      approval: null,
+    });
+    render(<ConciergeView />);
+
+    fireEvent.change(screen.getByLabelText("Ask about current events"), {
+      target: { value: "What is on this weekend?" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
+
+    expect(
+      await screen.findByRole("heading", { name: "Weekend picks", level: 2 }),
+    ).toBeTruthy();
+    expect(
+      within(screen.getByTestId("concierge-messages")).getByRole("listitem")
+        .textContent,
+    ).toContain("Free family event");
   });
 
   it("blocks the composer until a save proposal is approved", async () => {
