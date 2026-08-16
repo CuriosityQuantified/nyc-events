@@ -1,16 +1,16 @@
-# Graph Report - nyc-events-frontend  (2026-08-16)
+# Graph Report - nyc-events-backend  (2026-08-16)
 
 ## Corpus Check
-- 144 files · ~100,240 words
+- 146 files · ~101,006 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 1202 nodes · 2254 edges · 99 communities (79 shown, 20 thin omitted)
-- Extraction: 94% EXTRACTED · 6% INFERRED · 0% AMBIGUOUS · INFERRED: 144 edges (avg confidence: 0.56)
+- 1220 nodes · 2318 edges · 98 communities (78 shown, 20 thin omitted)
+- Extraction: 93% EXTRACTED · 7% INFERRED · 0% AMBIGUOUS · INFERRED: 151 edges (avg confidence: 0.56)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `bbc5d784`
+- Built from commit: `d6fd2451`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -34,7 +34,7 @@
 - 0007-html-prototype-is-a-sketch.md
 - 0008-concierge-tool-surface-is-narrow.md
 - 0009-issues-carry-a-lane-label.md
-- follow_interest
+- preferences.py
 - EventMatch NYC API contract
 - compilerOptions
 - 419495f4-0ca6-4d45-b6e3-43e1e35536d5 implementation handoff
@@ -49,8 +49,8 @@
 - events.ts
 - load_fixture
 - nyc-events-backend
-- TestParseEvent
-- preferences.py
+- parse_event
+- test_interests_matches.py
 - test_sync_worker.py
 - CurrentEvent
 - EventMatch NYC — Initial Frontend Direction
@@ -74,43 +74,44 @@
 - Issue #15 backend handoff
 - profiles.py
 - test_migrations.py
-- get_settings
-- SocrataError
+- database.py
+- Any
 - TrustStatus.tsx
-- maps.spec.ts
+- filters.ts
 - Issue #13 backend handoff
 - DateStrip.tsx
-- accessibility_evidence
+- EventExplorer
 - test_contract.py
 - test_event_lifecycle.py
 - socrata.py
-- apiToUiEvent
+- maps.spec.ts
 - Issue #26 frontend handoff
 - test_events.py
-- Trust and system states
+- test_current_event_dates.py
 - EventMap.tsx
 - Issue #19 backend handoff
 - Issue #21 backend handoff
-- getEvent
-- parse_event
-- unfollow_interest
+- events/route.ts
+- SocrataError
+- Initial MVP scope
 - services/__init__.py
 - Application shell
-- sync_events
 
 ## God Nodes (most connected - your core abstractions)
-1. `load_fixture()` - 67 edges
-2. `ingest_rows()` - 47 edges
-3. `CurrentEvent` - 36 edges
+1. `load_fixture()` - 70 edges
+2. `ingest_rows()` - 50 edges
+3. `CurrentEvent` - 39 edges
 4. `get_session_factory()` - 33 edges
 5. `parse_event()` - 30 edges
-6. `EventRepository` - 24 edges
-7. `SocrataError` - 24 edges
-8. `WorkflowPolicyTests` - 24 edges
-9. `_event_to_contract()` - 23 edges
+6. `_event_to_contract()` - 27 edges
+7. `EventRepository` - 26 edges
+8. `SocrataError` - 24 edges
+9. `WorkflowPolicyTests` - 24 edges
 10. `SocrataClient` - 23 edges
 
 ## Surprising Connections (you probably didn't know these)
+- `test_current_events_fallback_is_consistent_across_api_and_consumers()` --uses--> `CurrentEventSearch`  [INFERRED]
+  backend/tests/test_current_event_dates.py → backend/app/concierge_tools.py
 - `test_concierge_input_bounds_fail_closed()` --uses--> `CurrentEventSearch`  [INFERRED]
   backend/tests/test_pipeline_contract.py → backend/app/concierge_tools.py
 - `_event_to_contract()` --uses--> `EventRepository`  [INFERRED]
@@ -119,21 +120,19 @@
   backend/app/routes/events.py → backend/app/models/event.py
 - `list_matches()` --uses--> `EventRepository`  [INFERRED]
   backend/app/routes/preferences.py → backend/app/models/event.py
-- `list_saved_events()` --uses--> `EventRepository`  [INFERRED]
-  backend/app/routes/profiles.py → backend/app/models/event.py
 
 ## Import Cycles
 - None detected.
 
-## Communities (99 total, 20 thin omitted)
+## Communities (98 total, 20 thin omitted)
 
 ### Community 0 - "Development pipeline — nyc-events"
 Cohesion: 0.14
 Nodes (13): CI, Claiming work, Code graph, Conflict hazards, Current state, Development pipeline — nyc-events, Gate commands, Identity (+5 more)
 
 ### Community 1 - "EventExplorer.tsx"
-Cohesion: 0.05
-Nodes (53): dynamic, GET(), emptyPage, { getFilteredEvents }, BottomNav(), event, DesktopSidebar(), costBadgeClass() (+45 more)
+Cohesion: 0.12
+Nodes (19): BottomNav(), event, DesktopSidebar(), costBadgeClass(), costLabel(), EventCard(), EventCardProps, EventExplorerProps (+11 more)
 
 ### Community 2 - "Core screens"
 Cohesion: 0.20
@@ -148,24 +147,24 @@ Cohesion: 0.11
 Nodes (13): BaseHTTPRequestHandler, ContractHandler, create_server(), fact_value(), filter_events(), load_json(), main(), parse_positive_int() (+5 more)
 
 ### Community 5 - "SocrataClient"
-Cohesion: 0.09
-Nodes (24): AsyncClient, CredentialFilter, Async client for the Socrata NYC Parks Events API. Uses HTTP Basic…, Close the HTTP client if this instance created it., Prevent credential values from appearing in log output., SocrataClient, MockTransport, Transport-layer mock that intercepts httpx requests. Returns paginated… (+16 more)
+Cohesion: 0.07
+Nodes (31): AsyncClient, CredentialFilter, Async client for the Socrata NYC Parks Events API. Uses HTTP Basic…, Close the HTTP client if this instance created it., Prevent credential values from appearing in log output., SocrataClient, AlwaysErrorTransport, MockTransport (+23 more)
 
 ### Community 6 - "Language"
 Cohesion: 0.33
 Nodes (5): EventMatch NYC, Language, People and their lists, Provenance, Source data
 
 ### Community 8 - "events.py"
-Cohesion: 0.11
-Nodes (31): _date_fact(), _datetime_fact(), _derived_boolean_fact(), _event_to_contract(), get_event(), get_freshness(), get_ingestion_health(), list_event_changes() (+23 more)
+Cohesion: 0.12
+Nodes (29): accessibility_evidence(), explicit_free_evidence(), Any, Conservative provenance evidence extracted from source Event text., Return only source-owned text fields that can support derived claims., Return source text that explicitly says an Event is free. The result is…, Return source text that mentions accessibility without judging it., _source_texts() (+21 more)
 
 ### Community 9 - "pull_request_template.md"
 Cohesion: 0.40
 Nodes (4): Checks, Lane, Verification, What and why
 
-### Community 19 - "follow_interest"
-Cohesion: 0.18
-Nodes (16): follow_interest(), _interest_contract(), InterestRequest, list_interests(), list_matches(), promote_match(), Any, BaseModel (+8 more)
+### Community 19 - "preferences.py"
+Cohesion: 0.12
+Nodes (32): _event_date_expression(), Return the canonical New York calendar date SQL expression., dismiss_match(), follow_interest(), _interest_contract(), InterestRequest, list_interests(), list_matches() (+24 more)
 
 ### Community 20 - "EventMatch NYC API contract"
 Cohesion: 0.50
@@ -196,32 +195,32 @@ Cohesion: 0.40
 Nodes (4): Deploy on Vercel, Getting Started, Google Maps configuration, Learn More
 
 ### Community 34 - "events.ts"
-Cohesion: 0.20
-Nodes (16): dynamic, GET(), apiBaseUrl(), ApiEventsResponse, apiFetch(), ApiFreshness, EVENT_LIFECYCLE_STATUSES, EventPage (+8 more)
+Cohesion: 0.13
+Nodes (24): dynamic, GET(), { getEvent, EventsApiError }, dynamic, GET(), apiBaseUrl(), ApiEventsResponse, apiFetch() (+16 more)
 
 ### Community 38 - "load_fixture"
-Cohesion: 0.08
-Nodes (21): ingest_rows(), load_fixture(), Any, Load a JSON fixture file by name from the fixtures directory., Parse raw Socrata rows and merge them into the database. This is the shared…, An event with registration_status=closed must still validate., parametrize, requires_docker (+13 more)
-
-### Community 45 - "TestParseEvent"
 Cohesion: 0.10
-Nodes (11): Verify raw Socrata rows are correctly parsed into Event fields., Stated fields must carry their raw values through., Borough, dates, and registration must be derived correctly., Absent fields must return None / Not listed equivalents., Coordinates must be parsed into lat/lon floats., Pipe-delimited categories must be split into a list., Registration not required.' maps to not_required., The live Socrata URL object must imply registration and stay raw. (+3 more)
+Nodes (19): ingest_rows(), load_fixture(), Any, Load a JSON fixture file by name from the fixtures directory., Parse raw Socrata rows and merge them into the database. This is the shared…, parametrize, requires_docker, Issue #11 API gates for composable Event facet filters. (+11 more)
 
-### Community 46 - "preferences.py"
+### Community 45 - "parse_event"
+Cohesion: 0.09
+Nodes (21): parse_event(), Convert a Socrata row dict to Event model field values. Returns a dict suitable…, parametrize, requires_docker, Issue #13 executable gates for single-Event provenance., _source_row(), test_free_status_is_never_inferred_from_silence_or_ambiguous_text(), test_missing_source_facts_are_absent_not_negative_claims() (+13 more)
+
+### Community 46 - "test_interests_matches.py"
 Cohesion: 0.07
-Nodes (68): Base, SQLAlchemy model definitions., Base class for all SQLAlchemy models., Interest, MatchedEvent, PreferenceAudit, Profile, Anonymous Profile and Saved Event persistence models. (+60 more)
+Nodes (67): Base, SQLAlchemy model definitions., Base class for all SQLAlchemy models., Interest, MatchedEvent, PreferenceAudit, Profile, Anonymous Profile and Saved Event persistence models. (+59 more)
 
 ### Community 47 - "test_sync_worker.py"
-Cohesion: 0.14
-Nodes (18): Secret-free operational evidence for one attempted synchronization., SyncRun, _main(), RuntimeError, Executable Socrata-to-Postgres synchronization command., Raised when another worker owns the distributed synchronization lock., Run one locked Snapshot synchronization from the standalone worker., run() (+10 more)
+Cohesion: 0.10
+Nodes (29): get_settings(), Application configuration via environment variables., Return a cached Settings instance., Settings loaded from environment variables., Settings, Secret-free operational evidence for one attempted synchronization., SyncRun, AsyncSession (+21 more)
 
 ### Community 48 - "CurrentEvent"
-Cohesion: 0.11
-Nodes (21): CurrentEventSearch, get_current_event(), Any, BaseModel, The two bounded, read-only Event data operations used by the concierge., Validated search inputs with a hard result bound., Search only the latest current Snapshot in deterministic order., Retrieve one current Event by source guid; archival rows stay hidden. (+13 more)
+Cohesion: 0.10
+Nodes (23): CurrentEventSearch, get_current_event(), Any, BaseModel, The two bounded, read-only Event data operations used by the concierge., Validated search inputs with a hard result bound., Search only the latest current Snapshot in deterministic order., Retrieve one current Event by source guid; archival rows stay hidden. (+15 more)
 
 ### Community 51 - "EventMatch NYC — Initial Frontend Direction"
 Cohesion: 0.18
-Nodes (9): Accessibility baseline, Consensus basis, Consensus summary, Defer, EventMatch NYC — Initial Frontend Direction, Include, Initial MVP scope, Product definition (+1 more)
+Nodes (9): Accessibility baseline, Consensus basis, Consensus summary, EventMatch NYC — Initial Frontend Direction, Global freshness banner, Product definition, Required states, Trust and system states (+1 more)
 
 ### Community 52 - "0003_current_repository_sync_runs.py"
 Cohesion: 0.50
@@ -237,11 +236,11 @@ Nodes (5): 8. Desired user-facing features, AI concierge, Event exploration, Sav
 
 ### Community 55 - "get_session_factory"
 Cohesion: 0.16
-Nodes (14): async_sessionmaker, get_session_factory(), AsyncSession, Return a singleton async session factory., Dispose of the current engine. Use for testing or reconfiguration., reset_engine(), _main(), Any (+6 more)
+Nodes (16): async_sessionmaker, get_session_factory(), AsyncSession, Return a singleton async session factory., get_event(), get_freshness(), get_ingestion_health(), list_event_changes() (+8 more)
 
 ### Community 56 - "railway_release.py"
 Cohesion: 0.08
-Nodes (50): ArgumentParser, BaseException, derived_registration(), load_json(), local_iso(), main(), parsed_coordinates(), Any (+42 more)
+Nodes (49): ArgumentParser, BaseException, derived_registration(), load_json(), local_iso(), main(), parsed_coordinates(), Any (+41 more)
 
 ### Community 57 - "WorkflowPolicyTests"
 Cohesion: 0.11
@@ -264,12 +263,12 @@ Cohesion: 0.50
 Nodes (4): 3. Map view, Location identity, Marker sizing, Required behavior
 
 ### Community 65 - "conftest.py"
-Cohesion: 0.29
-Nodes (9): _check_docker(), client(), _maybe_start_postgres(), postgres_url(), fixture, Test fixtures using Testcontainers for real Postgres., Return the async Postgres URL (skips if Docker unavailable)., Provide an async test client for the FastAPI app. (+1 more)
+Cohesion: 0.17
+Nodes (17): EventRepository, The union of all source Events observed in successful Sync Runs., ingest_events(), _missing_classification(), Classify an absent row without treating absence as cancellation., Atomically archive a valid Snapshot and replace the current dataset., _check_docker(), client() (+9 more)
 
 ### Community 66 - "EventDetail.tsx"
-Cohesion: 0.12
-Nodes (18): EventDetail(), load(), EventDetailContent(), EventDetailProps, formatDate(), formatTime(), LoadState, normalizeProvenance() (+10 more)
+Cohesion: 0.14
+Nodes (15): EventDetailContent(), EventDetailProps, formatDate(), formatTime(), LoadState, normalizeProvenance(), PresentedFact, presentFact() (+7 more)
 
 ### Community 69 - "0004_event_lifecycle.py"
 Cohesion: 0.50
@@ -280,28 +279,28 @@ Cohesion: 0.29
 Nodes (6): Acceptance criteria, Commands and results, Issue #15 backend handoff, Ordered next actions, Required phases, State
 
 ### Community 71 - "profiles.py"
-Cohesion: 0.14
-Nodes (24): _database_unavailable(), _get_or_create_profile(), get_profile(), list_saved_events(), _profile_contract(), Any, AsyncSession, delete (+16 more)
+Cohesion: 0.15
+Nodes (18): get_profile(), list_saved_events(), _profile_contract(), Any, delete, DeviceToken, get, put (+10 more)
 
 ### Community 72 - "test_migrations.py"
 Cohesion: 0.24
 Nodes (9): _alembic(), requires_docker, Migration regression gates for the Events schema., Run Alembic exactly as the deployment pre-start gate does., Lifecycle migration must downgrade, upgrade, and re-upgrade cleanly., Parallel migration work must not leave an undeployable split head., test_events_migration_upgrade_and_idempotency(), test_migration_history_has_exactly_one_head() (+1 more)
 
-### Community 73 - "get_settings"
-Cohesion: 0.11
-Nodes (23): AsyncEngine, get_settings(), Application configuration via environment variables., Return a cached Settings instance., Settings loaded from environment variables., Settings, get_engine(), Async SQLAlchemy engine and session factory. (+15 more)
+### Community 73 - "database.py"
+Cohesion: 0.14
+Nodes (18): AsyncEngine, get_engine(), Async SQLAlchemy engine and session factory., Return a singleton async engine., Dispose of the current engine. Use for testing or reconfiguration., reset_engine(), deployment_revision(), health_check() (+10 more)
 
-### Community 74 - "SocrataError"
-Cohesion: 0.10
-Nodes (17): Response, POST to the Socrata endpoint with exponential-backoff retry., Fetch one page of events from the Socrata API., Page through all events until an empty page returns., Raised when the Socrata API returns an unrecoverable error., Allow only the fixed NYC Open Data HTTPS query origin., SocrataError, _validated_endpoint() (+9 more)
+### Community 74 - "Any"
+Cohesion: 0.13
+Nodes (14): _content_hash(), EventSource, _is_explicitly_cancelled(), _present_classification(), Any, Response, POST to the Socrata endpoint with exponential-backoff retry., Fetch one page of events from the Socrata API. (+6 more)
 
 ### Community 75 - "TrustStatus.tsx"
 Cohesion: 0.24
 Nodes (10): COVERAGE_LABEL, EventLifecycleStatus(), EventStatusProps, formatSyncTime(), FreshnessBanner(), FreshnessBannerProps, STATUS_COPY, current (+2 more)
 
-### Community 76 - "maps.spec.ts"
-Cohesion: 0.20
-Nodes (6): AuditedPage, events, invalid, multiple, shared, source
+### Community 76 - "filters.ts"
+Cohesion: 0.17
+Nodes (16): FilterChips(), FilterChipsProps, GROUPS, applyEventFilters(), dateRange(), describeFilters(), EMPTY_FILTERS, FILTER_KEYS (+8 more)
 
 ### Community 77 - "Issue #13 backend handoff"
 Cohesion: 0.29
@@ -311,37 +310,37 @@ Nodes (6): Acceptance criteria, Commands and results, Issue #13 backend handoff,
 Cohesion: 0.33
 Nodes (6): DateStrip(), DAY_NAMES, DayInfo, getNext7Days(), getUpcomingDates(), NYC_DATE_FORMATTER
 
-### Community 79 - "accessibility_evidence"
-Cohesion: 0.33
-Nodes (8): accessibility_evidence(), explicit_free_evidence(), Any, Conservative provenance evidence extracted from source Event text., Return only source-owned text fields that can support derived claims., Return source text that explicitly says an Event is free. The result is…, Return source text that mentions accessibility without judging it., _source_texts()
+### Community 79 - "EventExplorer"
+Cohesion: 0.15
+Nodes (13): EventDetail(), load(), EventExplorer(), changeFilters(), restoreFilters(), eventsPath(), mergeWithoutDuplicates(), parseFilterSearchParams() (+5 more)
 
 ### Community 80 - "test_contract.py"
-Cohesion: 0.18
-Nodes (11): _build_validator(), _load_spec(), Any, requires_docker, Contract tests — validate API responses against the OpenAPI schema., Load the OpenAPI spec., Build a JSON Schema validator for a given $ref in the OpenAPI spec., Validate real API responses against the OpenAPI contract schema. (+3 more)
+Cohesion: 0.15
+Nodes (13): _build_validator(), _load_spec(), Any, Draft202012Validator, requires_docker, Contract tests — validate API responses against the OpenAPI schema., Load the OpenAPI spec., Build a JSON Schema validator for a given $ref in the OpenAPI spec. (+5 more)
 
 ### Community 81 - "test_event_lifecycle.py"
 Cohesion: 0.40
 Nodes (9): _changes(), requires_docker, Issue #16 executable API gates for Event lifecycle classification., test_absence_is_expired_or_removed_and_never_cancelled(), test_committed_snapshots_classify_new_changed_and_unchanged_through_api(), test_content_hash_is_stable_for_key_order_and_changes_with_content(), test_explicit_cancellation_surfaces_without_word_inference(), test_generated_api_schema_documents_lifecycle_contract() (+1 more)
 
 ### Community 82 - "socrata.py"
-Cohesion: 0.11
-Nodes (20): _derive_borough(), _is_explicitly_cancelled(), _location_key(), _missing_classification(), _parse_categories(), _parse_coordinates(), _parse_date(), _parse_datetime() (+12 more)
+Cohesion: 0.12
+Nodes (18): _derive_borough(), _derive_registration(), _location_key(), _normalize_socrata_url(), _parse_categories(), _parse_coordinates(), _parse_date(), _parse_datetime() (+10 more)
 
-### Community 83 - "apiToUiEvent"
-Cohesion: 0.09
-Nodes (15): apiToUiEvent(), formatDate(), formatTime(), AuditedPage, listEvent, AuditedPage, FilterKey, fixtureEvent (+7 more)
+### Community 83 - "maps.spec.ts"
+Cohesion: 0.06
+Nodes (18): AuditedPage, listEvent, AuditedPage, FilterKey, fixtureEvent, test, AuditedPage, lifecycleEvents (+10 more)
 
 ### Community 84 - "Issue #26 frontend handoff"
 Cohesion: 0.22
 Nodes (8): Blocker, CI/CD delta, Commands and results, Completed acceptance areas, Issue #26 frontend handoff, Ownership, Remaining ordered actions, State
 
 ### Community 85 - "test_events.py"
-Cohesion: 0.29
-Nodes (6): requires_docker, Tests for the events API endpoints., Verify that GET /events returns stored Events in contract shape., Verify that GET /events/{guid} uses the source guid., TestGetEvent, TestListEvents
+Cohesion: 0.14
+Nodes (8): requires_docker, Tests for the events API endpoints., Verify that GET /events returns stored Events in contract shape., Verify that GET /events/{guid} uses the source guid., Verify Event and Location identity rules., TestGetEvent, TestIdentity, TestListEvents
 
-### Community 86 - "Trust and system states"
-Cohesion: 0.67
-Nodes (3): Global freshness banner, Required states, Trust and system states
+### Community 86 - "test_current_event_dates.py"
+Cohesion: 0.27
+Nodes (13): _event(), _event_validator(), datetime, Draft202012Validator, parametrize, requires_docker, Regression gates for canonical current-event calendar dates (issue #68)., test_current_events_fallback_is_consistent_across_api_and_consumers() (+5 more)
 
 ### Community 87 - "EventMap.tsx"
 Cohesion: 0.09
@@ -355,25 +354,21 @@ Nodes (9): Acceptance criteria, CI/CD delta, Commands and results, Files, Issue 
 Cohesion: 0.25
 Nodes (7): Acceptance criteria, Commands and results, Issue #21 backend handoff, Ordered next actions, Ownership, Required phases, State
 
-### Community 90 - "getEvent"
-Cohesion: 0.32
-Nodes (5): dynamic, GET(), { getEvent, EventsApiError }, EventsApiError, getEvent()
+### Community 90 - "events/route.ts"
+Cohesion: 0.27
+Nodes (8): dynamic, GET(), emptyPage, { getFilteredEvents }, getFilteredEvents(), isAllowedValue(), valueFor(), parseStrictFilterSearchParams()
 
-### Community 92 - "parse_event"
-Cohesion: 0.16
-Nodes (19): _content_hash(), _derive_registration(), _normalize_socrata_url(), _optional_text(), parse_event(), Any, Normalize a Socrata URL string or object without changing the raw row., Normalize an optional source string or reject an unsupported shape. (+11 more)
+### Community 92 - "SocrataError"
+Cohesion: 0.22
+Nodes (8): _optional_text(), Normalize an optional source string or reject an unsupported shape., Raised when the Socrata API returns an unrecoverable error., Allow only the fixed NYC Open Data HTTPS query origin., SocrataError, _validated_endpoint(), FailedSource, Exception
 
-### Community 93 - "unfollow_interest"
-Cohesion: 0.33
-Nodes (7): dismiss_match(), delete, Response, Idempotently stop following one Profile-owned Interest., Idempotently dismiss one Profile-owned Match., unfollow_interest(), InterestId
+### Community 93 - "Initial MVP scope"
+Cohesion: 0.67
+Nodes (3): Defer, Include, Initial MVP scope
 
 ### Community 96 - "Application shell"
 Cohesion: 0.67
 Nodes (3): Application shell, Desktop, Mobile
-
-### Community 97 - "sync_events"
-Cohesion: 0.22
-Nodes (8): EventSource, ingest_events(), AsyncSession, Atomically archive a valid Snapshot and replace the current dataset., Fetch and store one complete Snapshot with durable attempt evidence., The narrow transport contract used by the synchronization job., sync_events(), Protocol
 
 ## Knowledge Gaps
 - **264 isolated node(s):** `nyc-events-backend`, `start.sh script`, `{ getEvent, EventsApiError }`, `dynamic`, `{ getFilteredEvents }` (+259 more)
@@ -383,17 +378,17 @@ Nodes (8): EventSource, ingest_events(), AsyncSession, Atomically archive a vali
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `load_fixture()` connect `load_fixture` to `conftest.py`, `sync_events`, `SocrataClient`, `SocrataError`, `TestParseEvent`, `preferences.py`, `test_sync_worker.py`, `test_contract.py`, `test_event_lifecycle.py`, `CurrentEvent`, `test_events.py`?**
-  _High betweenness centrality (0.048) - this node is a cross-community bridge._
-- **Why does `get_current_event()` connect `CurrentEvent` to `events.py`, `railway_release.py`, `get_session_factory`?**
-  _High betweenness centrality (0.045) - this node is a cross-community bridge._
-- **Why does `CurrentEvent` connect `CurrentEvent` to `sync_events`, `conftest.py`, `load_fixture`, `profiles.py`, `events.py`, `SocrataError`, `preferences.py`, `test_sync_worker.py`, `socrata.py`, `test_events.py`, `get_session_factory`, `parse_event`?**
-  _High betweenness centrality (0.037) - this node is a cross-community bridge._
-- **Are the 19 inferred relationships involving `CurrentEvent` (e.g. with `get_current_event()` and `search_current_events()`) actually correct?**
-  _`CurrentEvent` has 19 INFERRED edges - model-reasoned connections that need verification._
+- **Why does `get_current_event()` connect `CurrentEvent` to `events.py`, `railway_release.py`, `test_current_event_dates.py`, `get_session_factory`?**
+  _High betweenness centrality (0.057) - this node is a cross-community bridge._
+- **Why does `load_fixture()` connect `load_fixture` to `conftest.py`, `SocrataClient`, `parse_event`, `test_interests_matches.py`, `test_sync_worker.py`, `test_contract.py`, `test_event_lifecycle.py`, `CurrentEvent`, `test_events.py`, `test_current_event_dates.py`, `SocrataError`?**
+  _High betweenness centrality (0.055) - this node is a cross-community bridge._
+- **Why does `CurrentEvent` connect `CurrentEvent` to `conftest.py`, `load_fixture`, `profiles.py`, `events.py`, `database.py`, `parse_event`, `test_interests_matches.py`, `test_sync_worker.py`, `socrata.py`, `test_events.py`, `test_current_event_dates.py`, `get_session_factory`?**
+  _High betweenness centrality (0.040) - this node is a cross-community bridge._
+- **Are the 21 inferred relationships involving `CurrentEvent` (e.g. with `get_current_event()` and `search_current_events()`) actually correct?**
+  _`CurrentEvent` has 21 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `nyc-events-backend`, `start.sh script`, `{ getEvent, EventsApiError }` to the rest of the system?**
   _264 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `Development pipeline — nyc-events` be split into smaller, more focused modules?**
   _Cohesion score 0.14285714285714285 - nodes in this community are weakly interconnected._
 - **Should `EventExplorer.tsx` be split into smaller, more focused modules?**
-  _Cohesion score 0.05442428730099963 - nodes in this community are weakly interconnected._
+  _Cohesion score 0.12433862433862433 - nodes in this community are weakly interconnected._
