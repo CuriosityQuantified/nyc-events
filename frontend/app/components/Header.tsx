@@ -1,3 +1,5 @@
+import HeaderAuth from "./HeaderAuth";
+import { clerkPublishableKey } from "@/app/data/clerk";
 import styles from "./Header.module.css";
 
 const boroughs = [
@@ -21,16 +23,19 @@ export default function Header() {
           <span>NYC</span>
         </h1>
       </div>
-      <label>
-        <span className="sr-only">Select borough</span>
-        <select className={styles.boroughSelect} defaultValue="All Boroughs">
-          {boroughs.map((b) => (
-            <option key={b} value={b}>
-              {b}
-            </option>
-          ))}
-        </select>
-      </label>
+      <div className={styles.actions}>
+        <label>
+          <span className="sr-only">Select borough</span>
+          <select className={styles.boroughSelect} defaultValue="All Boroughs">
+            {boroughs.map((b) => (
+              <option key={b} value={b}>
+                {b}
+              </option>
+            ))}
+          </select>
+        </label>
+        {clerkPublishableKey() ? <HeaderAuth /> : null}
+      </div>
     </header>
   );
 }
