@@ -112,7 +112,6 @@ export function eventSchedule(event: ParkEvent): EventSchedule | null {
  */
 function exportText(value: string | null | undefined): string | null {
   if (!value) return null;
-  // eslint-disable-next-line no-control-regex
   const cleaned = value.replace(/[\u0000-\u001F\u007F]+/g, " ").trim();
   return cleaned || null;
 }

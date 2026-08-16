@@ -55,10 +55,15 @@ export default function SavedProvider({ children }: { children: ReactNode }) {
     new Set(),
   );
   const loadVersion = useRef(0);
+  const [loadCount, setLoadCount] = useState(0);
 
   const reload = useCallback(() => {
-    const version = ++loadVersion.current;
     setStatus("loading");
+    setLoadCount((count) => count + 1);
+  }, []);
+
+  useEffect(() => {
+    const version = ++loadVersion.current;
     fetchSavedEvents()
       .then((saved) => {
         if (loadVersion.current !== version) return;
@@ -69,11 +74,7 @@ export default function SavedProvider({ children }: { children: ReactNode }) {
         if (loadVersion.current !== version) return;
         setStatus("error");
       });
-  }, []);
-
-  useEffect(() => {
-    reload();
-  }, [reload]);
+  }, [loadCount]);
 
   const savedGuids = useMemo(
     () => new Set(events.map((event) => event.guid)),
