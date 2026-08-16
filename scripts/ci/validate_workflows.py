@@ -91,8 +91,10 @@ def validate_workflows(ci: dict[str, Any], deploy: dict[str, Any]) -> list[str]:
 
     for job_name in DEPLOY_JOBS & set(deploy_jobs):
         env = deploy_jobs[job_name].get("env", {})
-        if env.get("RAILWAY_TOKEN") != "${{ secrets.RAILWAY_TOKEN }}" or "RAILWAY_API_TOKEN" in env:
+        if env.get("RAILWAY_TOKEN") != "${{ secrets.RAILWAY_TOKEN }}":
             errors.append(f"deployment job {job_name} must use the project-scoped RAILWAY_TOKEN secret")
+        if "RAILWAY_API_TOKEN" in env:
+            errors.append(f"deployment job {job_name} exposes workspace auth outside one step")
         if env.get("CONFIGURED_RAILWAY_PROJECT_ID") != "${{ vars.RAILWAY_PROJECT_ID }}":
             errors.append(f"deployment job {job_name} must use the configured RAILWAY_PROJECT_ID variable")
         job_text = str(deploy_jobs[job_name])
@@ -119,6 +121,27 @@ def validate_workflows(ci: dict[str, Any], deploy: dict[str, Any]) -> list[str]:
             or "RUNNER_TEMP" not in steps[0].get("run", "")
         ):
             errors.append(f"deployment job {job_name} must initialize failure evidence before checkout")
+
+    sync_steps = deploy_jobs.get("deploy-sync-worker", {}).get("steps", [])
+    configure_steps = [
+        step
+        for step in sync_steps
+        if "configure-sync-worker" in step.get("run", "")
+    ]
+    if len(configure_steps) != 1 or configure_steps[0].get("env", {}).get(
+        "RAILWAY_API_TOKEN"
+    ) != "${{ secrets.RAILWAY_API_TOKEN }}":
+        errors.append(
+            "sync-worker creation must receive workspace Railway auth in one step"
+        )
+    for job_name, job in deploy_jobs.items():
+        for step in job.get("steps", []):
+            if step in configure_steps:
+                continue
+            if "RAILWAY_API_TOKEN" in step.get("env", {}):
+                errors.append(
+                    f"deployment job {job_name} exposes workspace auth outside sync creation"
+                )
 
     backend = deploy_jobs.get("deploy-backend", {})
     backend_env = backend.get("env", {})

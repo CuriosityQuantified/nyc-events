@@ -117,6 +117,40 @@ class WorkflowPolicyTests(unittest.TestCase):
         errors = validate_workflows(self.ci, broken)
         self.assertTrue(any("project-scoped RAILWAY_TOKEN" in error for error in errors))
 
+    def test_only_sync_worker_receives_account_auth_for_service_creation(self) -> None:
+        sync_steps = self.deploy["jobs"]["deploy-sync-worker"]["steps"]
+        creation_step = next(
+            step for step in sync_steps if "configure-sync-worker" in step.get("run", "")
+        )
+        self.assertEqual(
+            creation_step.get("env", {}).get("RAILWAY_API_TOKEN"),
+            "${{ secrets.RAILWAY_API_TOKEN }}",
+        )
+        for job_name in ("deploy-backend", "deploy-frontend"):
+            self.assertNotIn("RAILWAY_API_TOKEN", self.deploy["jobs"][job_name]["env"])
+
+    def test_sync_creation_rejects_missing_workspace_auth(self) -> None:
+        broken = copy.deepcopy(self.deploy)
+        creation_step = next(
+            step
+            for step in broken["jobs"]["deploy-sync-worker"]["steps"]
+            if "configure-sync-worker" in step.get("run", "")
+        )
+        creation_step.pop("env")
+        errors = validate_workflows(self.ci, broken)
+        self.assertTrue(any("workspace Railway auth" in error for error in errors))
+
+    def test_workspace_auth_is_rejected_outside_sync_creation(self) -> None:
+        broken = copy.deepcopy(self.deploy)
+        backend_step = broken["jobs"]["deploy-backend"]["steps"][0]
+        backend_step["env"] = {
+            "RAILWAY_API_TOKEN": "${{ secrets.RAILWAY_API_TOKEN }}"
+        }
+        errors = validate_workflows(self.ci, broken)
+        self.assertTrue(
+            any("outside sync creation" in error for error in errors)
+        )
+
     def test_deployment_requires_configured_project_id(self) -> None:
         broken = copy.deepcopy(self.deploy)
         broken["jobs"]["deploy-backend"]["env"].pop("CONFIGURED_RAILWAY_PROJECT_ID", None)
