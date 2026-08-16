@@ -282,18 +282,12 @@ test.describe("EventMatch NYC Walking Skeleton", () => {
     );
   });
 
-  test("filter chips are visible", async ({ page }) => {
+  test("all filter groups are visible", async ({ page }) => {
     const chips = page.getByTestId("filter-chips");
     await expect(chips).toBeVisible();
-    // Verify specific categories exist
-    await expect(chips).toContainText("All");
-    await expect(chips).toContainText("Fitness");
-    await expect(chips).toContainText("Music");
-  });
-
-  test("date strip is visible", async ({ page }) => {
-    const dateStrip = page.getByTestId("date-strip");
-    await expect(dateStrip).toBeVisible();
+    for (const group of ["Borough", "Category", "Date range", "Registration"]) {
+      await expect(chips.getByRole("group", { name: group })).toBeVisible();
+    }
   });
 
   test("list/map toggle exists and works", async ({ page }) => {
