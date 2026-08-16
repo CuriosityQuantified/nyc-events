@@ -4,6 +4,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -45,6 +46,11 @@ describe("ConciergeView", () => {
     streamConciergeMessage.mockImplementation(
       async (_message, _conversationId, handlers) => {
         handlers.onConversation(conversationId);
+        handlers.onTool?.({
+          id: "search-1",
+          name: "search_current_events",
+          status: "started",
+        });
         handlers.onToken("I found two ");
         handlers.onToken("current Queens events.");
         return {
@@ -65,6 +71,9 @@ describe("ConciergeView", () => {
     expect(
       await screen.findByText("I found two current Queens events."),
     ).toBeTruthy();
+    expect(screen.getByTestId("concierge-tool-call").textContent).toContain(
+      "search_current_events",
+    );
     expect(streamConciergeMessage).toHaveBeenCalledWith(
       "Free events in Queens",
       null,
@@ -75,11 +84,40 @@ describe("ConciergeView", () => {
     );
   });
 
+  it("renders Concierge answers as Markdown", async () => {
+    streamConciergeMessage.mockResolvedValue({
+      conversationId,
+      status: "completed",
+      response: "## Weekend picks\n\n- **Free** family event",
+      approval: null,
+    });
+    render(<ConciergeView />);
+
+    fireEvent.change(screen.getByLabelText("Ask about current events"), {
+      target: { value: "What is on this weekend?" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
+
+    expect(
+      await screen.findByRole("heading", { name: "Weekend picks", level: 2 }),
+    ).toBeTruthy();
+    expect(
+      within(screen.getByTestId("concierge-messages")).getByRole("listitem")
+        .textContent,
+    ).toContain("Free family event");
+  });
+
   it("blocks the composer until a save proposal is approved", async () => {
     const approval = {
       interruptId: "interrupt-1",
       eventId: "event-guid-1",
       description: "Save this exact event to your Saved Events.",
+      events: [
+        {
+          eventId: "event-guid-1",
+          description: "Save this exact event to your Saved Events.",
+        },
+      ],
     };
     streamConciergeMessage.mockImplementation(
       async (_message, _conversationId, handlers) => {

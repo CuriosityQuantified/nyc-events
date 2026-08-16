@@ -14,6 +14,7 @@ from sqlalchemy import func, select
 
 from app.concierge import (
     ConciergeContext,
+    _compact_concierge_event,
     create_concierge_agent,
     create_default_concierge_agent,
     save_event_tool,
@@ -77,6 +78,31 @@ def _agent(model: ScriptedToolModel) -> Any:
         checkpointer=InMemorySaver(),
         profile_key=f"openai:{model.model_name}",
     )
+
+
+def test_model_search_payload_keeps_event_id_and_drops_raw_duplicates() -> None:
+    compact = _compact_concierge_event(
+        {
+            "event_id": "event-1",
+            "title": {
+                "value": "Family Day",
+                "provenance": "Stated",
+                "raw": "Family Day",
+            },
+            "description": {
+                "value": "x" * 900,
+                "provenance": "Stated",
+                "raw": "x" * 900,
+            },
+            "raw_data": {"description": "x" * 900},
+        }
+    )
+
+    assert compact["event_id"] == "event-1"
+    assert compact["title"] == {"value": "Family Day", "provenance": "Stated"}
+    assert len(compact["description"]["value"]) == 801
+    assert "raw" not in compact["description"]
+    assert "raw_data" not in compact
 
 
 def _sse_events(body: str) -> list[tuple[str, dict[str, Any]]]:
@@ -197,6 +223,58 @@ async def test_save_tool_interrupts_and_rejection_resumes_without_execution() ->
     )
     assert "__interrupt__" not in completed
     assert completed["messages"][-1].content == "I did not save that Event."
+
+
+async def test_multiple_save_actions_can_be_rejected_together() -> None:
+    model = ScriptedToolModel(
+        responses=[
+            AIMessage(
+                content="",
+                tool_calls=[
+                    {
+                        "name": "save_event",
+                        "args": {"event_id": "event-1"},
+                        "id": "save-call-1",
+                        "type": "tool_call",
+                    },
+                    {
+                        "name": "save_event",
+                        "args": {"event_id": "event-2"},
+                        "id": "save-call-2",
+                        "type": "tool_call",
+                    },
+                ],
+            ),
+            AIMessage(content="I did not save those Events."),
+        ]
+    )
+    agent = _agent(model)
+    config = {"configurable": {"thread_id": "rejected-multiple-save"}}
+    context = ConciergeContext(profile_id="00000000-0000-0000-0000-000000000001")
+
+    interrupted = await agent.ainvoke(
+        {"messages": [{"role": "user", "content": "Save both"}]},
+        config=config,
+        context=context,
+    )
+    assert len(interrupted["__interrupt__"][0].value["action_requests"]) == 2
+
+    from langgraph.types import Command
+
+    completed = await agent.ainvoke(
+        Command(
+            resume={
+                "decisions": [
+                    {"type": "reject", "message": "The user said no."},
+                    {"type": "reject", "message": "The user said no."},
+                ]
+            }
+        ),
+        config=config,
+        context=context,
+    )
+    assert "__interrupt__" not in completed
+    assert completed["messages"][-1].content == "I did not save those Events."
 
 
 async def test_approval_executes_once_with_trusted_profile_context(monkeypatch) -> None:

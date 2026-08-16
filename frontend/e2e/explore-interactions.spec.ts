@@ -35,6 +35,18 @@ function eventsFor(params: URLSearchParams): ParkEvent[] {
   if (from) filtered = filtered.filter((e) => (e.startDate ?? "") >= from);
   const to = params.get("date_to");
   if (to) filtered = filtered.filter((e) => (e.startDate ?? "") <= to);
+  const query = params.get("query")?.toLowerCase();
+  if (query) {
+    filtered = filtered.filter((event) =>
+      [event.title, event.location, event.borough, ...event.categories]
+        .join(" ")
+        .toLowerCase()
+        .includes(query),
+    );
+  }
+  if (params.get("free") === "true") {
+    filtered = filtered.filter((event) => event.costType !== "Paid");
+  }
   return filtered;
 }
 
@@ -142,6 +154,26 @@ test.describe("Explore layout stability and interactions", () => {
     expect(headerAfter).toBe(headerBefore);
   });
 
+  test("search and free-only controls filter results and persist in the URL", async ({
+    page,
+  }) => {
+    await installRoutes(page);
+    await page.goto("/");
+    await expect(page.getByTestId("event-card")).toHaveCount(2);
+
+    await page.getByTestId("search-bar").fill("Queens");
+    await expect(page.getByTestId("event-card")).toHaveCount(1);
+    await expect
+      .poll(() => new URL(page.url()).searchParams.get("query"))
+      .toBe("Queens");
+
+    await page.getByRole("button", { name: "Add Cost: Free events" }).click();
+    await expect
+      .poll(() => new URL(page.url()).searchParams.get("free"))
+      .toBe("true");
+    await expect(page.getByTestId("event-card")).toHaveCount(1);
+  });
+
   test("exact-date filters bound results, persist in the URL, and clear presets", async ({
     page,
   }) => {
@@ -150,6 +182,11 @@ test.describe("Explore layout stability and interactions", () => {
     await expect(page.getByTestId("event-card")).toHaveCount(2);
 
     const dateFilter = page.getByTestId("exact-date-filter");
+    await expect(dateFilter.getByLabel("From")).toHaveValue("");
+    await expect(dateFilter.getByLabel("To")).toHaveValue("");
+    expect(new URL(page.url()).searchParams.get("date_from")).toBeNull();
+    expect(new URL(page.url()).searchParams.get("date_to")).toBeNull();
+
     await dateFilter.getByLabel("From").fill("2026-08-21");
     await expect
       .poll(() => new URL(page.url()).searchParams.get("date_from"))

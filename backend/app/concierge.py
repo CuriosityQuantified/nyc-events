@@ -60,6 +60,10 @@ availability, accessibility, cancellation status, or travel time. Preserve expli
 Event URL when one is present. A zero-result search means only that the current data
 did not return a match; it does not prove that no suitable Event exists.
 
+For a discovery request, make a focused search_current_events call and set limit to
+the number of Events requested (or 5 when no number is given). Do not call any
+filesystem, shell, or other harness tools, and do not retry an equivalent search.
+
 Call save_event only after the user explicitly asks to save a specific Event. Do not
 claim that an Event was saved until the approved tool call returns successfully.
 """
@@ -70,6 +74,38 @@ class ConciergeContext:
     """Trusted identity injected by the server and hidden from the model."""
 
     profile_id: str
+
+
+def _concierge_fact(event: dict[str, Any], key: str, *, limit: int = 800) -> Any:
+    """Keep the model-facing search payload factual without duplicating raw data."""
+    fact = event.get(key)
+    if not isinstance(fact, dict):
+        return fact
+    value = fact.get("value")
+    if isinstance(value, str) and len(value) > limit:
+        value = value[:limit].rstrip() + "…"
+    return {"value": value, "provenance": fact.get("provenance")}
+
+
+def _compact_concierge_event(event: dict[str, Any]) -> dict[str, Any]:
+    """Return only the bounded facts needed to recommend or save an Event."""
+    return {
+        "event_id": event.get("event_id") or event.get("guid"),
+        "title": _concierge_fact(event, "title"),
+        "description": _concierge_fact(event, "description"),
+        "official_event_url": _concierge_fact(event, "official_event_url"),
+        "location_name": _concierge_fact(event, "location_name"),
+        "borough": _concierge_fact(event, "borough"),
+        "start_date": _concierge_fact(event, "start_date"),
+        "end_date": _concierge_fact(event, "end_date"),
+        "start_datetime": _concierge_fact(event, "start_datetime"),
+        "end_datetime": _concierge_fact(event, "end_datetime"),
+        "categories": _concierge_fact(event, "categories"),
+        "registration_status": _concierge_fact(event, "registration_status"),
+        "registration_description": _concierge_fact(event, "registration_description"),
+        "is_free_explicit": _concierge_fact(event, "is_free_explicit"),
+        "accessibility_mentioned": _concierge_fact(event, "accessibility_mentioned"),
+    }
 
 
 @tool("search_current_events", args_schema=CurrentEventSearch)
@@ -110,6 +146,11 @@ async def search_current_events_tool(
         limit=limit,
     )
     result = await search_current_events(criteria)
+    result["events"] = [
+        _compact_concierge_event(event)
+        for event in result.get("events", [])
+        if isinstance(event, dict)
+    ]
     return json.dumps(result, separators=(",", ":"), default=str)
 
 
@@ -190,10 +231,10 @@ def create_concierge_agent(
     _register_concierge_profile(profile_key)
     middleware: list[AgentMiddleware[Any, Any, Any]] = [
         enforce_concierge_tool_allowlist,
-        ModelCallLimitMiddleware(run_limit=6, exit_behavior="error"),
-        ToolCallLimitMiddleware(run_limit=4, exit_behavior="error"),
+        ModelCallLimitMiddleware(run_limit=8, exit_behavior="end"),
+        ToolCallLimitMiddleware(run_limit=8, exit_behavior="end"),
         ToolCallLimitMiddleware(
-            tool_name="save_event", run_limit=1, exit_behavior="error"
+            tool_name="save_event", run_limit=4, exit_behavior="end"
         ),
     ]
     if fallback_model is not None:

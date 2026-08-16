@@ -4,6 +4,7 @@ export type ConciergeApproval = {
   interruptId: string;
   eventId: string;
   description: string;
+  events: Array<{ eventId: string; description: string }>;
 };
 
 export type ConciergeResponse = {
@@ -11,6 +12,12 @@ export type ConciergeResponse = {
   status: "completed" | "approval_required";
   response: string | null;
   approval: ConciergeApproval | null;
+};
+
+export type ConciergeToolCall = {
+  id: string;
+  name: string;
+  status: "started" | "completed" | "error";
 };
 
 export class ConciergeApiError extends Error {
@@ -25,6 +32,7 @@ export class ConciergeApiError extends Error {
 export type ConciergeStreamHandlers = {
   onConversation?: (conversationId: string) => void;
   onToken?: (text: string) => void;
+  onTool?: (tool: ConciergeToolCall) => void;
 };
 
 const UUID_PATTERN =
@@ -53,26 +61,45 @@ function parseDone(value: unknown): ConciergeResponse | null {
   if (payload.status === "approval_required") {
     const rawApproval = record(payload.approval);
     const actions = rawApproval?.action_requests;
-    const action = Array.isArray(actions) ? record(actions[0]) : null;
-    const args = record(action?.args);
+    const parsedActions = Array.isArray(actions)
+      ? actions.map((value) => {
+          const action = record(value);
+          const args = record(action?.args);
+          return {
+            action,
+            args,
+            eventId: args?.event_id,
+            description: action?.description,
+          };
+        })
+      : [];
     if (
       typeof rawApproval?.interrupt_id !== "string" ||
       rawApproval.interrupt_id.length < 1 ||
       rawApproval.interrupt_id.length > 255 ||
-      action?.name !== "save_event" ||
-      typeof args?.event_id !== "string" ||
-      args.event_id.length < 1 ||
-      args.event_id.length > 255
+      parsedActions.length === 0 ||
+      parsedActions.some(
+        ({ action, eventId }) =>
+          action?.name !== "save_event" ||
+          typeof eventId !== "string" ||
+          eventId.length < 1 ||
+          eventId.length > 255,
+      )
     ) {
       return null;
     }
+    const events = parsedActions.map(({ eventId, description }) => ({
+      eventId: eventId as string,
+      description:
+        typeof description === "string"
+          ? description
+          : "Save this event to your Saved Events.",
+    }));
     approval = {
       interruptId: rawApproval.interrupt_id,
-      eventId: args.event_id,
-      description:
-        typeof action.description === "string"
-          ? action.description
-          : "Save this event to your Saved Events.",
+      eventId: events[0].eventId,
+      description: events[0].description,
+      events,
     };
   }
 
@@ -150,6 +177,21 @@ async function conciergeStream(
     }
     if (parsed.event === "token" && typeof payload.text === "string") {
       handlers.onToken?.(payload.text);
+      return;
+    }
+    if (
+      parsed.event === "tool" &&
+      typeof payload.id === "string" &&
+      typeof payload.name === "string" &&
+      (payload.status === "started" ||
+        payload.status === "completed" ||
+        payload.status === "error")
+    ) {
+      handlers.onTool?.({
+        id: payload.id,
+        name: payload.name,
+        status: payload.status,
+      });
       return;
     }
     if (parsed.event === "done") {

@@ -20,8 +20,8 @@ class ConciergeSettings(BaseSettings):
         ),
     )
     openrouter_base_url: str = "https://openrouter.ai/api/v1"
-    concierge_model_primary: str = "nvidia/nemotron-3.5-lightning:free"
-    concierge_model_fallback: str = "deepseek/deepseek-v4-flash-0731"
+    concierge_model_primary: str = "deepseek/deepseek-v4-flash-0731"
+    concierge_model_fallback: str = "nvidia/nemotron-3.5-lightning:free"
     concierge_max_input_chars: int = 2000
 
     model_config = SettingsConfigDict(

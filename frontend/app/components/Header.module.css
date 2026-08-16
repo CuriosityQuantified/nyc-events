@@ -3,8 +3,13 @@
   align-items: center;
   justify-content: space-between;
   padding: var(--space-4);
-  background-color: var(--color-surface-raised);
+  background: color-mix(
+    in srgb,
+    var(--color-surface-raised) 88%,
+    var(--color-accent-subtle)
+  );
   border-bottom: 1px solid var(--color-border);
+  box-shadow: var(--shadow-sm);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -32,7 +37,7 @@
   width: 28px;
   height: 28px;
   background-color: var(--color-accent);
-  border-radius: var(--radius-sm);
+  border-radius: 9px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -45,6 +50,7 @@
   font-size: var(--text-xl);
   font-weight: 700;
   color: var(--color-foreground);
+  letter-spacing: -0.03em;
 }
 
 .titleAccent {
@@ -53,7 +59,7 @@
 
 .boroughSelect {
   appearance: none;
-  background-color: var(--color-surface);
+  background-color: var(--color-surface-raised);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-full);
   padding: var(--space-2) var(--space-8) var(--space-2) var(--space-4);
@@ -61,6 +67,7 @@
   color: var(--color-foreground);
   min-height: var(--touch-min);
   cursor: pointer;
+  box-shadow: var(--shadow-sm);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23666' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
   background-repeat: no-repeat;
   background-position: right 12px center;

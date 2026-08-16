@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from collections.abc import AsyncIterator
 from typing import Any, Literal
 from uuid import UUID, uuid4
@@ -10,7 +11,7 @@ from uuid import UUID, uuid4
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import StreamingResponse
-from langchain_core.messages import AIMessage, AIMessageChunk
+from langchain_core.messages import AIMessage, AIMessageChunk, ToolMessage
 from langgraph.types import Command
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -20,6 +21,7 @@ from app.database import get_session_factory
 from app.routes.profiles import DeviceToken, _get_or_create_profile
 
 router = APIRouter(prefix="/concierge")
+logger = logging.getLogger(__name__)
 
 
 class ConciergeMessageRequest(BaseModel):
@@ -112,6 +114,28 @@ def _response(conversation_id: UUID, result: dict[str, Any]) -> ConciergeRespons
     )
 
 
+def _save_action_requests(interrupt: Any) -> list[dict[str, Any]]:
+    """Validate every pending save action before applying one human decision."""
+    action_requests = interrupt.value.get("action_requests", [])
+    if not action_requests or any(
+        not isinstance(action, dict) or action.get("name") != "save_event"
+        for action in action_requests
+    ):
+        raise HTTPException(status_code=409, detail="Pending action is not a save")
+    return action_requests
+
+
+def _resume_decisions(
+    interrupt: Any, payload: ConciergeDecisionRequest
+) -> list[dict[str, str]]:
+    """Apply the approve/reject choice to every save action in the interrupt."""
+    action_requests = _save_action_requests(interrupt)
+    if payload.decision == "approve":
+        return [{"type": "approve"} for _ in action_requests]
+    message = payload.reason or "The user rejected saving these Events."
+    return [{"type": "reject", "message": message} for _ in action_requests]
+
+
 def _sse(event: str, data: Any) -> str:
     """Encode one bounded Server-Sent Event."""
     return f"event: {event}\ndata: {json.dumps(data, separators=(',', ':'))}\n\n"
@@ -139,6 +163,51 @@ def _streamed_text(part: Any) -> str | None:
     return text or None
 
 
+def _streamed_message(part: Any) -> Any | None:
+    """Extract the LangChain message from a v2 messages stream part."""
+    data: Any = None
+    if isinstance(part, dict) and part.get("type") == "messages":
+        data = part.get("data")
+    elif isinstance(part, tuple) and len(part) == 2 and part[0] == "messages":
+        data = part[1]
+    if isinstance(data, tuple) and data:
+        return data[0]
+    return None
+
+
+def _streamed_tool_events(
+    part: Any, started_tool_calls: set[str]
+) -> list[dict[str, Any]]:
+    """Expose tool activity without forwarding tool arguments or results."""
+    message = _streamed_message(part)
+    if isinstance(message, (AIMessage, AIMessageChunk)):
+        events: list[dict[str, Any]] = []
+        for index, call in enumerate(getattr(message, "tool_call_chunks", ())):
+            name = call.get("name") if isinstance(call, dict) else None
+            if not isinstance(name, str) or not name:
+                continue
+            call_id = call.get("id") if isinstance(call, dict) else None
+            key = str(call_id or f"{name}:{index}")
+            if key in started_tool_calls:
+                continue
+            started_tool_calls.add(key)
+            events.append({"id": key, "name": name, "status": "started"})
+        return events
+
+    if isinstance(message, ToolMessage):
+        call_id = str(message.tool_call_id)
+        name = message.name or "tool"
+        started_tool_calls.add(call_id)
+        return [
+            {
+                "id": call_id,
+                "name": name,
+                "status": "error" if message.status == "error" else "completed",
+            }
+        ]
+    return []
+
+
 async def _stream_turn(
     *,
     agent: Any,
@@ -149,6 +218,7 @@ async def _stream_turn(
 ) -> AsyncIterator[str]:
     """Stream model tokens, then emit the authoritative checkpoint state."""
     yield _sse("conversation", {"conversation_id": str(conversation_id)})
+    started_tool_calls: set[str] = set()
     try:
         async for part in agent.astream(
             input_value,
@@ -157,6 +227,8 @@ async def _stream_turn(
             stream_mode=["messages", "updates"],
             version="v2",
         ):
+            for tool_event in _streamed_tool_events(part, started_tool_calls):
+                yield _sse("tool", tool_event)
             text = _streamed_text(part)
             if text:
                 yield _sse("token", {"text": text})
@@ -170,6 +242,10 @@ async def _stream_turn(
     except Exception:
         # Streaming responses have already sent their HTTP status. Keep provider,
         # database, and orchestration details out of the browser-visible event.
+        logger.exception(
+            "Concierge stream failed",
+            extra={"conversation_id": str(conversation_id)},
+        )
         yield _sse("error", {"error": "The concierge is unavailable right now."})
 
 
@@ -285,19 +361,9 @@ async def resolve_save(
     interrupt = state.interrupts[0]
     if interrupt.id != payload.interrupt_id:
         raise HTTPException(status_code=409, detail="Save approval is stale")
-    action_requests = interrupt.value.get("action_requests", [])
-    if len(action_requests) != 1 or action_requests[0].get("name") != "save_event":
-        raise HTTPException(status_code=409, detail="Pending action is not a save")
-
-    if payload.decision == "approve":
-        decision: dict[str, str] = {"type": "approve"}
-    else:
-        decision = {
-            "type": "reject",
-            "message": payload.reason or "The user rejected saving this Event.",
-        }
+    decisions = _resume_decisions(interrupt, payload)
     result = await agent.ainvoke(
-        Command(resume={"decisions": [decision]}),
+        Command(resume={"decisions": decisions}),
         config=config,
         context=ConciergeContext(profile_id=str(profile_id)),
     )
@@ -322,23 +388,13 @@ async def stream_save_resolution(
     interrupt = state.interrupts[0]
     if interrupt.id != payload.interrupt_id:
         raise HTTPException(status_code=409, detail="Save approval is stale")
-    action_requests = interrupt.value.get("action_requests", [])
-    if len(action_requests) != 1 or action_requests[0].get("name") != "save_event":
-        raise HTTPException(status_code=409, detail="Pending action is not a save")
-
-    if payload.decision == "approve":
-        decision: dict[str, str] = {"type": "approve"}
-    else:
-        decision = {
-            "type": "reject",
-            "message": payload.reason or "The user rejected saving this Event.",
-        }
+    decisions = _resume_decisions(interrupt, payload)
     return _streaming_response(
         _stream_turn(
             agent=agent,
             conversation_id=conversation_id,
             config=config,
             context=ConciergeContext(profile_id=str(profile_id)),
-            input_value=Command(resume={"decisions": [decision]}),
+            input_value=Command(resume={"decisions": decisions}),
         )
     )

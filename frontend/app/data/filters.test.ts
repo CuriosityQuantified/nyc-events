@@ -55,6 +55,12 @@ const events: ParkEvent[] = [
 ];
 
 describe("filter URL state", () => {
+  it("keeps exact dates empty when the URL does not explicitly provide them", () => {
+    expect(parseFilterSearchParams(new URLSearchParams())).toEqual(
+      EMPTY_FILTERS,
+    );
+  });
+
   it("parses one canonical value per filter and rejects unsupported values", () => {
     const parsed = parseFilterSearchParams(
       new URLSearchParams(
@@ -67,6 +73,8 @@ describe("filter URL state", () => {
       category: "Nature",
       date: "today",
       registration: "required",
+      query: "",
+      freeOnly: false,
       dateFrom: null,
       dateTo: null,
     });
@@ -80,13 +88,15 @@ describe("filter URL state", () => {
         category: "Best for Kids",
         date: "weekend",
         registration: "not_listed",
+        query: "forest park",
+        freeOnly: true,
         dateFrom: null,
         dateTo: null,
       },
     );
 
     expect(params.toString()).toBe(
-      "view=map&borough=Queens&category=Best+for+Kids&date=weekend&registration=not_listed",
+      "view=map&borough=Queens&category=Best+for+Kids&date=weekend&registration=not_listed&query=forest+park&free=true",
     );
     expect(writeFilterSearchParams(params, EMPTY_FILTERS).toString()).toBe(
       "view=map",
@@ -103,6 +113,8 @@ describe("event filtering", () => {
         category: "Best for Kids",
         date: "today",
         registration: "required",
+        query: "",
+        freeOnly: false,
         dateFrom: null,
         dateTo: null,
       },
@@ -143,6 +155,8 @@ describe("event filtering", () => {
         category: "Nature",
         date: "weekend",
         registration: "required",
+        query: "",
+        freeOnly: false,
         dateFrom: null,
         dateTo: null,
       }),
@@ -152,6 +166,23 @@ describe("event filtering", () => {
       "Date: This weekend",
       "Registration: Required",
     ]);
+  });
+
+  it("filters a free, searchable view across event and park details", () => {
+    expect(
+      applyEventFilters(events, {
+        ...EMPTY_FILTERS,
+        query: "riverside manhattan",
+        freeOnly: true,
+      }).map((event) => event.guid),
+    ).toEqual(["manhattan-fitness"]);
+
+    expect(
+      applyEventFilters(events, {
+        ...EMPTY_FILTERS,
+        freeOnly: true,
+      }).map((event) => event.guid),
+    ).toEqual(["queens-nature", "manhattan-fitness"]);
   });
 });
 

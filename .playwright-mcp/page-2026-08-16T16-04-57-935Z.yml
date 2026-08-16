@@ -1,0 +1,423 @@
+- generic [active] [ref=f1e1]:
+  - generic [ref=f1e2]:
+    - link "Skip to event results" [ref=f1e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - complementary "Desktop navigation" [ref=f1e4]:
+      - generic [ref=f1e5]:
+        - generic [ref=f1e6]: PM
+        - generic [ref=f1e7]: ParkMatch
+      - navigation "Sidebar navigation" [ref=f1e8]:
+        - list [ref=f1e9]:
+          - listitem [ref=f1e10]:
+            - button "Explore" [ref=f1e11] [cursor=pointer]:
+              - generic [ref=f1e12]: 🔍
+          - listitem [ref=f1e14]:
+            - button "Saved Events" [ref=f1e15] [cursor=pointer]:
+              - generic [ref=f1e16]: ♥
+          - listitem [ref=f1e18]:
+            - button "Concierge" [disabled] [ref=f1e19] [cursor=pointer]:
+              - generic [ref=f1e20]: 💬
+          - listitem [ref=f1e22]:
+            - button "Profile" [disabled] [ref=f1e23] [cursor=pointer]:
+              - generic [ref=f1e24]: 👤
+    - generic [ref=f1e26]:
+      - banner [ref=f1e27]:
+        - generic [ref=f1e28]:
+          - generic [ref=f1e29]: EM
+          - heading "EventMatch NYC" [level=1] [ref=f1e30]
+        - generic [ref=f1e31]:
+          - generic [ref=f1e32]: Select borough
+          - combobox "Select borough" [ref=f1e33] [cursor=pointer]:
+            - option "All Boroughs" [selected]
+            - option "Manhattan"
+            - option "Brooklyn"
+            - option "Queens"
+            - option "Bronx"
+            - option "Staten Island"
+      - status "Data freshness" [ref=f1e34]:
+        - generic [ref=f1e35]: ✓
+        - generic [ref=f1e36]:
+          - strong [ref=f1e37]: Official data updated Aug 16, 2026, 12:00 PM
+          - generic [ref=f1e38]: Upcoming events currently present in NYC Parks’ rolling 14-day feed
+      - main [ref=f1e39]:
+        - searchbox "Search parks and events" [ref=f1e41]
+        - generic [ref=f1e42]:
+          - region [ref=f1e43]:
+            - heading "Filters" [level=2] [ref=f1e45]
+            - generic [ref=f1e46]:
+              - group "Borough" [ref=f1e47]:
+                - list [ref=f1e49]:
+                  - listitem [ref=f1e50]:
+                    - 'button "Add Borough: Manhattan" [ref=f1e51] [cursor=pointer]': Manhattan
+                  - listitem [ref=f1e52]:
+                    - 'button "Add Borough: Brooklyn" [ref=f1e53] [cursor=pointer]': Brooklyn
+                  - listitem [ref=f1e54]:
+                    - 'button "Add Borough: Queens" [ref=f1e55] [cursor=pointer]': Queens
+                  - listitem [ref=f1e56]:
+                    - 'button "Add Borough: Bronx" [ref=f1e57] [cursor=pointer]': Bronx
+                  - listitem [ref=f1e58]:
+                    - 'button "Add Borough: Staten Island" [ref=f1e59] [cursor=pointer]': Staten Island
+              - group "Category" [ref=f1e60]:
+                - list [ref=f1e62]:
+                  - listitem [ref=f1e63]:
+                    - 'button "Add Category: Fitness" [ref=f1e64] [cursor=pointer]': Fitness
+                  - listitem [ref=f1e65]:
+                    - 'button "Add Category: Nature" [ref=f1e66] [cursor=pointer]': Nature
+                  - listitem [ref=f1e67]:
+                    - 'button "Add Category: Family" [ref=f1e68] [cursor=pointer]': Family
+                  - listitem [ref=f1e69]:
+                    - 'button "Add Category: Sports" [ref=f1e70] [cursor=pointer]': Sports
+                  - listitem [ref=f1e71]:
+                    - 'button "Add Category: Music" [ref=f1e72] [cursor=pointer]': Music
+                  - listitem [ref=f1e73]:
+                    - 'button "Add Category: Theater" [ref=f1e74] [cursor=pointer]': Theater
+                  - listitem [ref=f1e75]:
+                    - 'button "Add Category: Art" [ref=f1e76] [cursor=pointer]': Art
+              - group "Date range" [ref=f1e77]:
+                - list [ref=f1e79]:
+                  - listitem [ref=f1e80]:
+                    - 'button "Add Date range: Today" [ref=f1e81] [cursor=pointer]': Today
+                  - listitem [ref=f1e82]:
+                    - 'button "Add Date range: Tomorrow" [ref=f1e83] [cursor=pointer]': Tomorrow
+                  - listitem [ref=f1e84]:
+                    - 'button "Add Date range: This weekend" [ref=f1e85] [cursor=pointer]': This weekend
+                  - listitem [ref=f1e86]:
+                    - 'button "Add Date range: Next 14 days" [ref=f1e87] [cursor=pointer]': Next 14 days
+              - group "Registration" [ref=f1e88]:
+                - list [ref=f1e90]:
+                  - listitem [ref=f1e91]:
+                    - 'button "Add Registration: Required" [ref=f1e92] [cursor=pointer]': Required
+                  - listitem [ref=f1e93]:
+                    - 'button "Add Registration: Not required" [ref=f1e94] [cursor=pointer]': Not required
+                  - listitem [ref=f1e95]:
+                    - 'button "Add Registration: Closed" [ref=f1e96] [cursor=pointer]': Closed
+                  - listitem [ref=f1e97]:
+                    - 'button "Add Registration: Not listed" [ref=f1e98] [cursor=pointer]': Not listed
+          - region "Filtered events" [ref=f1e99]:
+            - generic [ref=f1e100]:
+              - generic [ref=f1e101]:
+                - heading "Events" [level=2] [ref=f1e102]
+                - paragraph [ref=f1e111]: 1831 events match
+              - group "View mode" [ref=f1e103]:
+                - generic [ref=f1e104]:
+                  - button "List" [pressed] [ref=f1e105] [cursor=pointer]
+                  - button "Map" [ref=f1e106] [cursor=pointer]
+            - status [ref=f1e112]: Showing 12 of 1831 matching events
+            - region "Event listings" [ref=f1e113]:
+              - article [ref=f1e114]:
+                - generic [ref=f1e115]:
+                  - generic [ref=f1e116]:
+                    - generic [ref=f1e117]: Cost not listed
+                    - generic [ref=f1e118]:
+                      - button "Remove Bring a Friend Friday at Ocean Breeze Athletic Complex from Saved" [pressed] [ref=f1e119] [cursor=pointer]:
+                        - generic [ref=f1e120]: ♥
+                      - generic [ref=f1e121]: Saved
+                  - paragraph [ref=f1e122]: Fitness
+                  - heading "Bring a Friend Friday at Ocean Breeze Athletic Complex" [level=2] [ref=f1e123]
+                  - generic [ref=f1e124]:
+                    - paragraph [ref=f1e125]:
+                      - generic [ref=f1e126]: 📍
+                      - generic [ref=f1e127]: "Venue or park: Ocean Breeze Track & Field Athletic Complex (in Ocean Breeze Park)"
+                    - paragraph [ref=f1e128]: "Neighborhood: Not listed"
+                    - paragraph [ref=f1e129]: "Borough: Staten Island"
+                    - paragraph [ref=f1e130]: "Address: Not listed"
+                    - paragraph [ref=f1e131]:
+                      - generic [ref=f1e132]: 🕐
+                      - generic [ref=f1e133]: Aug 16, 2026 · 6:30 AM
+                    - paragraph [ref=f1e134]: Registration not listed
+                    - paragraph [ref=f1e135]: Accessibility information not listed
+                - generic [ref=f1e136]:
+                  - link "View details for Bring a Friend Friday at Ocean Breeze Athletic Complex" [ref=f1e137] [cursor=pointer]:
+                    - /url: /events/2173984
+                    - text: View event details
+                  - link "Official event details (opens in a new tab)" [ref=f1e138] [cursor=pointer]:
+                    - /url: http://www.nycgovparks.org/events/2026/08/28/bring-a-friend-friday-at-ocean-breeze-athletic-complex
+              - article [ref=f1e139]:
+                - generic [ref=f1e140]:
+                  - generic [ref=f1e141]:
+                    - generic [ref=f1e142]: Cost not listed
+                    - button "Save Sunrise Tai Chi" [ref=f1e144] [cursor=pointer]:
+                      - generic [ref=f1e145]: ♡
+                  - paragraph [ref=f1e146]: Fitness
+                  - heading "Sunrise Tai Chi" [level=2] [ref=f1e147]
+                  - generic [ref=f1e148]:
+                    - paragraph [ref=f1e149]:
+                      - generic [ref=f1e150]: 📍
+                      - generic [ref=f1e151]: "Venue or park: Linden Terrace (in Fort Tryon Park)"
+                    - paragraph [ref=f1e152]: "Neighborhood: Not listed"
+                    - paragraph [ref=f1e153]: "Borough: Manhattan"
+                    - paragraph [ref=f1e154]: "Address: Not listed"
+                    - paragraph [ref=f1e155]:
+                      - generic [ref=f1e156]: 🕐
+                      - generic [ref=f1e157]: Aug 16, 2026 · 6:30 AM
+                    - paragraph [ref=f1e158]: Registration required
+                    - paragraph [ref=f1e159]: Accessibility information not listed
+                - generic [ref=f1e160]:
+                  - link "View details for Sunrise Tai Chi" [ref=f1e161] [cursor=pointer]:
+                    - /url: /events/2218005
+                    - text: View event details
+                  - link "Official event details (opens in a new tab)" [ref=f1e162] [cursor=pointer]:
+                    - /url: http://www.nycgovparks.org/events/2026/08/19/sunrise-tai-chi
+              - article [ref=f1e163]:
+                - generic [ref=f1e164]:
+                  - generic [ref=f1e165]:
+                    - generic [ref=f1e166]: Cost not listed
+                    - button "Save Sunrise Tai Chi" [ref=f1e168] [cursor=pointer]:
+                      - generic [ref=f1e169]: ♡
+                  - paragraph [ref=f1e170]: Fitness
+                  - heading "Sunrise Tai Chi" [level=2] [ref=f1e171]
+                  - generic [ref=f1e172]:
+                    - paragraph [ref=f1e173]:
+                      - generic [ref=f1e174]: 📍
+                      - generic [ref=f1e175]: "Venue or park: Linden Terrace (in Fort Tryon Park)"
+                    - paragraph [ref=f1e176]: "Neighborhood: Not listed"
+                    - paragraph [ref=f1e177]: "Borough: Manhattan"
+                    - paragraph [ref=f1e178]: "Address: Not listed"
+                    - paragraph [ref=f1e179]:
+                      - generic [ref=f1e180]: 🕐
+                      - generic [ref=f1e181]: Aug 16, 2026 · 6:30 AM
+                    - paragraph [ref=f1e182]: Registration required
+                    - paragraph [ref=f1e183]: Accessibility information not listed
+                - generic [ref=f1e184]:
+                  - link "View details for Sunrise Tai Chi" [ref=f1e185] [cursor=pointer]:
+                    - /url: /events/2218006
+                    - text: View event details
+                  - link "Official event details (opens in a new tab)" [ref=f1e186] [cursor=pointer]:
+                    - /url: http://www.nycgovparks.org/events/2026/08/26/sunrise-tai-chi
+              - article [ref=f1e187]:
+                - generic [ref=f1e188]:
+                  - generic [ref=f1e189]:
+                    - generic [ref=f1e190]: Cost not listed
+                    - 'button "Save Summer Sports Experience: Pickleball" [ref=f1e192] [cursor=pointer]':
+                      - generic [ref=f1e193]: ♡
+                  - paragraph [ref=f1e194]: Best for Kids
+                  - 'heading "Summer Sports Experience: Pickleball" [level=2] [ref=f1e195]'
+                  - generic [ref=f1e196]:
+                    - paragraph [ref=f1e197]:
+                      - generic [ref=f1e198]: 📍
+                      - generic [ref=f1e199]: "Venue or park: Greenbelt Recreation Center (in Blood Root Valley)"
+                    - paragraph [ref=f1e200]: "Neighborhood: Not listed"
+                    - paragraph [ref=f1e201]: "Borough: Staten Island"
+                    - paragraph [ref=f1e202]: "Address: Not listed"
+                    - paragraph [ref=f1e203]:
+                      - generic [ref=f1e204]: 🕐
+                      - generic [ref=f1e205]: Aug 16, 2026 · 7:00 AM
+                    - paragraph [ref=f1e206]: Registration is closed.
+                    - paragraph [ref=f1e207]: Accessibility information not listed
+                - generic [ref=f1e208]:
+                  - 'link "View details for Summer Sports Experience: Pickleball" [ref=f1e209] [cursor=pointer]':
+                    - /url: /events/2181180
+                    - text: View event details
+                  - link "Official event details (opens in a new tab)" [ref=f1e210] [cursor=pointer]:
+                    - /url: http://www.nycgovparks.org/events/2026/08/27/summer-sports-experience-pickleball
+              - article [ref=f1e211]:
+                - generic [ref=f1e212]:
+                  - generic [ref=f1e213]:
+                    - generic [ref=f1e214]: Cost not listed
+                    - 'button "Save Summer Sports Experience: Pickleball" [ref=f1e216] [cursor=pointer]':
+                      - generic [ref=f1e217]: ♡
+                  - paragraph [ref=f1e218]: Best for Kids
+                  - 'heading "Summer Sports Experience: Pickleball" [level=2] [ref=f1e219]'
+                  - generic [ref=f1e220]:
+                    - paragraph [ref=f1e221]:
+                      - generic [ref=f1e222]: 📍
+                      - generic [ref=f1e223]: "Venue or park: Greenbelt Recreation Center (in Blood Root Valley)"
+                    - paragraph [ref=f1e224]: "Neighborhood: Not listed"
+                    - paragraph [ref=f1e225]: "Borough: Staten Island"
+                    - paragraph [ref=f1e226]: "Address: Not listed"
+                    - paragraph [ref=f1e227]:
+                      - generic [ref=f1e228]: 🕐
+                      - generic [ref=f1e229]: Aug 16, 2026 · 7:00 AM
+                    - paragraph [ref=f1e230]: Registration is closed.
+                    - paragraph [ref=f1e231]: Accessibility information not listed
+                - generic [ref=f1e232]:
+                  - 'link "View details for Summer Sports Experience: Pickleball" [ref=f1e233] [cursor=pointer]':
+                    - /url: /events/2181215
+                    - text: View event details
+                  - link "Official event details (opens in a new tab)" [ref=f1e234] [cursor=pointer]:
+                    - /url: http://www.nycgovparks.org/events/2026/08/25/summer-sports-experience-pickleball
+              - article [ref=f1e235]:
+                - generic [ref=f1e236]:
+                  - generic [ref=f1e237]:
+                    - generic [ref=f1e238]: Cost not listed
+                    - 'button "Save Summer Sports Experience: Pickleball" [ref=f1e240] [cursor=pointer]':
+                      - generic [ref=f1e241]: ♡
+                  - paragraph [ref=f1e242]: Best for Kids
+                  - 'heading "Summer Sports Experience: Pickleball" [level=2] [ref=f1e243]'
+                  - generic [ref=f1e244]:
+                    - paragraph [ref=f1e245]:
+                      - generic [ref=f1e246]: 📍
+                      - generic [ref=f1e247]: "Venue or park: Greenbelt Recreation Center (in Blood Root Valley)"
+                    - paragraph [ref=f1e248]: "Neighborhood: Not listed"
+                    - paragraph [ref=f1e249]: "Borough: Staten Island"
+                    - paragraph [ref=f1e250]: "Address: Not listed"
+                    - paragraph [ref=f1e251]:
+                      - generic [ref=f1e252]: 🕐
+                      - generic [ref=f1e253]: Aug 16, 2026 · 7:00 AM
+                    - paragraph [ref=f1e254]: Registration is closed.
+                    - paragraph [ref=f1e255]: Accessibility information not listed
+                - generic [ref=f1e256]:
+                  - 'link "View details for Summer Sports Experience: Pickleball" [ref=f1e257] [cursor=pointer]':
+                    - /url: /events/2181361
+                    - text: View event details
+                  - link "Official event details (opens in a new tab)" [ref=f1e258] [cursor=pointer]:
+                    - /url: http://www.nycgovparks.org/events/2026/08/18/summer-sports-experience-pickleball
+              - article [ref=f1e259]:
+                - generic [ref=f1e260]:
+                  - generic [ref=f1e261]:
+                    - generic [ref=f1e262]: Cost not listed
+                    - 'button "Save Summer Sports Experience: Pickleball" [ref=f1e264] [cursor=pointer]':
+                      - generic [ref=f1e265]: ♡
+                  - paragraph [ref=f1e266]: Best for Kids
+                  - 'heading "Summer Sports Experience: Pickleball" [level=2] [ref=f1e267]'
+                  - generic [ref=f1e268]:
+                    - paragraph [ref=f1e269]:
+                      - generic [ref=f1e270]: 📍
+                      - generic [ref=f1e271]: "Venue or park: Greenbelt Recreation Center (in Blood Root Valley)"
+                    - paragraph [ref=f1e272]: "Neighborhood: Not listed"
+                    - paragraph [ref=f1e273]: "Borough: Staten Island"
+                    - paragraph [ref=f1e274]: "Address: Not listed"
+                    - paragraph [ref=f1e275]:
+                      - generic [ref=f1e276]: 🕐
+                      - generic [ref=f1e277]: Aug 16, 2026 · 7:00 AM
+                    - paragraph [ref=f1e278]: Registration is closed.
+                    - paragraph [ref=f1e279]: Accessibility information not listed
+                - generic [ref=f1e280]:
+                  - 'link "View details for Summer Sports Experience: Pickleball" [ref=f1e281] [cursor=pointer]':
+                    - /url: /events/2181395
+                    - text: View event details
+                  - link "Official event details (opens in a new tab)" [ref=f1e282] [cursor=pointer]:
+                    - /url: http://www.nycgovparks.org/events/2026/08/21/summer-sports-experience-pickleball1
+              - article [ref=f1e283]:
+                - generic [ref=f1e284]:
+                  - generic [ref=f1e285]:
+                    - generic [ref=f1e286]: Cost not listed
+                    - 'button "Save Summer Sports Experience: Pickleball" [ref=f1e288] [cursor=pointer]':
+                      - generic [ref=f1e289]: ♡
+                  - paragraph [ref=f1e290]: Best for Kids
+                  - 'heading "Summer Sports Experience: Pickleball" [level=2] [ref=f1e291]'
+                  - generic [ref=f1e292]:
+                    - paragraph [ref=f1e293]:
+                      - generic [ref=f1e294]: 📍
+                      - generic [ref=f1e295]: "Venue or park: Greenbelt Recreation Center (in Blood Root Valley)"
+                    - paragraph [ref=f1e296]: "Neighborhood: Not listed"
+                    - paragraph [ref=f1e297]: "Borough: Staten Island"
+                    - paragraph [ref=f1e298]: "Address: Not listed"
+                    - paragraph [ref=f1e299]:
+                      - generic [ref=f1e300]: 🕐
+                      - generic [ref=f1e301]: Aug 16, 2026 · 7:00 AM
+                    - paragraph [ref=f1e302]: Registration is closed.
+                    - paragraph [ref=f1e303]: Accessibility information not listed
+                - generic [ref=f1e304]:
+                  - 'link "View details for Summer Sports Experience: Pickleball" [ref=f1e305] [cursor=pointer]':
+                    - /url: /events/2181401
+                    - text: View event details
+                  - link "Official event details (opens in a new tab)" [ref=f1e306] [cursor=pointer]:
+                    - /url: http://www.nycgovparks.org/events/2026/08/28/summer-sports-experience-pickleball1
+              - article [ref=f1e307]:
+                - generic [ref=f1e308]:
+                  - generic [ref=f1e309]:
+                    - generic [ref=f1e310]: Cost not listed
+                    - 'button "Save Summer Sports Experience: Pickleball" [ref=f1e312] [cursor=pointer]':
+                      - generic [ref=f1e313]: ♡
+                  - paragraph [ref=f1e314]: Best for Kids
+                  - 'heading "Summer Sports Experience: Pickleball" [level=2] [ref=f1e315]'
+                  - generic [ref=f1e316]:
+                    - paragraph [ref=f1e317]:
+                      - generic [ref=f1e318]: 📍
+                      - generic [ref=f1e319]: "Venue or park: Greenbelt Recreation Center (in Blood Root Valley)"
+                    - paragraph [ref=f1e320]: "Neighborhood: Not listed"
+                    - paragraph [ref=f1e321]: "Borough: Staten Island"
+                    - paragraph [ref=f1e322]: "Address: Not listed"
+                    - paragraph [ref=f1e323]:
+                      - generic [ref=f1e324]: 🕐
+                      - generic [ref=f1e325]: Aug 16, 2026 · 7:00 AM
+                    - paragraph [ref=f1e326]: Registration is closed.
+                    - paragraph [ref=f1e327]: Accessibility information not listed
+                - generic [ref=f1e328]:
+                  - 'link "View details for Summer Sports Experience: Pickleball" [ref=f1e329] [cursor=pointer]':
+                    - /url: /events/2181583
+                    - text: View event details
+                  - link "Official event details (opens in a new tab)" [ref=f1e330] [cursor=pointer]:
+                    - /url: http://www.nycgovparks.org/events/2026/08/20/summer-sports-experience-pickleball1
+              - article [ref=f1e331]:
+                - generic [ref=f1e332]:
+                  - generic [ref=f1e333]:
+                    - generic [ref=f1e334]: Cost not listed
+                    - 'button "Save Summer Sports Experience: Pickleball" [ref=f1e336] [cursor=pointer]':
+                      - generic [ref=f1e337]: ♡
+                  - paragraph [ref=f1e338]: Best for Kids
+                  - 'heading "Summer Sports Experience: Pickleball" [level=2] [ref=f1e339]'
+                  - generic [ref=f1e340]:
+                    - paragraph [ref=f1e341]:
+                      - generic [ref=f1e342]: 📍
+                      - generic [ref=f1e343]: "Venue or park: Greenbelt Recreation Center (in Blood Root Valley)"
+                    - paragraph [ref=f1e344]: "Neighborhood: Not listed"
+                    - paragraph [ref=f1e345]: "Borough: Staten Island"
+                    - paragraph [ref=f1e346]: "Address: Not listed"
+                    - paragraph [ref=f1e347]:
+                      - generic [ref=f1e348]: 🕐
+                      - generic [ref=f1e349]: Aug 16, 2026 · 7:00 AM
+                    - paragraph [ref=f1e350]: Registration is closed.
+                    - paragraph [ref=f1e351]: Accessibility information not listed
+                - generic [ref=f1e352]:
+                  - 'link "View details for Summer Sports Experience: Pickleball" [ref=f1e353] [cursor=pointer]':
+                    - /url: /events/2181600
+                    - text: View event details
+                  - link "Official event details (opens in a new tab)" [ref=f1e354] [cursor=pointer]:
+                    - /url: http://www.nycgovparks.org/events/2026/08/19/summer-sports-experience-pickleball1
+              - article [ref=f1e355]:
+                - generic [ref=f1e356]:
+                  - generic [ref=f1e357]:
+                    - generic [ref=f1e358]: Cost not listed
+                    - 'button "Save Summer Sports Experience: Pickleball" [ref=f1e360] [cursor=pointer]':
+                      - generic [ref=f1e361]: ♡
+                  - paragraph [ref=f1e362]: Best for Kids
+                  - 'heading "Summer Sports Experience: Pickleball" [level=2] [ref=f1e363]'
+                  - generic [ref=f1e364]:
+                    - paragraph [ref=f1e365]:
+                      - generic [ref=f1e366]: 📍
+                      - generic [ref=f1e367]: "Venue or park: Greenbelt Recreation Center (in Blood Root Valley)"
+                    - paragraph [ref=f1e368]: "Neighborhood: Not listed"
+                    - paragraph [ref=f1e369]: "Borough: Staten Island"
+                    - paragraph [ref=f1e370]: "Address: Not listed"
+                    - paragraph [ref=f1e371]:
+                      - generic [ref=f1e372]: 🕐
+                      - generic [ref=f1e373]: Aug 16, 2026 · 7:00 AM
+                    - paragraph [ref=f1e374]: Registration is closed.
+                    - paragraph [ref=f1e375]: Accessibility information not listed
+                - generic [ref=f1e376]:
+                  - 'link "View details for Summer Sports Experience: Pickleball" [ref=f1e377] [cursor=pointer]':
+                    - /url: /events/2181616
+                    - text: View event details
+                  - link "Official event details (opens in a new tab)" [ref=f1e378] [cursor=pointer]:
+                    - /url: http://www.nycgovparks.org/events/2026/08/26/summer-sports-experience-pickleball
+              - article [ref=f1e379]:
+                - generic [ref=f1e380]:
+                  - generic [ref=f1e381]:
+                    - generic [ref=f1e382]: Cost not listed
+                    - 'button "Save Hamilton Fish Pool: Lap Swim" [ref=f1e384] [cursor=pointer]':
+                      - generic [ref=f1e385]: ♡
+                  - paragraph [ref=f1e386]: Fitness
+                  - 'heading "Hamilton Fish Pool: Lap Swim" [level=2] [ref=f1e387]'
+                  - generic [ref=f1e388]:
+                    - paragraph [ref=f1e389]:
+                      - generic [ref=f1e390]: 📍
+                      - generic [ref=f1e391]: "Venue or park: Main Pool (in Hamilton Fish Park)"
+                    - paragraph [ref=f1e392]: "Neighborhood: Not listed"
+                    - paragraph [ref=f1e393]: "Borough: Manhattan"
+                    - paragraph [ref=f1e394]: "Address: Not listed"
+                    - paragraph [ref=f1e395]:
+                      - generic [ref=f1e396]: 🕐
+                      - generic [ref=f1e397]: Aug 16, 2026 · 7:00 AM
+                    - paragraph [ref=f1e398]: Registration has begun and ends on 8/28/2026.
+                    - paragraph [ref=f1e399]: Accessibility information not listed
+                - generic [ref=f1e400]:
+                  - 'link "View details for Hamilton Fish Pool: Lap Swim" [ref=f1e401] [cursor=pointer]':
+                    - /url: /events/2203306
+                    - text: View event details
+                  - link "Official event details (opens in a new tab)" [ref=f1e402] [cursor=pointer]:
+                    - /url: http://www.nycgovparks.org/events/2026/08/21/hamilton-fish-pool-lap-swim1
+            - button "Load More Events" [ref=f1e403] [cursor=pointer]
+            - paragraph [ref=f1e404]
+  - alert [ref=f1e110]

@@ -251,7 +251,10 @@ export default function EventExplorer({ initialFilters }: EventExplorerProps) {
           tabIndex={-1}
           aria-busy={state === "loading" || loadingMore}
         >
-          <SearchBar />
+          <SearchBar
+            query={filters.query}
+            onChange={(query) => changeFilters({ ...filters, query })}
+          />
           <div className={styles.explorerWorkspace}>
             {/* One grid child: the desktop workspace grid is sized for
                 exactly [filters column | results column]. */}

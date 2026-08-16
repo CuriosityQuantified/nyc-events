@@ -2,14 +2,7 @@
 
 import "leaflet/dist/leaflet.css";
 import Link from "next/link";
-import {
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-  type KeyboardEvent,
-  type MouseEvent,
-} from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { LayerGroup, Map as LeafletMap } from "leaflet";
 import type { ParkEvent } from "@/app/data/events";
 import {
@@ -60,6 +53,13 @@ export default function EventMap({ events, returnQuery = "" }: EventMapProps) {
     groups.find((group) => group.key === selectedKey) ?? groups[0] ?? null;
   const status = groups.length === 0 ? "error" : mapReady ? "ready" : "loading";
 
+  function selectLocation(key: string) {
+    setSelectedKey(key);
+    queueMicrotask(() =>
+      detailPanel.current?.scrollIntoView({ block: "nearest" }),
+    );
+  }
+
   useEffect(() => {
     let disposed = false;
     (async () => {
@@ -68,8 +68,12 @@ export default function EventMap({ events, returnQuery = "" }: EventMapProps) {
       const map = leaflet.map(mapContainer.current, {
         center: NYC_CENTER,
         zoom: 11,
-        zoomControl: true,
+        zoomControl: false,
         scrollWheelZoom: true,
+        // Require a more intentional wheel or trackpad gesture than Leaflet's
+        // default. Buttons remain available for precise zooming.
+        wheelPxPerZoomLevel: 140,
+        wheelDebounceTime: 90,
         zoomAnimation: false,
         fadeAnimation: false,
         markerZoomAnimation: false,
@@ -115,9 +119,11 @@ export default function EventMap({ events, returnQuery = "" }: EventMapProps) {
         leaflet
           .marker([group.latitude, group.longitude], {
             icon,
-            interactive: false,
+            interactive: true,
             keyboard: false,
+            bubblingMouseEvents: false,
           })
+          .on("click", () => selectLocation(group.key))
           .addTo(layer);
       }
       layer.addTo(map);
@@ -136,26 +142,9 @@ export default function EventMap({ events, returnQuery = "" }: EventMapProps) {
     };
   }, [groups, mapReady]);
 
-  function selectFromMarker(target: EventTarget): boolean {
-    const button = (target as HTMLElement).closest?.(
-      '[data-testid="map-marker"]',
-    );
-    const key = button?.getAttribute("data-location-key");
-    if (!key) return false;
-    setSelectedKey(key);
-    queueMicrotask(() =>
-      detailPanel.current?.scrollIntoView({ block: "nearest" }),
-    );
-    return true;
-  }
-
-  function onCanvasClick(clickEvent: MouseEvent<HTMLDivElement>) {
-    selectFromMarker(clickEvent.target);
-  }
-
-  function onCanvasKeyDown(keyEvent: KeyboardEvent<HTMLDivElement>) {
-    if (keyEvent.key !== "Enter" && keyEvent.key !== " ") return;
-    if (selectFromMarker(keyEvent.target)) keyEvent.preventDefault();
+  function changeZoom(amount: 1 | -1) {
+    if (amount > 0) leafletMap.current?.zoomIn();
+    else leafletMap.current?.zoomOut();
   }
 
   function detailHref(event: ParkEvent): string {
@@ -186,9 +175,23 @@ export default function EventMap({ events, returnQuery = "" }: EventMapProps) {
           data-fit-bounds="true"
           role="group"
           aria-label="Street map of event locations. Select a marker for event links."
-          onClick={onCanvasClick}
-          onKeyDown={onCanvasKeyDown}
         />
+        <div className={styles.zoomControls} aria-label="Map zoom controls">
+          <button
+            type="button"
+            onClick={() => changeZoom(1)}
+            aria-label="Zoom in"
+          >
+            +
+          </button>
+          <button
+            type="button"
+            onClick={() => changeZoom(-1)}
+            aria-label="Zoom out"
+          >
+            −
+          </button>
+        </div>
         {status === "error" ? (
           <div className={styles.mapState} role="alert">
             <strong>No Locations To Map</strong>

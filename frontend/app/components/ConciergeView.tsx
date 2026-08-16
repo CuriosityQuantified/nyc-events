@@ -1,6 +1,8 @@
 "use client";
 
 import { FormEvent, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import BottomNav from "@/app/components/BottomNav";
 import DesktopSidebar from "@/app/components/DesktopSidebar";
 import Header from "@/app/components/Header";
@@ -8,6 +10,7 @@ import { useSaved } from "@/app/components/SavedProvider";
 import {
   type ConciergeApproval,
   type ConciergeResponse,
+  type ConciergeToolCall,
   streamConciergeMessage,
   streamConciergeSaveResolution,
 } from "@/app/data/concierge";
@@ -33,6 +36,7 @@ export default function ConciergeView() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [approval, setApproval] = useState<ConciergeApproval | null>(null);
+  const [toolCalls, setToolCalls] = useState<ConciergeToolCall[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -71,11 +75,22 @@ export default function ConciergeView() {
     setApproval(response.approval);
   };
 
+  const updateToolCall = (toolCall: ConciergeToolCall) => {
+    setToolCalls((current) => {
+      const existing = current.findIndex((item) => item.id === toolCall.id);
+      if (existing === -1) return [...current, toolCall];
+      return current.map((item, index) =>
+        index === existing ? { ...item, ...toolCall } : item,
+      );
+    });
+  };
+
   const send = async (prompt: string) => {
     const message = prompt.trim();
     if (!message || busy || approval) return;
     setBusy(true);
     setError(null);
+    setToolCalls([]);
     appendMessage("user", message);
     setInput("");
     let streamedMessageId: number | null = null;
@@ -88,6 +103,7 @@ export default function ConciergeView() {
           }
           appendAssistantToken(streamedMessageId, text);
         },
+        onTool: updateToolCall,
       });
       acceptResponse(response, streamedMessageId);
       if (!response.response && !response.approval) {
@@ -114,6 +130,7 @@ export default function ConciergeView() {
     if (!approval || !conversationId || busy) return;
     setBusy(true);
     setError(null);
+    setToolCalls([]);
     let streamedMessageId: number | null = null;
     try {
       const response = await streamConciergeSaveResolution(
@@ -128,6 +145,7 @@ export default function ConciergeView() {
             }
             appendAssistantToken(streamedMessageId, text);
           },
+          onTool: updateToolCall,
         },
       );
       if (!response.response && !response.approval) {
@@ -206,10 +224,40 @@ export default function ConciergeView() {
                     data-role={message.role}
                   >
                     <span>{message.role === "user" ? "You" : "Concierge"}</span>
-                    <p>{message.content}</p>
+                    {message.role === "user" ? (
+                      <p>{message.content}</p>
+                    ) : (
+                      <div className={styles.markdown}>
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {message.content}
+                        </ReactMarkdown>
+                      </div>
+                    )}
                   </article>
                 ))
               )}
+              {toolCalls.length > 0 ? (
+                <div className={styles.toolCalls} aria-label="Tool activity">
+                  {toolCalls.map((toolCall) => (
+                    <div
+                      key={toolCall.id}
+                      className={styles.toolCall}
+                      data-testid="concierge-tool-call"
+                      data-status={toolCall.status}
+                    >
+                      <span className={styles.toolCallLabel}>Tool</span>
+                      <span>{toolCall.name}</span>
+                      <span className={styles.toolCallStatus}>
+                        {toolCall.status === "started"
+                          ? "Running"
+                          : toolCall.status === "completed"
+                            ? "Completed"
+                            : "Could not complete"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
               {busy ? (
                 <p className={styles.thinking}>Concierge is thinking…</p>
               ) : null}
@@ -225,9 +273,26 @@ export default function ConciergeView() {
                   <span className={styles.approvalLabel}>
                     Approval required
                   </span>
-                  <h3 id="save-approval-title">Save this event?</h3>
-                  <p>{approval.description}</p>
-                  <code>{approval.eventId}</code>
+                  <h3 id="save-approval-title">
+                    {approval.events.length === 1
+                      ? "Save this event?"
+                      : `Save these ${approval.events.length} events?`}
+                  </h3>
+                  {approval.events.length === 1 ? (
+                    <>
+                      <p>{approval.description}</p>
+                      <code>{approval.eventId}</code>
+                    </>
+                  ) : (
+                    <ul className={styles.approvalEvents}>
+                      {approval.events.map((event) => (
+                        <li key={event.eventId}>
+                          <span>{event.description}</span>
+                          <code>{event.eventId}</code>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
                 <div className={styles.approvalActions}>
                   <button

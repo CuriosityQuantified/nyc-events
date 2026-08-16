@@ -1,0 +1,115 @@
+- generic [active] [ref=f5e1]:
+  - generic [ref=f5e2]:
+    - link "Skip to event results" [ref=f5e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - complementary "Desktop navigation" [ref=f5e4]:
+      - generic [ref=f5e5]:
+        - generic [ref=f5e6]: EM
+        - heading "EventMatch NYC" [level=1] [ref=f5e7]
+      - navigation "Sidebar navigation" [ref=f5e8]:
+        - list [ref=f5e9]:
+          - listitem [ref=f5e10]:
+            - button "Explore" [ref=f5e11] [cursor=pointer]:
+              - generic [ref=f5e12]: 🔍
+          - listitem [ref=f5e14]:
+            - button "Saved Events" [ref=f5e15] [cursor=pointer]:
+              - generic [ref=f5e16]: ♥
+          - listitem [ref=f5e18]:
+            - button "Concierge" [disabled] [ref=f5e19] [cursor=pointer]:
+              - generic [ref=f5e20]: 💬
+          - listitem [ref=f5e22]:
+            - button "Profile" [ref=f5e23] [cursor=pointer]:
+              - generic [ref=f5e24]: 👤
+    - generic [ref=f5e26]:
+      - banner [ref=f5e27]:
+        - generic [ref=f5e28]:
+          - generic [ref=f5e29]: Select borough
+          - combobox "Select borough" [ref=f5e30] [cursor=pointer]:
+            - option "All Boroughs" [selected]
+            - option "Manhattan"
+            - option "Brooklyn"
+            - option "Queens"
+            - option "Bronx"
+            - option "Staten Island"
+      - status "Data freshness" [ref=f5e31]:
+        - generic [ref=f5e32]: …
+        - generic [ref=f5e33]:
+          - strong [ref=f5e34]: Checking official data freshness…
+          - generic [ref=f5e35]: Upcoming events currently present in NYC Parks’ rolling 14-day feed
+      - main [ref=f5e36]:
+        - searchbox "Search parks and events" [ref=f5e38]
+        - generic [ref=f5e39]:
+          - generic [ref=f5e40]:
+            - region [ref=f5e41]:
+              - heading "Filters" [level=2] [ref=f5e43]
+              - generic [ref=f5e44]:
+                - group "Borough" [ref=f5e45]:
+                  - list [ref=f5e47]:
+                    - listitem [ref=f5e48]:
+                      - 'button "Add Borough: Manhattan" [ref=f5e49] [cursor=pointer]': Manhattan
+                    - listitem [ref=f5e50]:
+                      - 'button "Add Borough: Brooklyn" [ref=f5e51] [cursor=pointer]': Brooklyn
+                    - listitem [ref=f5e52]:
+                      - 'button "Add Borough: Queens" [ref=f5e53] [cursor=pointer]': Queens
+                    - listitem [ref=f5e54]:
+                      - 'button "Add Borough: Bronx" [ref=f5e55] [cursor=pointer]': Bronx
+                    - listitem [ref=f5e56]:
+                      - 'button "Add Borough: Staten Island" [ref=f5e57] [cursor=pointer]': Staten Island
+                - group "Category" [ref=f5e58]:
+                  - list [ref=f5e60]:
+                    - listitem [ref=f5e61]:
+                      - 'button "Add Category: Fitness" [ref=f5e62] [cursor=pointer]': Fitness
+                    - listitem [ref=f5e63]:
+                      - 'button "Add Category: Nature" [ref=f5e64] [cursor=pointer]': Nature
+                    - listitem [ref=f5e65]:
+                      - 'button "Add Category: Family" [ref=f5e66] [cursor=pointer]': Family
+                    - listitem [ref=f5e67]:
+                      - 'button "Add Category: Sports" [ref=f5e68] [cursor=pointer]': Sports
+                    - listitem [ref=f5e69]:
+                      - 'button "Add Category: Music" [ref=f5e70] [cursor=pointer]': Music
+                    - listitem [ref=f5e71]:
+                      - 'button "Add Category: Theater" [ref=f5e72] [cursor=pointer]': Theater
+                    - listitem [ref=f5e73]:
+                      - 'button "Add Category: Art" [ref=f5e74] [cursor=pointer]': Art
+                - group "Date range" [ref=f5e75]:
+                  - list [ref=f5e77]:
+                    - listitem [ref=f5e78]:
+                      - 'button "Add Date range: Today" [ref=f5e79] [cursor=pointer]': Today
+                    - listitem [ref=f5e80]:
+                      - 'button "Add Date range: Tomorrow" [ref=f5e81] [cursor=pointer]': Tomorrow
+                    - listitem [ref=f5e82]:
+                      - 'button "Add Date range: This weekend" [ref=f5e83] [cursor=pointer]': This weekend
+                    - listitem [ref=f5e84]:
+                      - 'button "Add Date range: Next 14 days" [ref=f5e85] [cursor=pointer]': Next 14 days
+                - group "Registration" [ref=f5e86]:
+                  - list [ref=f5e88]:
+                    - listitem [ref=f5e89]:
+                      - 'button "Add Registration: Required" [ref=f5e90] [cursor=pointer]': Required
+                    - listitem [ref=f5e91]:
+                      - 'button "Add Registration: Not required" [ref=f5e92] [cursor=pointer]': Not required
+                    - listitem [ref=f5e93]:
+                      - 'button "Add Registration: Closed" [ref=f5e94] [cursor=pointer]': Closed
+                    - listitem [ref=f5e95]:
+                      - 'button "Add Registration: Not listed" [ref=f5e96] [cursor=pointer]': Not listed
+                - group "Exact dates" [ref=f5e97]:
+                  - generic [ref=f5e99]:
+                    - generic [ref=f5e100]:
+                      - text: From
+                      - textbox "From" [ref=f5e101]
+                    - generic [ref=f5e102]:
+                      - text: To
+                      - textbox "To" [ref=f5e103]
+            - group "Follow these filters" [ref=f5e104]:
+              - generic [ref=f5e105]: Pick a borough, category, or registration filter, then follow it to build Interests.
+              - generic [ref=f5e106]: Followed filters become Interests — manage them in Profile.
+          - region "Filtered events" [ref=f5e107]:
+            - generic [ref=f5e108]:
+              - heading "Events" [level=2] [ref=f5e110]
+              - group "View mode" [ref=f5e111]:
+                - generic [ref=f5e112]:
+                  - button "List" [pressed] [ref=f5e113] [cursor=pointer]
+                  - button "Map" [ref=f5e114] [cursor=pointer]
+            - status [ref=f5e115]:
+              - heading "Loading Current Events…" [level=2] [ref=f5e116]
+              - paragraph [ref=f5e117]: Getting the latest NYC Parks event snapshot.
+  - alert [ref=f5e118]

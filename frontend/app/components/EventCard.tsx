@@ -84,14 +84,6 @@ export default function EventCard({ event, returnQuery = "" }: EventCardProps) {
         >
           View event details
         </Link>
-        {event.officialUrl ? (
-          <a href={event.officialUrl} rel="noreferrer" target="_blank">
-            Official event details{" "}
-            <span className={styles.newTabNotice}>(opens in a new tab)</span>
-          </a>
-        ) : (
-          <p className={styles.metaItem}>Official event link not listed</p>
-        )}
       </div>
     </article>
   );

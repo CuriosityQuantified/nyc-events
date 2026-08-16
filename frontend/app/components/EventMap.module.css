@@ -51,6 +51,39 @@
   box-shadow: var(--shadow-md);
 }
 
+.zoomControls {
+  position: absolute;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  z-index: 3;
+  display: grid;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+  box-shadow: var(--shadow-md);
+}
+
+.zoomControls button {
+  width: 44px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  color: var(--color-foreground);
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.zoomControls button + button {
+  border-top: 1px solid var(--color-border);
+}
+
+.zoomControls button:hover {
+  color: var(--color-accent);
+  background: var(--color-accent-subtle);
+}
+
 .mapSummary {
   top: var(--space-4);
   left: var(--space-4);
@@ -109,7 +142,7 @@
   border-radius: 50%;
   color: white;
   background: var(--color-accent);
-  box-shadow: 0 3px 10px oklch(0.2 0 0 / 0.28);
+  box-shadow: 0 4px 14px oklch(0.2 0 0 / 0.3);
   font-size: var(--text-xs);
   font-weight: 800;
   font-variant-numeric: tabular-nums;
@@ -126,6 +159,7 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   background: var(--color-surface-raised);
+  box-shadow: var(--shadow-sm);
 }
 
 .locationHeading {
@@ -241,6 +275,11 @@
     top: auto;
     right: var(--space-4);
     bottom: var(--space-4);
+  }
+
+  .zoomControls {
+    right: var(--space-3);
+    bottom: var(--space-3);
   }
 
   .locationHeading {
