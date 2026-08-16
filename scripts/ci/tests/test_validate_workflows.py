@@ -46,7 +46,11 @@ class WorkflowPolicyTests(unittest.TestCase):
 
     def test_unpinned_railway_cli_is_rejected(self) -> None:
         broken = copy.deepcopy(self.deploy)
-        install_step = broken["jobs"]["deploy-frontend"]["steps"][2]
+        install_step = next(
+            step
+            for step in broken["jobs"]["deploy-frontend"]["steps"]
+            if step.get("name") == "Install the checksum-pinned Railway CLI"
+        )
         install_step["run"] = install_step["run"].replace(
             "a66321d03f8970db2be727ca9b8861b6e55a788f81c5864ff367432b22a9d8e8",
             "",
@@ -90,10 +94,38 @@ class WorkflowPolicyTests(unittest.TestCase):
 
     def test_single_quoted_graphql_is_rejected(self) -> None:
         broken = copy.deepcopy(self.deploy)
-        step = broken["jobs"]["deploy-backend"]["steps"][11]
+        step = next(
+            step
+            for step in broken["jobs"]["deploy-backend"]["steps"]
+            if step.get("name") == "Roll back the backend drill marker to the verified main deployment"
+        )
         step["run"] += "\nrailway api 'mutation($id: String!) { deploymentRollback(id: $id) }'"
         errors = validate_workflows(self.ci, broken)
         self.assertTrue(any("single-quoted GraphQL" in error for error in errors))
+
+    def test_account_level_project_discovery_is_rejected(self) -> None:
+        broken = copy.deepcopy(self.deploy)
+        step = next(
+            step
+            for step in broken["jobs"]["deploy-backend"]["steps"]
+            if step.get("name") == "Discover the exact backend service and public origin"
+        )
+        step["run"] += "\nrailway list --json"
+        errors = validate_workflows(self.ci, broken)
+        self.assertTrue(any("account-level Railway discovery" in error for error in errors))
+
+    def test_failure_evidence_is_initialized_before_checkout(self) -> None:
+        for job_name in ("deploy-backend", "deploy-frontend"):
+            steps = self.deploy["jobs"][job_name]["steps"]
+            checkout = next(index for index, step in enumerate(steps) if "uses" in step)
+            initializers = [
+                index
+                for index, step in enumerate(steps)
+                if "Initialize deployment failure evidence" in step.get("name", "")
+                and "RUNNER_TEMP" in step.get("run", "")
+            ]
+            self.assertEqual(initializers, [0])
+            self.assertLess(initializers[0], checkout)
 
 
 if __name__ == "__main__":

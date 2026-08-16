@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -18,8 +19,9 @@ from scripts.deploy.railway_release import (  # noqa: E402
     exact_named,
     https_origin,
     parse_json_output,
+    main,
+    parser,
     public_deployment,
-    write_status_evidence,
 )
 
 
@@ -85,7 +87,6 @@ class RailwayReleaseTests(unittest.TestCase):
         ]
         args = Namespace(
             project_id="project-1",
-            project_name=None,
             service_name="backend",
             environment="production",
             origin="https://backend.example",
@@ -103,16 +104,57 @@ class RailwayReleaseTests(unittest.TestCase):
         self.assertEqual(commands[0][:4], ["railway", "service", "list", "--project"])
         self.assertEqual(commands[0][4], "project-1")
 
-    def test_failure_evidence_is_sanitized_and_parent_is_created(self) -> None:
+    def test_failed_discovery_writes_actionable_sanitized_evidence(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "nested" / "discover.json"
-            write_status_evidence(str(path), "failed", "CalledProcessError")
+            argv = [
+                "railway_release.py",
+                "discover",
+                "--project-id",
+                "project-1",
+                "--service-name",
+                "backend",
+                "--environment",
+                "production",
+                "--evidence-output",
+                str(path),
+            ]
+            error = subprocess.CalledProcessError(
+                1,
+                ["railway", "service", "list"],
+                stderr="Unauthorized: token secret-value",
+            )
+            with (
+                patch.object(sys, "argv", argv),
+                patch("scripts.deploy.railway_release.subprocess.run", side_effect=error),
+            ):
+                self.assertEqual(main(), 1)
             evidence = json.loads(path.read_text())
         self.assertEqual(
             evidence,
-            {"status": "failed", "errorType": "CalledProcessError"},
+            {
+                "status": "failed",
+                "errorType": "RailwayCommandError",
+                "operation": "service-list",
+                "returnCode": 1,
+                "diagnostic": "unauthorized",
+            },
         )
-        self.assertNotIn("token", json.dumps(evidence).lower())
+        self.assertNotIn("secret-value", json.dumps(evidence))
+
+    def test_name_based_account_discovery_is_not_supported(self) -> None:
+        with self.assertRaises(SystemExit):
+            parser().parse_args(
+                [
+                    "discover",
+                    "--project-name",
+                    "nyc-events",
+                    "--service-name",
+                    "backend",
+                    "--environment",
+                    "production",
+                ]
+            )
 
 
 if __name__ == "__main__":

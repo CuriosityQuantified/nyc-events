@@ -2,9 +2,6 @@
 .env.*
 !.env.example
 
-__pycache__/
-*.py[cod]
-
 # graphify: machine-local hook paths (re-create with `graphify claude install`)
 .claude/settings.local.json
 

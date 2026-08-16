@@ -17,6 +17,25 @@ from typing import Any
 TERMINAL_FAILURES = {"FAILED", "CRASHED", "REMOVED", "SKIPPED"}
 
 
+class RailwayCommandError(RuntimeError):
+    def __init__(self, operation: str, return_code: int, diagnostic: str) -> None:
+        self.operation = operation
+        self.return_code = return_code
+        self.diagnostic = diagnostic
+        super().__init__(f"Railway {operation} failed ({diagnostic}, exit {return_code})")
+
+
+def classify_cli_diagnostic(stderr: str | None) -> str:
+    message = (stderr or "").lower()
+    if "unauthorized" in message or "authentication" in message:
+        return "unauthorized"
+    if "forbidden" in message or "permission" in message or "access denied" in message:
+        return "forbidden"
+    if "not found" in message:
+        return "not-found"
+    return "command-failed"
+
+
 def parse_json_output(text: str) -> Any:
     try:
         return json.loads(text)
@@ -29,8 +48,15 @@ def parse_json_output(text: str) -> Any:
     raise ValueError("command produced no JSON")
 
 
-def run_json(command: list[str]) -> Any:
-    result = subprocess.run(command, check=True, capture_output=True, text=True)
+def run_json(command: list[str], operation: str = "railway-command") -> Any:
+    try:
+        result = subprocess.run(command, check=True, capture_output=True, text=True)
+    except subprocess.CalledProcessError as error:
+        raise RailwayCommandError(
+            operation,
+            error.returncode,
+            classify_cli_diagnostic(error.stderr),
+        ) from None
     return parse_json_output(result.stdout)
 
 
@@ -139,13 +165,21 @@ def write_outputs(path: str | None, values: dict[str, str]) -> None:
 def write_status_evidence(
     path: str | None,
     status: str,
-    error_type: str | None = None,
+    error: BaseException | None = None,
 ) -> None:
     if not path:
         return
-    evidence: dict[str, str] = {"status": status}
-    if error_type:
-        evidence["errorType"] = error_type
+    evidence: dict[str, Any] = {"status": status}
+    if error:
+        evidence["errorType"] = type(error).__name__
+    if isinstance(error, RailwayCommandError):
+        evidence.update(
+            {
+                "operation": error.operation,
+                "returnCode": error.return_code,
+                "diagnostic": error.diagnostic,
+            }
+        )
     output = Path(path)
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(evidence, indent=2) + "\n", encoding="utf-8")
@@ -153,12 +187,9 @@ def write_status_evidence(
 
 def discover(args: argparse.Namespace) -> int:
     write_status_evidence(args.evidence_output, "started")
-    if args.project_id:
-        project = {"id": args.project_id}
-    else:
-        project = exact_named(run_json(["railway", "list", "--json"]), args.project_name, "project")
     services = run_json(
-        ["railway", "service", "list", "--project", project["id"], "--environment", args.environment, "--json"]
+        ["railway", "service", "list", "--project", args.project_id, "--environment", args.environment, "--json"],
+        "service-list",
     )
     service = exact_named(services, args.service_name, "service")
     domains = domain_names(
@@ -168,24 +199,25 @@ def discover(args: argparse.Namespace) -> int:
                 "domain",
                 "list",
                 "--project",
-                project["id"],
+                args.project_id,
                 "--environment",
                 args.environment,
                 "--service",
                 service["id"],
                 "--json",
-            ]
+            ],
+            "domain-list",
         )
     )
     origin = choose_origin(domains, args.origin or None)
     write_outputs(
         args.github_output,
-        {"project_id": project["id"], "service_id": service["id"], "origin": origin},
+        {"project_id": args.project_id, "service_id": service["id"], "origin": origin},
     )
     write_outputs(
         args.github_env,
         {
-            "RAILWAY_PROJECT_ID": project["id"],
+            "RAILWAY_PROJECT_ID": args.project_id,
             "RAILWAY_SERVICE_ID": service["id"],
             "PUBLIC_ORIGIN": origin,
         },
@@ -296,9 +328,7 @@ def parser() -> argparse.ArgumentParser:
     commands = root.add_subparsers(dest="command", required=True)
 
     discover_parser = commands.add_parser("discover")
-    project = discover_parser.add_mutually_exclusive_group(required=True)
-    project.add_argument("--project-id")
-    project.add_argument("--project-name")
+    discover_parser.add_argument("--project-id", required=True)
     discover_parser.add_argument("--service-name", required=True)
     discover_parser.add_argument("--environment", required=True)
     discover_parser.add_argument("--origin", default="")
@@ -346,7 +376,7 @@ def main() -> int:
         write_status_evidence(
             getattr(args, "evidence_output", None),
             "failed",
-            type(error).__name__,
+            error,
         )
         print(f"ERROR: {error}", file=sys.stderr)
         return 1
