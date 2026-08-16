@@ -46,6 +46,11 @@ describe("ConciergeView", () => {
     streamConciergeMessage.mockImplementation(
       async (_message, _conversationId, handlers) => {
         handlers.onConversation(conversationId);
+        handlers.onTool?.({
+          id: "search-1",
+          name: "search_current_events",
+          status: "started",
+        });
         handlers.onToken("I found two ");
         handlers.onToken("current Queens events.");
         return {
@@ -66,6 +71,9 @@ describe("ConciergeView", () => {
     expect(
       await screen.findByText("I found two current Queens events."),
     ).toBeTruthy();
+    expect(screen.getByTestId("concierge-tool-call").textContent).toContain(
+      "search_current_events",
+    );
     expect(streamConciergeMessage).toHaveBeenCalledWith(
       "Free events in Queens",
       null,

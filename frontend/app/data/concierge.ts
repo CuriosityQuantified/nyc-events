@@ -13,6 +13,12 @@ export type ConciergeResponse = {
   approval: ConciergeApproval | null;
 };
 
+export type ConciergeToolCall = {
+  id: string;
+  name: string;
+  status: "started" | "completed" | "error";
+};
+
 export class ConciergeApiError extends Error {
   constructor(
     message: string,
@@ -25,6 +31,7 @@ export class ConciergeApiError extends Error {
 export type ConciergeStreamHandlers = {
   onConversation?: (conversationId: string) => void;
   onToken?: (text: string) => void;
+  onTool?: (tool: ConciergeToolCall) => void;
 };
 
 const UUID_PATTERN =
@@ -150,6 +157,21 @@ async function conciergeStream(
     }
     if (parsed.event === "token" && typeof payload.text === "string") {
       handlers.onToken?.(payload.text);
+      return;
+    }
+    if (
+      parsed.event === "tool" &&
+      typeof payload.id === "string" &&
+      typeof payload.name === "string" &&
+      (payload.status === "started" ||
+        payload.status === "completed" ||
+        payload.status === "error")
+    ) {
+      handlers.onTool?.({
+        id: payload.id,
+        name: payload.name,
+        status: payload.status,
+      });
       return;
     }
     if (parsed.event === "done") {

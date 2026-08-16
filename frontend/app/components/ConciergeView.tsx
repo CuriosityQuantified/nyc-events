@@ -10,6 +10,7 @@ import { useSaved } from "@/app/components/SavedProvider";
 import {
   type ConciergeApproval,
   type ConciergeResponse,
+  type ConciergeToolCall,
   streamConciergeMessage,
   streamConciergeSaveResolution,
 } from "@/app/data/concierge";
@@ -35,6 +36,7 @@ export default function ConciergeView() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState("");
   const [approval, setApproval] = useState<ConciergeApproval | null>(null);
+  const [toolCalls, setToolCalls] = useState<ConciergeToolCall[]>([]);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -73,11 +75,22 @@ export default function ConciergeView() {
     setApproval(response.approval);
   };
 
+  const updateToolCall = (toolCall: ConciergeToolCall) => {
+    setToolCalls((current) => {
+      const existing = current.findIndex((item) => item.id === toolCall.id);
+      if (existing === -1) return [...current, toolCall];
+      return current.map((item, index) =>
+        index === existing ? { ...item, ...toolCall } : item,
+      );
+    });
+  };
+
   const send = async (prompt: string) => {
     const message = prompt.trim();
     if (!message || busy || approval) return;
     setBusy(true);
     setError(null);
+    setToolCalls([]);
     appendMessage("user", message);
     setInput("");
     let streamedMessageId: number | null = null;
@@ -90,6 +103,7 @@ export default function ConciergeView() {
           }
           appendAssistantToken(streamedMessageId, text);
         },
+        onTool: updateToolCall,
       });
       acceptResponse(response, streamedMessageId);
       if (!response.response && !response.approval) {
@@ -116,6 +130,7 @@ export default function ConciergeView() {
     if (!approval || !conversationId || busy) return;
     setBusy(true);
     setError(null);
+    setToolCalls([]);
     let streamedMessageId: number | null = null;
     try {
       const response = await streamConciergeSaveResolution(
@@ -130,6 +145,7 @@ export default function ConciergeView() {
             }
             appendAssistantToken(streamedMessageId, text);
           },
+          onTool: updateToolCall,
         },
       );
       if (!response.response && !response.approval) {
@@ -220,6 +236,28 @@ export default function ConciergeView() {
                   </article>
                 ))
               )}
+              {toolCalls.length > 0 ? (
+                <div className={styles.toolCalls} aria-label="Tool activity">
+                  {toolCalls.map((toolCall) => (
+                    <div
+                      key={toolCall.id}
+                      className={styles.toolCall}
+                      data-testid="concierge-tool-call"
+                      data-status={toolCall.status}
+                    >
+                      <span className={styles.toolCallLabel}>Tool</span>
+                      <span>{toolCall.name}</span>
+                      <span className={styles.toolCallStatus}>
+                        {toolCall.status === "started"
+                          ? "Running"
+                          : toolCall.status === "completed"
+                            ? "Completed"
+                            : "Could not complete"}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
               {busy ? (
                 <p className={styles.thinking}>Concierge is thinking…</p>
               ) : null}

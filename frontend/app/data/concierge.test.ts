@@ -29,17 +29,21 @@ describe("concierge SSE client", () => {
     );
     const tokens: string[] = [];
     const conversations: string[] = [];
+    const tools: string[] = [];
 
     const completion = streamConciergeMessage("What is on?", null, {
       onConversation: (value) => conversations.push(value),
       onToken: (value) => tokens.push(value),
+      onTool: (value) => tools.push(`${value.name}:${value.status}`),
     });
     await vi.waitFor(() => expect(tokens).toEqual(["First "]));
     expect(conversations).toEqual([conversationId]);
 
     streamController!.enqueue(
       encoder.encode(
-        'event: token\ndata: {"text":"answer"}\n\n' +
+        'event: tool\ndata: {"id":"search-1","name":"search_current_events","status":"started"}\n\n' +
+          'event: tool\ndata: {"id":"search-1","name":"search_current_events","status":"completed"}\n\n' +
+          'event: token\ndata: {"text":"answer"}\n\n' +
           `event: done\ndata: {"conversation_id":"${conversationId}","status":"completed","response":"First answer","approval":null}\n\n`,
       ),
     );
@@ -52,6 +56,10 @@ describe("concierge SSE client", () => {
       approval: null,
     });
     expect(tokens).toEqual(["First ", "answer"]);
+    expect(tools).toEqual([
+      "search_current_events:started",
+      "search_current_events:completed",
+    ]);
   });
 
   it("turns an SSE error into a safe client error", async () => {
