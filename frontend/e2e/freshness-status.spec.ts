@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import type { Locator, Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import eventDetail from "../../contracts/golden/event-detail.json";
@@ -151,7 +151,6 @@ test.describe("Issue #17 freshness and Event lifecycle states", () => {
   test("uses the exact stale-data warning on list and detail screens", async ({
     page,
   }) => {
-    await page.unrouteAll({ behavior: "wait" });
     await installRoutes(page, true);
     await page.goto("/");
 

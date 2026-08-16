@@ -144,6 +144,11 @@
   font-size: var(--text-sm);
 }
 
+.detailMap {
+  max-width: 720px;
+  margin-bottom: 52px;
+}
+
 .decisionCard {
   position: sticky;
   top: var(--space-6);

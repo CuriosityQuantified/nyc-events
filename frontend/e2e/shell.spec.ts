@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import type { Locator } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import eventList from "../../contracts/golden/events-list.json";
@@ -308,16 +308,16 @@ test.describe("EventMatch NYC Walking Skeleton", () => {
     const mapButton = toggle.getByRole("button", { name: "Map" });
     await mapButton.click();
 
-    // Event list should be hidden, map placeholder visible
+    // Event list should be hidden and the complete filtered map should load.
     await expect(eventList).not.toBeVisible();
-    const mapPlaceholder = page.getByTestId("map-placeholder");
-    await expect(mapPlaceholder).toBeVisible();
+    const eventMap = page.getByTestId("event-map");
+    await expect(eventMap).toBeVisible();
 
     // Click List button to switch back
     const listButton = toggle.getByRole("button", { name: "List" });
     await listButton.click();
     await expect(eventList).toBeVisible();
-    await expect(mapPlaceholder).not.toBeVisible();
+    await expect(eventMap).not.toBeVisible();
   });
 
   test("list/map toggle works with the keyboard", async ({ page }) => {
@@ -328,7 +328,7 @@ test.describe("EventMatch NYC Walking Skeleton", () => {
     await mapButton.focus();
     await page.keyboard.press("Enter");
     await expect(mapButton).toHaveAttribute("aria-pressed", "true");
-    await expect(page.getByTestId("map-placeholder")).toBeVisible();
+    await expect(page.getByTestId("event-map")).toBeVisible();
 
     await listButton.focus();
     await page.keyboard.press("Space");
@@ -352,7 +352,7 @@ test.describe("EventMatch NYC Walking Skeleton", () => {
     });
 
     await toggle.getByRole("button", { name: "Map" }).click();
-    const map = page.getByTestId("map-placeholder");
+    const map = page.getByTestId("event-map");
     await map.scrollIntoViewIfNeeded();
     await expectInViewport(map);
     await testInfo.attach(`${testInfo.project.name}-map-viewport`, {

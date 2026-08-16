@@ -14,6 +14,9 @@ const event: ParkEvent = {
   guid: "test-event",
   title: "Morning Yoga in Prospect Park",
   location: "Long Meadow",
+  locationId: "B073",
+  coordinates: [{ latitude: 40.6602, longitude: -73.969 }],
+  positionAccuracy: "exact",
   borough: "Brooklyn",
   category: "Fitness",
   categories: ["Fitness"],
@@ -88,10 +91,15 @@ describe("EventCard", () => {
     expect(
       screen.getByRole("heading", { level: 2, name: event.title }),
     ).toBeTruthy();
-    expect(screen.getByText("Long Meadow, Brooklyn")).toBeTruthy();
+    expect(screen.getByText("Venue or park: Long Meadow")).toBeTruthy();
+    expect(screen.getByText("Neighborhood: Not listed")).toBeTruthy();
+    expect(screen.getByText("Borough: Brooklyn")).toBeTruthy();
+    expect(screen.getByText("Address: Not listed")).toBeTruthy();
     expect(screen.getByText("Aug 16, 2026 · 7:30 AM")).toBeTruthy();
     expect(screen.getByText("Free")).toBeTruthy();
-    expect(screen.queryByRole("img")).toBeNull();
+    expect(screen.getByRole("status").textContent).toContain(
+      "Map Image Is Loading",
+    );
     expect(screen.getByText(event.registration)).toBeTruthy();
     expect(screen.getByText(event.accessibility)).toBeTruthy();
     expect(
@@ -127,6 +135,24 @@ describe("EventCard", () => {
       screen.queryByRole("link", { name: /Official event details/ }),
     ).toBeNull();
     expect(screen.getByRole("link", { name: /View details/ })).toBeTruthy();
+  });
+
+  it("does not request a map for an invalid source location", () => {
+    render(
+      <EventCard
+        event={{
+          ...event,
+          coordinates: [{ latitude: 0, longitude: 0 }],
+          positionAccuracy: "not-listed",
+        }}
+      />,
+    );
+
+    expect(
+      screen.getByText("Map Image Unavailable", { selector: "strong" }),
+    ).toBeTruthy();
+    expect(screen.queryByRole("img")).toBeNull();
+    expect(screen.queryByRole("link", { name: /Google Maps/ })).toBeNull();
   });
 });
 

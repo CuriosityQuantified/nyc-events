@@ -9,6 +9,9 @@ export type ParkEvent = {
   guid: string;
   title: string;
   location: string;
+  locationId: string | null;
+  coordinates: Array<{ latitude: number; longitude: number }>;
+  positionAccuracy: "exact" | "approximate" | "not-listed";
   borough: string;
   category: string;
   categories: string[];
@@ -268,6 +271,16 @@ export function apiToUiEvent(event: ApiEvent): ParkEvent {
     guid: event.guid,
     title: event.title.value ?? "Untitled event",
     location,
+    locationId: event.location_id.value?.trim() || null,
+    coordinates: Array.isArray(event.coordinates.value)
+      ? event.coordinates.value
+      : [],
+    positionAccuracy:
+      event.coordinates.value === null
+        ? "not-listed"
+        : event.coordinates.provenance === "Stated"
+          ? "exact"
+          : "approximate",
     borough,
     category,
     categories,

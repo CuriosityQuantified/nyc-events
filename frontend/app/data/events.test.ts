@@ -23,6 +23,9 @@ describe("live Event API mapping", () => {
     expect(event.date).toBe("Aug 9, 2026");
     expect(event.time).not.toBe("Time not listed");
     expect(event.location).toBe(eventList.events[0].location_name.value);
+    expect(event.locationId).toBe(eventList.events[0].location_id.value);
+    expect(event.coordinates).toEqual(eventList.events[0].coordinates.value);
+    expect(event.positionAccuracy).toBe("exact");
     expect(event.officialUrl).toBe(
       eventList.events[0].official_event_url.value,
     );

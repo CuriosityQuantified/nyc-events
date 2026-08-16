@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import type { Locator, Page } from "@playwright/test";
 import AxeBuilder from "@axe-core/playwright";
 import eventList from "../../contracts/golden/events-list.json";

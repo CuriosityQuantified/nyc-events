@@ -178,7 +178,12 @@
 .mapContainer {
   flex: 1;
   display: flex;
+  min-width: 0;
   padding-bottom: calc(var(--space-16) + var(--space-8));
+}
+
+.mapContainer > * {
+  width: 100%;
 }
 
 @media (min-width: 1024px) {

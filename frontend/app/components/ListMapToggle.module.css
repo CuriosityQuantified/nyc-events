@@ -18,7 +18,6 @@
   font-weight: 500;
   color: var(--color-foreground-secondary);
   min-height: var(--touch-min);
-  transition: background-color 0.15s ease, color 0.15s ease;
   border-radius: var(--radius-full);
 }
 
