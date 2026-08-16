@@ -1,8 +1,16 @@
 .wrapper {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
+  /* Constant height: content swaps in place when filters change, so the
+     results below never move. Extra facets scroll horizontally. */
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  min-height: 52px;
   gap: 8px;
+}
+
+.wrapper > * {
+  flex-shrink: 0;
 }
 
 .follow {

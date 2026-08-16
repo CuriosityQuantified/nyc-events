@@ -253,8 +253,12 @@ export default function EventExplorer({ initialFilters }: EventExplorerProps) {
         >
           <SearchBar />
           <div className={styles.explorerWorkspace}>
-            <FilterChips filters={filters} onChange={changeFilters} />
-            <FollowFacets filters={filters} />
+            {/* One grid child: the desktop workspace grid is sized for
+                exactly [filters column | results column]. */}
+            <div className={styles.filtersColumn}>
+              <FilterChips filters={filters} onChange={changeFilters} />
+              <FollowFacets filters={filters} />
+            </div>
             <section
               className={styles.resultsRegion}
               aria-label="Filtered events"
@@ -262,7 +266,7 @@ export default function EventExplorer({ initialFilters }: EventExplorerProps) {
               <div className={styles.resultsHeader}>
                 <div>
                   <h2>Events</h2>
-                  {state === "ready" ? (
+                  {state === "ready" || events.length > 0 ? (
                     <p>
                       {total} {total === 1 ? "event matches" : "events match"}
                     </p>
@@ -270,7 +274,7 @@ export default function EventExplorer({ initialFilters }: EventExplorerProps) {
                 </div>
                 <ListMapToggle activeView={view} onViewChange={changeView} />
               </div>
-              {state === "loading" ? (
+              {state === "loading" && events.length === 0 ? (
                 <section
                   className={styles.dataState}
                   role="status"
@@ -324,14 +328,18 @@ export default function EventExplorer({ initialFilters }: EventExplorerProps) {
                   )}
                 </section>
               ) : null}
-              {state === "ready" && events.length > 0 && view === "list" ? (
+              {(state === "ready" || state === "loading") &&
+              events.length > 0 &&
+              view === "list" ? (
                 <>
                   <p
                     className={styles.resultsSummary}
                     role="status"
                     aria-live="polite"
                   >
-                    Showing {events.length} of {total} matching events
+                    {state === "loading"
+                      ? "Updating results…"
+                      : `Showing ${events.length} of ${total} matching events`}
                   </p>
                   <section
                     className={styles.eventList}
