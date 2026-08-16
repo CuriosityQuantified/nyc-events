@@ -10,6 +10,9 @@
   justify-content: space-between;
   gap: var(--space-4);
   margin-bottom: var(--space-4);
+  /* Reserve the Clear-all button's height so its appearance never shifts
+     the results below. */
+  min-height: var(--touch-min);
 }
 
 .headingRow h2 {
