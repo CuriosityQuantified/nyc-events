@@ -60,6 +60,7 @@ export default function FollowFacets({ filters }: { filters: FilterState }) {
       role="group"
       aria-label="Follow these filters"
       data-testid="follow-facets"
+      tabIndex={0}
     >
       {facets.length === 0 ? (
         <span className={styles.hint}>

@@ -13,6 +13,11 @@
   flex-shrink: 0;
 }
 
+.wrapper:focus-visible {
+  outline: 3px solid #1d4ed8;
+  outline-offset: 2px;
+}
+
 .follow {
   min-height: 44px;
   padding: 8px 14px;

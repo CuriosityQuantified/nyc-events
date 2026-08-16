@@ -1,7 +1,16 @@
 "use client";
 
+import "leaflet/dist/leaflet.css";
 import Link from "next/link";
-import { useMemo, useRef, useState, type CSSProperties } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent,
+  type MouseEvent,
+} from "react";
+import type { LayerGroup, Map as LeafletMap } from "leaflet";
 import type { ParkEvent } from "@/app/data/events";
 import {
   groupEventsByLocation,
@@ -15,43 +24,26 @@ function markerLabel(group: LocationGroup): string {
   return `${group.name}, ${group.borough}: ${count} ${count === 1 ? "event" : "events"}`;
 }
 
+function escapeAttribute(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+const NYC_CENTER: [number, number] = [40.7128, -74.006];
+const TILE_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+const TILE_ATTRIBUTION =
+  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
+
 type EventMapProps = {
   events: ParkEvent[];
   returnQuery?: string;
 };
 
-type MarkerPosition = {
-  left: string;
-  top: string;
-};
-
-function markerPositions(groups: LocationGroup[]): Map<string, MarkerPosition> {
-  if (!groups.length) return new Map();
-  const latitudes = groups.map((group) => group.latitude);
-  const longitudes = groups.map((group) => group.longitude);
-  const minLatitude = Math.min(...latitudes);
-  const maxLatitude = Math.max(...latitudes);
-  const minLongitude = Math.min(...longitudes);
-  const maxLongitude = Math.max(...longitudes);
-  const latitudeRange = maxLatitude - minLatitude;
-  const longitudeRange = maxLongitude - minLongitude;
-
-  return new Map(
-    groups.map((group) => {
-      const x = longitudeRange
-        ? 15 + ((group.longitude - minLongitude) / longitudeRange) * 70
-        : 50;
-      const y = latitudeRange
-        ? 20 + ((maxLatitude - group.latitude) / latitudeRange) * 65
-        : 52;
-      return [group.key, { left: `${x}%`, top: `${y}%` }];
-    }),
-  );
-}
-
 export default function EventMap({ events, returnQuery = "" }: EventMapProps) {
   const groups = useMemo(() => groupEventsByLocation(events), [events]);
-  const positions = useMemo(() => markerPositions(groups), [groups]);
   const unlocated = useMemo(() => {
     const locatedGuids = new Set(
       groups.flatMap((group) => group.events.map((event) => event.guid)),
@@ -59,10 +51,112 @@ export default function EventMap({ events, returnQuery = "" }: EventMapProps) {
     return events.filter((event) => !locatedGuids.has(event.guid));
   }, [events, groups]);
   const [selectedKey, setSelectedKey] = useState(groups[0]?.key ?? "");
+  const [mapReady, setMapReady] = useState(false);
   const detailPanel = useRef<HTMLElement>(null);
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const leafletMap = useRef<LeafletMap | null>(null);
+  const markerLayer = useRef<LayerGroup | null>(null);
   const selected =
     groups.find((group) => group.key === selectedKey) ?? groups[0] ?? null;
-  const status = groups.length ? "ready" : "error";
+  const status = groups.length === 0 ? "error" : mapReady ? "ready" : "loading";
+
+  useEffect(() => {
+    let disposed = false;
+    (async () => {
+      const leaflet = (await import("leaflet")).default;
+      if (disposed || !mapContainer.current || leafletMap.current) return;
+      const map = leaflet.map(mapContainer.current, {
+        center: NYC_CENTER,
+        zoom: 11,
+        zoomControl: true,
+        scrollWheelZoom: true,
+        zoomAnimation: false,
+        fadeAnimation: false,
+        markerZoomAnimation: false,
+      });
+      leaflet
+        .tileLayer(TILE_URL, { maxZoom: 19, attribution: TILE_ATTRIBUTION })
+        .addTo(map);
+      leafletMap.current = map;
+      setMapReady(true);
+    })();
+    return () => {
+      disposed = true;
+      leafletMap.current?.remove();
+      leafletMap.current = null;
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!mapReady) return;
+    let disposed = false;
+    (async () => {
+      const leaflet = (await import("leaflet")).default;
+      const map = leafletMap.current;
+      if (disposed || !map) return;
+      markerLayer.current?.remove();
+      const layer = leaflet.layerGroup();
+      for (const group of groups) {
+        const diameter = markerDiameter(group.events.length);
+        const icon = leaflet.divIcon({
+          className: styles.markerWrapper,
+          html:
+            `<button type="button" class="${styles.markerTarget}" ` +
+            `data-testid="map-marker" ` +
+            `data-location-key="${escapeAttribute(group.key)}" ` +
+            `data-diameter="${diameter}" ` +
+            `aria-label="${escapeAttribute(markerLabel(group))}">` +
+            `<span class="${styles.markerDot}" aria-hidden="true" ` +
+            `style="--marker-diameter:${diameter}px">` +
+            `${group.events.length}</span></button>`,
+          iconSize: [44, 44],
+          iconAnchor: [22, 22],
+        });
+        leaflet
+          .marker([group.latitude, group.longitude], {
+            icon,
+            interactive: false,
+            keyboard: false,
+          })
+          .addTo(layer);
+      }
+      layer.addTo(map);
+      markerLayer.current = layer;
+      if (groups.length > 0) {
+        map.fitBounds(
+          leaflet.latLngBounds(
+            groups.map((group) => [group.latitude, group.longitude]),
+          ),
+          { padding: [48, 48], maxZoom: 15, animate: false },
+        );
+      }
+    })();
+    return () => {
+      disposed = true;
+    };
+  }, [groups, mapReady]);
+
+  function selectFromMarker(target: EventTarget): boolean {
+    const button = (target as HTMLElement).closest?.(
+      '[data-testid="map-marker"]',
+    );
+    const key = button?.getAttribute("data-location-key");
+    if (!key) return false;
+    setSelectedKey(key);
+    queueMicrotask(() =>
+      detailPanel.current?.scrollIntoView({ block: "nearest" }),
+    );
+    return true;
+  }
+
+  function onCanvasClick(clickEvent: MouseEvent<HTMLDivElement>) {
+    selectFromMarker(clickEvent.target);
+  }
+
+  function onCanvasKeyDown(keyEvent: KeyboardEvent<HTMLDivElement>) {
+    if (keyEvent.key !== "Enter" && keyEvent.key !== " ") return;
+    if (selectFromMarker(keyEvent.target)) keyEvent.preventDefault();
+  }
 
   function detailHref(event: ParkEvent): string {
     return `/events/${encodeURIComponent(event.guid)}${returnQuery ? `?${returnQuery}` : ""}`;
@@ -73,7 +167,7 @@ export default function EventMap({ events, returnQuery = "" }: EventMapProps) {
       className={styles.shell}
       data-testid="event-map"
       data-map-status={status}
-      aria-label="Coordinate map of filtered events"
+      aria-label="Map of filtered events"
     >
       <div className={styles.mapStage}>
         <div className={styles.mapSummary} role="status">
@@ -86,48 +180,15 @@ export default function EventMap({ events, returnQuery = "" }: EventMapProps) {
           </span>
         </div>
         <div
+          ref={mapContainer}
           className={styles.canvas}
           data-testid="coordinate-map"
           data-fit-bounds="true"
           role="group"
-          aria-label="Approximate coordinate positions. Select a marker for event links."
-        >
-          <span className={styles.northLabel} aria-hidden="true">
-            N
-          </span>
-          {groups.map((group) => {
-            const diameter = markerDiameter(group.events.length);
-            const position = positions.get(group.key);
-            const markerStyle = {
-              left: position?.left,
-              top: position?.top,
-              "--marker-diameter": `${diameter}px`,
-            } as CSSProperties;
-            return (
-              <button
-                key={group.key}
-                type="button"
-                className={styles.markerTarget}
-                data-testid="map-marker"
-                data-location-key={group.key}
-                data-diameter={diameter}
-                style={markerStyle}
-                aria-label={markerLabel(group)}
-                aria-pressed={selected?.key === group.key}
-                onClick={() => {
-                  setSelectedKey(group.key);
-                  queueMicrotask(() =>
-                    detailPanel.current?.scrollIntoView({ block: "nearest" }),
-                  );
-                }}
-              >
-                <span className={styles.markerDot} aria-hidden="true">
-                  {group.events.length > 1 ? group.events.length : ""}
-                </span>
-              </button>
-            );
-          })}
-        </div>
+          aria-label="Street map of event locations. Select a marker for event links."
+          onClick={onCanvasClick}
+          onKeyDown={onCanvasKeyDown}
+        />
         {status === "error" ? (
           <div className={styles.mapState} role="alert">
             <strong>No Locations To Map</strong>
