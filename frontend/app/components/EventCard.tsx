@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ParkEvent } from "@/app/data/events";
 import { EventLifecycleStatus } from "./TrustStatus";
+import MapThumbnail from "./MapThumbnail";
 import styles from "./EventCard.module.css";
 
 interface EventCardProps {
@@ -39,26 +40,30 @@ export default function EventCard({ event, returnQuery = "" }: EventCardProps) {
       data-testid="event-card"
       data-event-guid={event.guid}
     >
-      <div className={styles.imagePlaceholder} aria-hidden="true">
-        <span className={styles.imagePlaceholderIcon} aria-hidden="true">
-          🌿
-        </span>
-        <span className={`${styles.badge} ${costBadgeClass(event.costType)}`}>
-          {costLabel(event)}
-        </span>
-      </div>
       <div className={styles.content}>
-        <EventLifecycleStatus status={event.lifecycleStatus} />
+        <div className={styles.statusRow}>
+          <EventLifecycleStatus status={event.lifecycleStatus} />
+          <span className={`${styles.badge} ${costBadgeClass(event.costType)}`}>
+            {costLabel(event)}
+          </span>
+        </div>
         <p className={styles.category}>{event.category}</p>
         <h2 className={styles.title}>{event.title}</h2>
         <div className={styles.meta}>
-          <p className={styles.metaItem}>
+          <p className={styles.metaItem} data-location-fact="venue">
             <span className={styles.metaIcon} aria-hidden="true">
               📍
             </span>
-            <span>
-              {event.location}, {event.borough}
-            </span>
+            <span>Venue or park: {event.location}</span>
+          </p>
+          <p className={styles.metaItem} data-location-fact="neighborhood">
+            Neighborhood: Not listed
+          </p>
+          <p className={styles.metaItem} data-location-fact="borough">
+            Borough: {event.borough}
+          </p>
+          <p className={styles.metaItem} data-location-fact="address">
+            Address: Not listed
           </p>
           <p className={styles.metaItem}>
             <span className={styles.metaIcon} aria-hidden="true">
@@ -71,6 +76,9 @@ export default function EventCard({ event, returnQuery = "" }: EventCardProps) {
           <p className={styles.metaItem}>{event.registration}</p>
           <p className={styles.metaItem}>{event.accessibility}</p>
         </div>
+      </div>
+      <MapThumbnail event={event} variant="compact" />
+      <div className={styles.actions}>
         <Link
           className={styles.detailLink}
           href={detailHref}

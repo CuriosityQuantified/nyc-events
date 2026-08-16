@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "format:check": "prettier --check app/api/**/*.ts app/components/EventCard.tsx app/components/EventCard.module.css app/components/EventDetail.tsx app/components/EventDetail.test.tsx app/components/EventDetail.module.css app/components/EventExplorer.tsx app/components/SearchBar.tsx app/components/SearchBar.module.css app/components/TrustStatus.tsx app/components/TrustStatus.test.tsx app/components/TrustStatus.module.css app/components/components.test.tsx app/data/*.ts app/events/**/*.tsx app/globals.css app/page.tsx app/page.module.css e2e/*.ts next.config.ts playwright.config.ts playwright.production.config.ts tsconfig.json tsconfig.tests.json",
+    "format:check": "prettier --check app/api/**/*.ts app/components/EventCard.tsx app/components/EventCard.module.css app/components/EventDetail.tsx app/components/EventDetail.test.tsx app/components/EventDetail.module.css app/components/EventExplorer.tsx app/components/EventMap.tsx app/components/EventMap.module.css app/components/ListMapToggle.module.css app/components/MapThumbnail.tsx app/components/MapThumbnail.module.css app/components/SearchBar.tsx app/components/SearchBar.module.css app/components/TrustStatus.tsx app/components/TrustStatus.test.tsx app/components/TrustStatus.module.css app/components/components.test.tsx app/data/*.ts app/events/**/*.tsx app/globals.css app/page.tsx app/page.module.css e2e/*.ts next.config.ts playwright.config.ts playwright.production.config.ts tsconfig.json tsconfig.tests.json",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit && tsc --noEmit --project tsconfig.tests.json",
     "pretest": "playwright install --with-deps chromium",

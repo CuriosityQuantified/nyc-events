@@ -7,7 +7,7 @@ import FilterChips from "@/app/components/FilterChips";
 import ListMapToggle from "@/app/components/ListMapToggle";
 import type { View } from "@/app/components/ListMapToggle";
 import EventCard from "@/app/components/EventCard";
-import MapPlaceholder from "@/app/components/MapPlaceholder";
+import EventMap from "@/app/components/EventMap";
 import BottomNav from "@/app/components/BottomNav";
 import DesktopSidebar from "@/app/components/DesktopSidebar";
 import { FreshnessBanner } from "@/app/components/TrustStatus";
@@ -28,9 +28,10 @@ function mergeWithoutDuplicates(current: ParkEvent[], incoming: ParkEvent[]) {
   return [...merged.values()];
 }
 
-function eventsPath(filters: FilterState, page: number): string {
+function eventsPath(filters: FilterState, page: number, pageSize = 12): string {
   const params = writeFilterSearchParams(new URLSearchParams(), filters);
   params.set("page", String(page));
+  params.set("page_size", String(pageSize));
   return `/api/events?${params.toString()}`;
 }
 
@@ -51,7 +52,12 @@ export default function EventExplorer({ initialFilters }: EventExplorerProps) {
   const [loadMoreError, setLoadMoreError] = useState(false);
   const [failedPage, setFailedPage] = useState<number | null>(null);
   const [loadMoreMessage, setLoadMoreMessage] = useState("");
+  const [mapEvents, setMapEvents] = useState<ParkEvent[]>([]);
+  const [mapState, setMapState] = useState<
+    "idle" | "loading" | "ready" | "error"
+  >("idle");
   const requestVersion = useRef(0);
+  const mapRequestVersion = useRef(0);
   const activeFilterDescriptions = describeFilters(filters);
   const returnQuery = writeFilterSearchParams(
     new URLSearchParams(),
@@ -138,12 +144,53 @@ export default function EventExplorer({ initialFilters }: EventExplorerProps) {
     queueMicrotask(() => void load(1, true));
   }, [load]);
 
+  const loadMapEvents = useCallback(async () => {
+    const requestId = ++mapRequestVersion.current;
+    setMapState("loading");
+    try {
+      const firstResponse = await fetch(eventsPath(filters, 1, 100), {
+        cache: "no-store",
+      });
+      if (!firstResponse.ok) throw new Error("Map event data is unavailable");
+      const first = (await firstResponse.json()) as EventPage;
+      if (first.total > 10_000 || first.totalPages > 100) {
+        throw new Error("Map event data exceeds its bounded window");
+      }
+      const remaining = await Promise.all(
+        Array.from({ length: Math.max(0, first.totalPages - 1) }, (_, index) =>
+          fetch(eventsPath(filters, index + 2, 100), { cache: "no-store" }),
+        ),
+      );
+      if (remaining.some((response) => !response.ok)) {
+        throw new Error("Map event data is incomplete");
+      }
+      const pages = await Promise.all(
+        remaining.map(async (response) => (await response.json()) as EventPage),
+      );
+      if (requestId !== mapRequestVersion.current) return;
+      setMapEvents(
+        mergeWithoutDuplicates(
+          first.events,
+          pages.flatMap((result) => result.events),
+        ),
+      );
+      setMapState("ready");
+    } catch {
+      if (requestId === mapRequestVersion.current) setMapState("error");
+    }
+  }, [filters]);
+
+  useEffect(() => {
+    if (view === "map") queueMicrotask(() => void loadMapEvents());
+  }, [loadMapEvents, view]);
+
   useEffect(() => {
     function restoreFilters() {
-      setFilters(
-        parseFilterSearchParams(new URLSearchParams(window.location.search)),
-      );
+      const params = new URLSearchParams(window.location.search);
+      setFilters(parseFilterSearchParams(params));
+      setView(params.get("view") === "map" ? "map" : "list");
     }
+    queueMicrotask(restoreFilters);
     window.addEventListener("popstate", restoreFilters);
     return () => window.removeEventListener("popstate", restoreFilters);
   }, []);
@@ -161,6 +208,19 @@ export default function EventExplorer({ initialFilters }: EventExplorerProps) {
     );
     setFilters(next);
     setFailedPage(null);
+  }
+
+  function changeView(next: View) {
+    const params = new URLSearchParams(window.location.search);
+    if (next === "map") params.set("view", "map");
+    else params.delete("view");
+    const query = params.toString();
+    window.history.pushState(
+      null,
+      "",
+      `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`,
+    );
+    setView(next);
   }
 
   function retry() {
@@ -206,7 +266,7 @@ export default function EventExplorer({ initialFilters }: EventExplorerProps) {
                     </p>
                   ) : null}
                 </div>
-                <ListMapToggle activeView={view} onViewChange={setView} />
+                <ListMapToggle activeView={view} onViewChange={changeView} />
               </div>
               {state === "loading" ? (
                 <section
@@ -315,7 +375,30 @@ export default function EventExplorer({ initialFilters }: EventExplorerProps) {
               ) : null}
               {state === "ready" && events.length > 0 && view === "map" ? (
                 <div className={styles.mapContainer}>
-                  <MapPlaceholder />
+                  {mapState === "loading" || mapState === "idle" ? (
+                    <section className={styles.dataState} role="status">
+                      <h2>Loading All Filtered Map Events…</h2>
+                      <p>The map waits for the complete bounded result set.</p>
+                    </section>
+                  ) : null}
+                  {mapState === "error" ? (
+                    <section className={styles.dataState} role="alert">
+                      <h2>Map Results Are Unavailable</h2>
+                      <p>
+                        The event list remains available. No partial map is
+                        shown.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => void loadMapEvents()}
+                      >
+                        Try Map Again
+                      </button>
+                    </section>
+                  ) : null}
+                  {mapState === "ready" ? (
+                    <EventMap events={mapEvents} returnQuery={returnQuery} />
+                  ) : null}
                 </div>
               ) : null}
             </section>

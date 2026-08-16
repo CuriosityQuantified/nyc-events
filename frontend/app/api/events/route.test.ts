@@ -38,6 +38,7 @@ describe("filtered events route", () => {
         registration: "required",
       },
       2,
+      12,
     );
   });
 
@@ -57,11 +58,29 @@ describe("filtered events route", () => {
   });
 
   it("rejects invalid pagination before querying data", async () => {
-    const response = await GET(
-      new NextRequest("http://localhost/api/events?page=0&borough=Queens"),
-    );
-    expect(response.status).toBe(400);
+    for (const query of [
+      "page=0",
+      "page=1&page_size=0",
+      "page=1&page_size=101",
+    ]) {
+      const response = await GET(
+        new NextRequest(`http://localhost/api/events?${query}&borough=Queens`),
+      );
+      expect(response.status).toBe(400);
+    }
     expect(getFilteredEvents).not.toHaveBeenCalled();
+  });
+
+  it("allows the bounded map page size", async () => {
+    const response = await GET(
+      new NextRequest("http://localhost/api/events?page=1&page_size=100"),
+    );
+    expect(response.status).toBe(200);
+    expect(getFilteredEvents).toHaveBeenCalledWith(
+      { borough: null, category: null, date: null, registration: null },
+      1,
+      100,
+    );
   });
 
   it("returns a closed service error when the bounded filter query fails", async () => {
