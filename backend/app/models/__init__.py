@@ -8,4 +8,10 @@ class Base(DeclarativeBase):
 
 
 from app.models.event import CurrentEvent, EventRepository, SyncRun  # noqa: E402, F401
-from app.models.profile import Profile, SavedEvent  # noqa: E402, F401
+from app.models.profile import (  # noqa: E402, F401
+    Interest,
+    MatchedEvent,
+    PreferenceAudit,
+    Profile,
+    SavedEvent,
+)

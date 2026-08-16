@@ -555,6 +555,9 @@ async def ingest_events(session: AsyncSession, rows: list[dict[str, Any]]) -> in
             insert(CurrentEvent),
             [{**values, "snapshot_at": snapshot_at} for values in parsed],
         )
+        from app.services.profile_preferences import match_new_events
+
+        await match_new_events(session)
         await session.commit()
         session.expire_all()
     except Exception:
