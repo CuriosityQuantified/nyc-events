@@ -7300,7 +7300,7 @@
       "source_location": "L29",
       "_origin": "ast",
       "id": "frontend_frontend_concept_application_shell",
-      "community": 106,
+      "community": 107,
       "community_name": "Application shell",
       "norm_label": "application shell"
     },
@@ -7311,7 +7311,7 @@
       "source_location": "L31",
       "_origin": "ast",
       "id": "frontend_frontend_concept_desktop",
-      "community": 106,
+      "community": 107,
       "community_name": "Application shell",
       "norm_label": "desktop"
     },
@@ -7322,7 +7322,7 @@
       "source_location": "L41",
       "_origin": "ast",
       "id": "frontend_frontend_concept_mobile",
-      "community": 106,
+      "community": 107,
       "community_name": "Application shell",
       "norm_label": "mobile"
     },

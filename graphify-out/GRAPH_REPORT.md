@@ -1,7 +1,7 @@
 # Graph Report - nyc-events  (2026-08-16)
 
 ## Corpus Check
-- 159 files · ~105,128 words
+- 159 files · ~105,661 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -411,7 +411,7 @@ Nodes (4): dynamic, GET(), { getEvent, EventsApiError }, EventsApiError
 Cohesion: 0.50
 Nodes (3): EventSource, The narrow transport contract used by the synchronization job., Protocol
 
-### Community 106 - "Application shell"
+### Community 107 - "Application shell"
 Cohesion: 0.67
 Nodes (3): Application shell, Desktop, Mobile
 
