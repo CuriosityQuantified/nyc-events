@@ -1,7 +1,7 @@
 # Graph Report - nyc-events  (2026-08-16)
 
 ## Corpus Check
-- 159 files · ~105,122 words
+- 159 files · ~105,128 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `1f66decb`
+- Built from commit: `b7ac9896`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -104,7 +104,7 @@
 - events/[guid]/route.ts
 - EventSource
 - saved.spec.ts
-- Initial MVP scope
+- Application shell
 
 ## God Nodes (most connected - your core abstractions)
 1. `load_fixture()` - 70 edges
@@ -233,7 +233,7 @@ Nodes (13): AsyncSession, Fetch and store one complete Snapshot with durable att
 
 ### Community 51 - "EventMatch NYC — Initial Frontend Direction"
 Cohesion: 0.18
-Nodes (9): Accessibility baseline, Application shell, Consensus basis, Consensus summary, Desktop, EventMatch NYC — Initial Frontend Direction, Mobile, Product definition (+1 more)
+Nodes (9): Accessibility baseline, Consensus basis, Consensus summary, Defer, EventMatch NYC — Initial Frontend Direction, Include, Initial MVP scope, Product definition (+1 more)
 
 ### Community 52 - "0003_current_repository_sync_runs.py"
 Cohesion: 0.50
@@ -411,9 +411,9 @@ Nodes (4): dynamic, GET(), { getEvent, EventsApiError }, EventsApiError
 Cohesion: 0.50
 Nodes (3): EventSource, The narrow transport contract used by the synchronization job., Protocol
 
-### Community 106 - "Initial MVP scope"
+### Community 106 - "Application shell"
 Cohesion: 0.67
-Nodes (3): Defer, Include, Initial MVP scope
+Nodes (3): Application shell, Desktop, Mobile
 
 ## Knowledge Gaps
 - **276 isolated node(s):** `nyc-events-backend`, `start.sh script`, `{ getEvent, EventsApiError }`, `dynamic`, `{ getFilteredEvents }` (+271 more)
