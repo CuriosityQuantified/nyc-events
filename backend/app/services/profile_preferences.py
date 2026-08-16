@@ -126,9 +126,7 @@ async def set_manual_composite_interest(
 ) -> Interest:
     """Validate and persist one combined-Facet Interest (AND semantics)."""
     if not 2 <= len(facets) <= 3:
-        raise PreferenceValidationError(
-            "A combined Interest needs 2 or 3 Facets"
-        )
+        raise PreferenceValidationError("A combined Interest needs 2 or 3 Facets")
     normalized: list[dict[str, str]] = []
     for facet_type, facet_value in facets:
         normalized_type, normalized_value = _normalize_preference(
@@ -147,8 +145,7 @@ async def set_manual_composite_interest(
         )
     normalized.sort(key=lambda member: _FACET_ORDER[member["facet_type"]])
     canonical = "|".join(
-        f"{member['facet_type']}:{member['normalized_value']}"
-        for member in normalized
+        f"{member['facet_type']}:{member['normalized_value']}" for member in normalized
     )
     if len(canonical) > 100:
         raise PreferenceValidationError("Combined Interest is too long")
@@ -246,9 +243,7 @@ async def apply_concierge_preference(
     return interest
 
 
-def _matches_facet(
-    event: CurrentEvent, facet_type: str, normalized_value: str
-) -> bool:
+def _matches_facet(event: CurrentEvent, facet_type: str, normalized_value: str) -> bool:
     if facet_type == "borough":
         return (event.borough or "").casefold() == normalized_value
     if facet_type == "category":
@@ -268,9 +263,7 @@ def _event_matches_interest(event: CurrentEvent, interest: Interest) -> bool:
         # A composite Interest matches only when the Event satisfies every
         # member Facet — "Brooklyn + Family" is an AND, not two follows.
         return all(
-            _matches_facet(
-                event, member["facet_type"], member["normalized_value"]
-            )
+            _matches_facet(event, member["facet_type"], member["normalized_value"])
             for member in facets
         )
     return _matches_facet(event, interest.facet_type, interest.normalized_value)

@@ -63,9 +63,7 @@ def test_composite_interest_matches_only_when_every_facet_matches():
         ]
     )
     assert _event_matches_interest(_event(), interest) is True
-    assert (
-        _event_matches_interest(_event(categories=["Fitness"]), interest) is False
-    )
+    assert _event_matches_interest(_event(categories=["Fitness"]), interest) is False
     assert _event_matches_interest(_event(borough="Queens"), interest) is False
     assert _event_matches_interest(_event(borough=None), interest) is False
 
@@ -169,9 +167,7 @@ async def test_composite_follow_persists_and_matches_with_and_semantics(
 
     matches = await client.get("/profile/matches", headers=_headers())
     assert matches.status_code == 200
-    assert {event["guid"] for event in matches.json()["events"]} == {
-        "composite-both"
-    }
+    assert {event["guid"] for event in matches.json()["events"]} == {"composite-both"}
 
 
 @requires_docker

@@ -60,9 +60,7 @@ class Interest(Base):
     normalized_value: Mapped[str] = mapped_column(String(100), nullable=False)
     # Composite Interests: every member Facet must match one Event
     # (facet_type is "composite" and normalized_value is the canonical key).
-    facets: Mapped[list[dict[str, str]] | None] = mapped_column(
-        JSON, nullable=True
-    )
+    facets: Mapped[list[dict[str, str]] | None] = mapped_column(JSON, nullable=True)
     alert_enabled: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=True, server_default="true"
     )
