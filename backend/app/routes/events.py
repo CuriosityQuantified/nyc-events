@@ -12,10 +12,14 @@ from sqlalchemy.exc import SQLAlchemyError
 
 from app.config import get_settings
 from app.database import get_session_factory
-from app.models.event import CurrentEvent, SyncRun
+from app.models.event import CurrentEvent, EventRepository, SyncRun
 from app.provenance import accessibility_evidence, explicit_free_evidence
 
 router = APIRouter()
+
+LifecycleClassification = Literal[
+    "new", "changed", "unchanged", "cancelled", "expired", "removed"
+]
 
 
 def _text_fact(
@@ -291,6 +295,57 @@ async def get_event(guid: str = Path(min_length=1, max_length=255)) -> dict[str,
         if event is None:
             raise HTTPException(status_code=404, detail="Event not found")
         return _event_to_contract(event)
+
+
+@router.get("/event-changes")
+async def list_event_changes(
+    classification: LifecycleClassification | None = None,
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=100, ge=1, le=100),
+) -> dict[str, Any]:
+    """Expose latest Snapshot lifecycle classifications and content hashes."""
+    filters = []
+    if classification is not None:
+        filters.append(EventRepository.lifecycle_status == classification)
+
+    session_factory = get_session_factory()
+    async with session_factory() as session:
+        try:
+            query = select(EventRepository).where(*filters)
+            total = (
+                await session.scalar(select(func.count()).select_from(query.subquery()))
+                or 0
+            )
+            events = (
+                await session.scalars(
+                    query.order_by(EventRepository.guid)
+                    .offset((page - 1) * page_size)
+                    .limit(page_size)
+                )
+            ).all()
+            snapshot_at = await session.scalar(
+                select(func.max(CurrentEvent.snapshot_at))
+            )
+        except SQLAlchemyError as error:
+            raise HTTPException(
+                status_code=503, detail="Event database unavailable"
+            ) from error
+
+    return {
+        "events": [
+            {
+                "guid": event.guid,
+                "classification": event.lifecycle_status,
+                "content_hash": event.content_hash,
+                "official_event_url": event.official_event_url,
+            }
+            for event in events
+        ],
+        "snapshot_at": snapshot_at.isoformat() if snapshot_at else None,
+        "page": page,
+        "page_size": page_size,
+        "total": total,
+    }
 
 
 @router.get("/freshness")

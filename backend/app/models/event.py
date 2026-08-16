@@ -37,6 +37,8 @@ class EventFields:
     is_free_explicit: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
     accessibility_mentioned: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
     raw_data: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    content_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    lifecycle_status: Mapped[str] = mapped_column(String(16), nullable=False)
     synced_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
