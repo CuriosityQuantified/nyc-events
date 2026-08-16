@@ -17,6 +17,7 @@
     "test:ui": "playwright test --ui"
   },
   "dependencies": {
+    "@clerk/nextjs": "^7.7.6",
     "@types/leaflet": "^1.9.22",
     "leaflet": "^1.9.4",
     "next": "16.3.1",

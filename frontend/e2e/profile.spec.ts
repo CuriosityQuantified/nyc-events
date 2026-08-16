@@ -90,6 +90,26 @@ test.describe("Profile tab with Interests", () => {
     expect(labels).not.toContain("Calendar");
   });
 
+  test("offers no account controls and asks for no Clerk code when Clerk is disabled", async ({
+    page,
+  }) => {
+    const clerkRequests: string[] = [];
+    page.on("request", (request) => {
+      if (/clerk/i.test(request.url())) {
+        clerkRequests.push(request.url());
+      }
+    });
+    await page.reload();
+
+    await expect(page.getByTestId("header-auth")).toHaveCount(0);
+    await expect(page.getByTestId("account-panel")).toHaveCount(0);
+    await expect(page.getByRole("button", { name: "Sign in" })).toHaveCount(0);
+    await expect(
+      page.getByText("Sign-in to keep your profile across devices is coming"),
+    ).toBeVisible();
+    expect(clerkRequests).toEqual([]);
+  });
+
   test("has no automatically detectable accessibility violations", async ({
     page,
   }) => {
