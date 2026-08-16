@@ -142,11 +142,20 @@ async def db_session():
 
     from app.database import get_session_factory, reset_engine
     from app.models.event import CurrentEvent, EventRepository, SyncRun
-    from app.models.profile import Profile, SavedEvent
+    from app.models.profile import (
+        Interest,
+        MatchedEvent,
+        PreferenceAudit,
+        Profile,
+        SavedEvent,
+    )
 
     await reset_engine()
     factory = get_session_factory()
     async with factory() as session:
+        await session.execute(delete(PreferenceAudit))
+        await session.execute(delete(MatchedEvent))
+        await session.execute(delete(Interest))
         await session.execute(delete(SavedEvent))
         await session.execute(delete(Profile))
         await session.execute(delete(CurrentEvent))
@@ -155,6 +164,9 @@ async def db_session():
         await session.commit()
         yield session
         await session.rollback()
+        await session.execute(delete(PreferenceAudit))
+        await session.execute(delete(MatchedEvent))
+        await session.execute(delete(Interest))
         await session.execute(delete(SavedEvent))
         await session.execute(delete(Profile))
         await session.execute(delete(CurrentEvent))
