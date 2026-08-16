@@ -114,6 +114,28 @@ def _response(conversation_id: UUID, result: dict[str, Any]) -> ConciergeRespons
     )
 
 
+def _save_action_requests(interrupt: Any) -> list[dict[str, Any]]:
+    """Validate every pending save action before applying one human decision."""
+    action_requests = interrupt.value.get("action_requests", [])
+    if not action_requests or any(
+        not isinstance(action, dict) or action.get("name") != "save_event"
+        for action in action_requests
+    ):
+        raise HTTPException(status_code=409, detail="Pending action is not a save")
+    return action_requests
+
+
+def _resume_decisions(
+    interrupt: Any, payload: ConciergeDecisionRequest
+) -> list[dict[str, str]]:
+    """Apply the approve/reject choice to every save action in the interrupt."""
+    action_requests = _save_action_requests(interrupt)
+    if payload.decision == "approve":
+        return [{"type": "approve"} for _ in action_requests]
+    message = payload.reason or "The user rejected saving these Events."
+    return [{"type": "reject", "message": message} for _ in action_requests]
+
+
 def _sse(event: str, data: Any) -> str:
     """Encode one bounded Server-Sent Event."""
     return f"event: {event}\ndata: {json.dumps(data, separators=(',', ':'))}\n\n"
@@ -339,19 +361,9 @@ async def resolve_save(
     interrupt = state.interrupts[0]
     if interrupt.id != payload.interrupt_id:
         raise HTTPException(status_code=409, detail="Save approval is stale")
-    action_requests = interrupt.value.get("action_requests", [])
-    if len(action_requests) != 1 or action_requests[0].get("name") != "save_event":
-        raise HTTPException(status_code=409, detail="Pending action is not a save")
-
-    if payload.decision == "approve":
-        decision: dict[str, str] = {"type": "approve"}
-    else:
-        decision = {
-            "type": "reject",
-            "message": payload.reason or "The user rejected saving this Event.",
-        }
+    decisions = _resume_decisions(interrupt, payload)
     result = await agent.ainvoke(
-        Command(resume={"decisions": [decision]}),
+        Command(resume={"decisions": decisions}),
         config=config,
         context=ConciergeContext(profile_id=str(profile_id)),
     )
@@ -376,23 +388,13 @@ async def stream_save_resolution(
     interrupt = state.interrupts[0]
     if interrupt.id != payload.interrupt_id:
         raise HTTPException(status_code=409, detail="Save approval is stale")
-    action_requests = interrupt.value.get("action_requests", [])
-    if len(action_requests) != 1 or action_requests[0].get("name") != "save_event":
-        raise HTTPException(status_code=409, detail="Pending action is not a save")
-
-    if payload.decision == "approve":
-        decision: dict[str, str] = {"type": "approve"}
-    else:
-        decision = {
-            "type": "reject",
-            "message": payload.reason or "The user rejected saving this Event.",
-        }
+    decisions = _resume_decisions(interrupt, payload)
     return _streaming_response(
         _stream_turn(
             agent=agent,
             conversation_id=conversation_id,
             config=config,
             context=ConciergeContext(profile_id=str(profile_id)),
-            input_value=Command(resume={"decisions": [decision]}),
+            input_value=Command(resume={"decisions": decisions}),
         )
     )

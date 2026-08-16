@@ -234,7 +234,7 @@ def create_concierge_agent(
         ModelCallLimitMiddleware(run_limit=8, exit_behavior="end"),
         ToolCallLimitMiddleware(run_limit=8, exit_behavior="end"),
         ToolCallLimitMiddleware(
-            tool_name="save_event", run_limit=1, exit_behavior="end"
+            tool_name="save_event", run_limit=4, exit_behavior="end"
         ),
     ]
     if fallback_model is not None:

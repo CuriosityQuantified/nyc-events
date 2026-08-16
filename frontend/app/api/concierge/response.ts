@@ -32,26 +32,44 @@ export function parseUpstreamConciergeResponse(
   if (payload.status === "approval_required") {
     const rawApproval = record(payload.approval);
     const actions = rawApproval?.action_requests;
-    const action = Array.isArray(actions) ? record(actions[0]) : null;
-    const args = record(action?.args);
+    const parsedActions = Array.isArray(actions)
+      ? actions.map((value) => {
+          const action = record(value);
+          const args = record(action?.args);
+          return {
+            action,
+            eventId: args?.event_id,
+            description: action?.description,
+          };
+        })
+      : [];
     if (
       typeof rawApproval?.interrupt_id !== "string" ||
       rawApproval.interrupt_id.length < 1 ||
       rawApproval.interrupt_id.length > 255 ||
-      action?.name !== "save_event" ||
-      typeof args?.event_id !== "string" ||
-      args.event_id.length < 1 ||
-      args.event_id.length > 255
+      parsedActions.length === 0 ||
+      parsedActions.some(
+        ({ action, eventId }) =>
+          action?.name !== "save_event" ||
+          typeof eventId !== "string" ||
+          eventId.length < 1 ||
+          eventId.length > 255,
+      )
     ) {
       return null;
     }
+    const events = parsedActions.map(({ eventId, description }) => ({
+      eventId: eventId as string,
+      description:
+        typeof description === "string"
+          ? description
+          : "Save this event to your Saved Events.",
+    }));
     approval = {
       interruptId: rawApproval.interrupt_id,
-      eventId: args.event_id,
-      description:
-        typeof action.description === "string"
-          ? action.description
-          : "Save this event to your Saved Events.",
+      eventId: events[0].eventId,
+      description: events[0].description,
+      events,
     };
   }
 
