@@ -85,48 +85,14 @@ issues, and PRs.
 
 ## Code graph
 
-graphify 0.9.43, installed 2026-08-15 via `uv tool install "graphifyy[mcp]"`
-(PyPI package is **`graphifyy`**, double-y; the CLI is `graphify`, at
-`~/.local/bin/graphify`). Rebuild with `graphify update .` (AST-only, no LLM, no
-API cost); stage `graphify-out/` with the commit. The required `graph` CI job
-rebuilds with graphify 0.9.43 and fails on any tracked-output drift.
-
-- **Freshness gate — do NOT compare `GRAPH_REPORT.md`'s `Built from commit:`
-  line to `git rev-parse HEAD`.** graphify deliberately leaves outputs untouched
-  when a rebuild finds no topology change ("No code-graph topology changes
-  detected; outputs left untouched"), so that line legitimately lags HEAD after
-  any commit that does not alter graph structure. Comparing them produces false
-  staleness failures. The correct gate is: run `graphify update .`, then
-  `git diff --exit-code graphify-out/graph.json` — a non-empty diff means the
-  graph was stale and must be staged.
-- Baseline 2026-08-15: 77 nodes, 100% EXTRACTED (69 before this file was added —
-  the count tracks the spec/design corpus, so it moves whenever docs land).
-- Committed: `graph.json`, `graph.html`, `GRAPH_REPORT.md`, and the
-  `.graphify_labels.json*` / `.graphify_root` files. Gitignored:
-  `graphify-out/cache/`, dated backups (`graphify-out/YYYY-MM-DD/`), and
-  `graphify-out/manifest.json` — the manifest is a local scan cache storing
-  per-file `mtime`/`seen` timestamps that change on every rebuild regardless of
-  content, so committing it both churns and carries machine-specific mtimes
-  across clones.
-- The issue-worker skill-suite source was briefly checked out inside this repo
-  and made up **68.5% of all graph nodes** (146 of 213) — the god-node list
-  described the skill suite instead of the project. It was gitignored, then
-  relocated out of the repo to
-  `~/.claude/skill-sources/claude-code-issue-worker-skill-suite/`; the ignore
-  entry is gone because the directory is. If a future graph's communities start
-  naming skills or harnesses, find the vendored tooling and move it out before
-  trusting any graph conclusion.
-- Git hooks installed (`graphify hook install`): post-commit and post-checkout
-  rebuild the graph, plus a `merge=graphify` union merge driver for
-  `graphify-out/graph.json` (declared in `.gitattributes`).
-- Claude Code integration installed (`graphify claude install`, nudge mode): repo
-  `CLAUDE.md` graphify section is committed; the PreToolUse hook lives in the
-  gitignored `.claude/settings.local.json` because graphify's generated hook
-  embeds an absolute interpreter path that would break other clones. Each machine
-  re-runs `graphify claude install` itself.
-- MCP: the `graphify-mcp` stdio server ships with the `[mcp]` extra. Always pass
-  `project_path` on every `mcp__graphify__*` call — see the skill's
-  `references/graphify-mcp-project-path.md` and `references/graphify-setup.md`.
+graphify remains installed locally as an optional navigation aid. As of
+2026-08-16 the CI `graph` job, the branch-protection `graph` context, the
+freshness gate, and the tracked `graphify-out/` outputs are all removed —
+they caused repeated PR merge conflicts (GitHub server-side merges cannot
+use the custom union merge driver) and stale-graph CI failures during
+parallel development. Outputs are gitignored; regenerate locally with
+`graphify update .` when useful. Machines that had `graphify hook install`
+should run `graphify hook uninstall` to stop post-commit rebuilds.
 
 ## CI
 

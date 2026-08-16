@@ -33,7 +33,7 @@ class WorkflowPolicyTests(unittest.TestCase):
 
     def test_missing_protected_context_is_rejected(self) -> None:
         broken = copy.deepcopy(self.ci)
-        del broken["jobs"]["graph"]
+        del broken["jobs"]["secrets"]
         errors = validate_workflows(broken, self.deploy)
         self.assertTrue(any("protected job names" in error for error in errors))
 
