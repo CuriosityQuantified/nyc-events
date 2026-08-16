@@ -2,8 +2,10 @@ import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import BottomNav from "./BottomNav";
 import EventCard from "./EventCard";
+import FilterChips from "./FilterChips";
 import ListMapToggle from "./ListMapToggle";
 import type { ParkEvent } from "@/app/data/events";
+import { EMPTY_FILTERS } from "@/app/data/filters";
 
 afterEach(cleanup);
 
@@ -14,15 +16,56 @@ const event: ParkEvent = {
   location: "Long Meadow",
   borough: "Brooklyn",
   category: "Fitness",
+  categories: ["Fitness"],
+  startDate: "2026-08-16",
   date: "Aug 16, 2026",
   time: "7:30 AM",
   costType: "Free",
   registration: "Registration required",
+  registrationStatus: "required",
   accessibility:
     "Accessibility information is mentioned in the official listing",
   imageAlt: "People doing yoga on a meadow",
   officialUrl: "https://www.nycgovparks.org/events/test-event",
 };
+
+describe("FilterChips", () => {
+  it("exposes all four filter groups and reports a removable selection", () => {
+    const onChange = vi.fn();
+    render(<FilterChips filters={EMPTY_FILTERS} onChange={onChange} />);
+
+    expect(screen.getByRole("group", { name: "Borough" })).toBeTruthy();
+    expect(screen.getByRole("group", { name: "Category" })).toBeTruthy();
+    expect(screen.getByRole("group", { name: "Date range" })).toBeTruthy();
+    expect(screen.getByRole("group", { name: "Registration" })).toBeTruthy();
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Add Borough: Queens" }),
+    );
+    expect(onChange).toHaveBeenCalledWith({
+      ...EMPTY_FILTERS,
+      borough: "Queens",
+    });
+  });
+
+  it("removes an active chip and clears combined state", () => {
+    const onChange = vi.fn();
+    const filters = {
+      ...EMPTY_FILTERS,
+      borough: "Queens" as const,
+      category: "Nature" as const,
+    };
+    render(<FilterChips filters={filters} onChange={onChange} />);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Remove Borough: Queens" }),
+    );
+    expect(onChange).toHaveBeenCalledWith({ ...filters, borough: null });
+
+    fireEvent.click(screen.getByRole("button", { name: "Clear all filters" }));
+    expect(onChange).toHaveBeenLastCalledWith(EMPTY_FILTERS);
+  });
+});
 
 describe("ListMapToggle", () => {
   it("reports a map selection and exposes the current state", () => {
