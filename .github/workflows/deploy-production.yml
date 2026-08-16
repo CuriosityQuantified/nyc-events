@@ -31,7 +31,8 @@ jobs:
       previous_revision: ${{ steps.before.outputs.revision }}
       deployment_id: ${{ steps.wait.outputs.deployment_id }}
     env:
-      RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      CONFIGURED_RAILWAY_PROJECT_ID: ${{ vars.RAILWAY_PROJECT_ID }}
       CONFIGURED_PUBLIC_ORIGIN: ${{ vars.BACKEND_PUBLIC_ORIGIN }}
       EXPECTED_DEPLOY_REVISION: ${{ github.sha }}
       ROLLBACK_DRILL: ${{ inputs.rollback_drill || false }}
@@ -58,19 +59,22 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -n "$RAILWAY_API_TOKEN" || { echo "::error::RAILWAY_API_TOKEN is missing from the production environment"; exit 1; }
+          test -n "$RAILWAY_TOKEN" || { echo "::error::RAILWAY_TOKEN is missing from the production environment"; exit 1; }
+          test -n "$CONFIGURED_RAILWAY_PROJECT_ID" || { echo "::error::RAILWAY_PROJECT_ID is missing from the production environment"; exit 1; }
 
       - name: Discover the exact backend service and public origin
         id: railway
         run: |
           set -euo pipefail
+          mkdir -p artifacts/backend-deployment
           python3 scripts/deploy/railway_release.py discover \
-            --project-name nyc-events \
+            --project-id "$CONFIGURED_RAILWAY_PROJECT_ID" \
             --service-name backend \
             --environment production \
             --origin "$CONFIGURED_PUBLIC_ORIGIN" \
             --github-output "$GITHUB_OUTPUT" \
-            --github-env "$GITHUB_ENV"
+            --github-env "$GITHUB_ENV" \
+            --evidence-output artifacts/backend-deployment/discovery.json
 
       - name: Record the active backend deployment before cutover
         id: before
@@ -179,7 +183,7 @@ jobs:
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.rollback_drill }}
         run: |
           set -euo pipefail
-          railway api 'mutation($id: String!) { deploymentRollback(id: $id) }' \
+          railway api "mutation(\$id: String!) { deploymentRollback(id: \$id) }" \
             --var id="$DEPLOYMENT_ID" \
             > artifacts/backend-deployment/drill-rollback.json
           python3 scripts/deploy/railway_release.py wait-revision \
@@ -194,7 +198,7 @@ jobs:
         run: |
           set -euo pipefail
           test -n "$PREVIOUS_DEPLOYMENT_ID" || { echo "::error::no backend rollback target exists"; exit 1; }
-          railway api 'mutation($id: String!) { deploymentRollback(id: $id) }' \
+          railway api "mutation(\$id: String!) { deploymentRollback(id: \$id) }" \
             --var id="$PREVIOUS_DEPLOYMENT_ID" > artifacts/backend-deployment/failure-rollback.json
           if [ -n "$PREVIOUS_REVISION" ]; then
             python3 scripts/deploy/railway_release.py wait-revision \
@@ -217,7 +221,8 @@ jobs:
     timeout-minutes: 60
     environment: production
     env:
-      RAILWAY_API_TOKEN: ${{ secrets.RAILWAY_API_TOKEN }}
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      CONFIGURED_RAILWAY_PROJECT_ID: ${{ vars.RAILWAY_PROJECT_ID }}
       CONFIGURED_PUBLIC_ORIGIN: ${{ vars.FRONTEND_PUBLIC_ORIGIN }}
       EXPECTED_DEPLOY_REVISION: ${{ github.sha }}
       ROLLBACK_DRILL: ${{ inputs.rollback_drill || false }}
@@ -249,7 +254,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          test -n "$RAILWAY_API_TOKEN" || { echo "::error::RAILWAY_API_TOKEN is missing from the production environment"; exit 1; }
+          test -n "$RAILWAY_TOKEN" || { echo "::error::RAILWAY_TOKEN is missing from the production environment"; exit 1; }
+          test -n "$CONFIGURED_RAILWAY_PROJECT_ID" || { echo "::error::RAILWAY_PROJECT_ID is missing from the production environment"; exit 1; }
 
       - name: Install locked browser and deployment tooling
         working-directory: frontend
@@ -262,13 +268,15 @@ jobs:
         id: railway
         run: |
           set -euo pipefail
+          mkdir -p artifacts/deployment
           python3 scripts/deploy/railway_release.py discover \
-            --project-name nyc-events \
+            --project-id "$CONFIGURED_RAILWAY_PROJECT_ID" \
             --service-name frontend \
             --environment production \
             --origin "$CONFIGURED_PUBLIC_ORIGIN" \
             --github-output "$GITHUB_OUTPUT" \
-            --github-env "$GITHUB_ENV"
+            --github-env "$GITHUB_ENV" \
+            --evidence-output artifacts/deployment/discovery.json
 
       - name: Record the active deployment and revision before cutover
         id: before
@@ -369,7 +377,7 @@ jobs:
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.rollback_drill }}
         run: |
           set -euo pipefail
-          railway api 'mutation($id: String!) { deploymentRollback(id: $id) }' \
+          railway api "mutation(\$id: String!) { deploymentRollback(id: \$id) }" \
             --var id="$DEPLOYMENT_ID" \
             > artifacts/deployment/drill-rollback.json
           python3 scripts/deploy/railway_release.py wait-revision \
@@ -391,7 +399,7 @@ jobs:
         run: |
           set -euo pipefail
           test -n "$PREVIOUS_DEPLOYMENT_ID" || { echo "::error::no rollback target exists"; exit 1; }
-          railway api 'mutation($id: String!) { deploymentRollback(id: $id) }' \
+          railway api "mutation(\$id: String!) { deploymentRollback(id: \$id) }" \
             --var id="$PREVIOUS_DEPLOYMENT_ID" > artifacts/deployment/failure-rollback.json
           if [ -n "$PREVIOUS_REVISION" ]; then
             python3 scripts/deploy/railway_release.py wait-revision \
@@ -400,7 +408,7 @@ jobs:
               --output artifacts/deployment/failure-rollback-cutover.json
           fi
           test -n "$BACKEND_PREVIOUS_DEPLOYMENT_ID" || { echo "::error::no backend rollback target exists"; exit 1; }
-          railway api 'mutation($id: String!) { deploymentRollback(id: $id) }' \
+          railway api "mutation(\$id: String!) { deploymentRollback(id: \$id) }" \
             --var id="$BACKEND_PREVIOUS_DEPLOYMENT_ID" \
             > artifacts/deployment/failure-backend-rollback.json
           if [ -n "$BACKEND_PREVIOUS_REVISION" ]; then

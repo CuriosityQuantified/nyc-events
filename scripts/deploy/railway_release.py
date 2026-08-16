@@ -136,8 +136,27 @@ def write_outputs(path: str | None, values: dict[str, str]) -> None:
             handle.write(f"{key}={value}\n")
 
 
+def write_status_evidence(
+    path: str | None,
+    status: str,
+    error_type: str | None = None,
+) -> None:
+    if not path:
+        return
+    evidence: dict[str, str] = {"status": status}
+    if error_type:
+        evidence["errorType"] = error_type
+    output = Path(path)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(json.dumps(evidence, indent=2) + "\n", encoding="utf-8")
+
+
 def discover(args: argparse.Namespace) -> int:
-    project = exact_named(run_json(["railway", "list", "--json"]), args.project_name, "project")
+    write_status_evidence(args.evidence_output, "started")
+    if args.project_id:
+        project = {"id": args.project_id}
+    else:
+        project = exact_named(run_json(["railway", "list", "--json"]), args.project_name, "project")
     services = run_json(
         ["railway", "service", "list", "--project", project["id"], "--environment", args.environment, "--json"]
     )
@@ -171,6 +190,7 @@ def discover(args: argparse.Namespace) -> int:
             "PUBLIC_ORIGIN": origin,
         },
     )
+    write_status_evidence(args.evidence_output, "success")
     return 0
 
 
@@ -276,12 +296,15 @@ def parser() -> argparse.ArgumentParser:
     commands = root.add_subparsers(dest="command", required=True)
 
     discover_parser = commands.add_parser("discover")
-    discover_parser.add_argument("--project-name", required=True)
+    project = discover_parser.add_mutually_exclusive_group(required=True)
+    project.add_argument("--project-id")
+    project.add_argument("--project-name")
     discover_parser.add_argument("--service-name", required=True)
     discover_parser.add_argument("--environment", required=True)
     discover_parser.add_argument("--origin", default="")
     discover_parser.add_argument("--github-output")
     discover_parser.add_argument("--github-env")
+    discover_parser.add_argument("--evidence-output")
     discover_parser.set_defaults(handler=discover)
 
     for name, handler in (("snapshot", snapshot), ("wait-deployment", wait_deployment)):
@@ -320,6 +343,11 @@ def main() -> int:
     try:
         return args.handler(args)
     except (OSError, subprocess.CalledProcessError, TimeoutError, ValueError, RuntimeError) as error:
+        write_status_evidence(
+            getattr(args, "evidence_output", None),
+            "failed",
+            type(error).__name__,
+        )
         print(f"ERROR: {error}", file=sys.stderr)
         return 1
 
