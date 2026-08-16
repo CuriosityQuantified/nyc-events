@@ -36,6 +36,8 @@ describe("filtered events route", () => {
         category: "Nature",
         date: "weekend",
         registration: "required",
+        dateFrom: null,
+        dateTo: null,
       },
       2,
       12,
@@ -77,7 +79,14 @@ describe("filtered events route", () => {
     );
     expect(response.status).toBe(200);
     expect(getFilteredEvents).toHaveBeenCalledWith(
-      { borough: null, category: null, date: null, registration: null },
+      {
+        borough: null,
+        category: null,
+        date: null,
+        registration: null,
+        dateFrom: null,
+        dateTo: null,
+      },
       1,
       100,
     );
