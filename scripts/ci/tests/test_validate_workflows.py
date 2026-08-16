@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import copy
+import subprocess
 import sys
 import unittest
 from pathlib import Path
@@ -116,6 +117,40 @@ class WorkflowPolicyTests(unittest.TestCase):
         errors = validate_workflows(self.ci, broken)
         self.assertTrue(any("project-scoped RAILWAY_TOKEN" in error for error in errors))
 
+    def test_only_sync_worker_receives_account_auth_for_service_creation(self) -> None:
+        sync_steps = self.deploy["jobs"]["deploy-sync-worker"]["steps"]
+        creation_step = next(
+            step for step in sync_steps if "configure-sync-worker" in step.get("run", "")
+        )
+        self.assertEqual(
+            creation_step.get("env", {}).get("RAILWAY_API_TOKEN"),
+            "${{ secrets.RAILWAY_API_TOKEN }}",
+        )
+        for job_name in ("deploy-backend", "deploy-frontend"):
+            self.assertNotIn("RAILWAY_API_TOKEN", self.deploy["jobs"][job_name]["env"])
+
+    def test_sync_creation_rejects_missing_workspace_auth(self) -> None:
+        broken = copy.deepcopy(self.deploy)
+        creation_step = next(
+            step
+            for step in broken["jobs"]["deploy-sync-worker"]["steps"]
+            if "configure-sync-worker" in step.get("run", "")
+        )
+        creation_step.pop("env")
+        errors = validate_workflows(self.ci, broken)
+        self.assertTrue(any("workspace Railway auth" in error for error in errors))
+
+    def test_workspace_auth_is_rejected_outside_sync_creation(self) -> None:
+        broken = copy.deepcopy(self.deploy)
+        backend_step = broken["jobs"]["deploy-backend"]["steps"][0]
+        backend_step["env"] = {
+            "RAILWAY_API_TOKEN": "${{ secrets.RAILWAY_API_TOKEN }}"
+        }
+        errors = validate_workflows(self.ci, broken)
+        self.assertTrue(
+            any("outside sync creation" in error for error in errors)
+        )
+
     def test_deployment_requires_configured_project_id(self) -> None:
         broken = copy.deepcopy(self.deploy)
         broken["jobs"]["deploy-backend"]["env"].pop("CONFIGURED_RAILWAY_PROJECT_ID", None)
@@ -156,6 +191,54 @@ class WorkflowPolicyTests(unittest.TestCase):
             ]
             self.assertEqual(initializers, [0])
             self.assertLess(initializers[0], checkout)
+
+    def test_backend_remote_execution_requires_noninteractive_ssh_identity(
+        self,
+    ) -> None:
+        backend = self.deploy["jobs"]["deploy-backend"]
+        self.assertEqual(
+            backend["env"].get("RAILWAY_SSH_PRIVATE_KEY"),
+            "${{ secrets.RAILWAY_SSH_PRIVATE_KEY }}",
+        )
+        backend_text = str(backend)
+        self.assertIn("--identity-file", backend_text)
+        self.assertIn("RAILWAY_SSH_IDENTITY", backend_text)
+
+    def test_backend_remote_execution_pins_the_railway_host_key(self) -> None:
+        backend_text = str(self.deploy["jobs"]["deploy-backend"])
+        known_hosts = ROOT / "scripts/deploy/railway_known_hosts"
+
+        self.assertIn("UserKnownHostsFile", backend_text)
+        self.assertIn("StrictHostKeyChecking yes", backend_text)
+        self.assertIn("BatchMode yes", backend_text)
+        self.assertNotIn("StrictHostKeyChecking no", backend_text)
+        self.assertNotIn("StrictHostKeyChecking accept-new", backend_text)
+        result = subprocess.run(
+            ["ssh-keygen", "-lf", str(known_hosts)],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        self.assertIn(
+            "SHA256:+S1xg92FrnHz6pY3bpkmh1OGtWQGNANXilPzlxA7B1g",
+            result.stdout,
+        )
+
+    def test_rollbacks_wait_for_terminal_deployment_before_revision(self) -> None:
+        rollback_steps = [
+            step["run"]
+            for job_name in ("deploy-backend", "deploy-sync-worker", "deploy-frontend")
+            for step in self.deploy["jobs"][job_name]["steps"]
+            if "deploymentRollback" in step.get("run", "")
+            and "wait-revision" in step.get("run", "")
+        ]
+        self.assertGreaterEqual(len(rollback_steps), 5)
+        for run in rollback_steps:
+            with self.subTest(run=run):
+                self.assertIn("wait-deployment", run)
+                self.assertLess(
+                    run.index("wait-deployment"), run.index("wait-revision")
+                )
 
 
 if __name__ == "__main__":

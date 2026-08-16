@@ -91,8 +91,10 @@ def validate_workflows(ci: dict[str, Any], deploy: dict[str, Any]) -> list[str]:
 
     for job_name in DEPLOY_JOBS & set(deploy_jobs):
         env = deploy_jobs[job_name].get("env", {})
-        if env.get("RAILWAY_TOKEN") != "${{ secrets.RAILWAY_TOKEN }}" or "RAILWAY_API_TOKEN" in env:
+        if env.get("RAILWAY_TOKEN") != "${{ secrets.RAILWAY_TOKEN }}":
             errors.append(f"deployment job {job_name} must use the project-scoped RAILWAY_TOKEN secret")
+        if "RAILWAY_API_TOKEN" in env:
+            errors.append(f"deployment job {job_name} exposes workspace auth outside one step")
         if env.get("CONFIGURED_RAILWAY_PROJECT_ID") != "${{ vars.RAILWAY_PROJECT_ID }}":
             errors.append(f"deployment job {job_name} must use the configured RAILWAY_PROJECT_ID variable")
         job_text = str(deploy_jobs[job_name])
@@ -119,6 +121,64 @@ def validate_workflows(ci: dict[str, Any], deploy: dict[str, Any]) -> list[str]:
             or "RUNNER_TEMP" not in steps[0].get("run", "")
         ):
             errors.append(f"deployment job {job_name} must initialize failure evidence before checkout")
+
+    sync_steps = deploy_jobs.get("deploy-sync-worker", {}).get("steps", [])
+    configure_steps = [
+        step
+        for step in sync_steps
+        if "configure-sync-worker" in step.get("run", "")
+    ]
+    if len(configure_steps) != 1 or configure_steps[0].get("env", {}).get(
+        "RAILWAY_API_TOKEN"
+    ) != "${{ secrets.RAILWAY_API_TOKEN }}":
+        errors.append(
+            "sync-worker creation must receive workspace Railway auth in one step"
+        )
+    for job_name, job in deploy_jobs.items():
+        for step in job.get("steps", []):
+            if step in configure_steps:
+                continue
+            if "RAILWAY_API_TOKEN" in step.get("env", {}):
+                errors.append(
+                    f"deployment job {job_name} exposes workspace auth outside sync creation"
+                )
+
+    backend = deploy_jobs.get("deploy-backend", {})
+    backend_env = backend.get("env", {})
+    backend_text = str(backend)
+    if (
+        backend_env.get("RAILWAY_SSH_PRIVATE_KEY")
+        != "${{ secrets.RAILWAY_SSH_PRIVATE_KEY }}"
+    ):
+        errors.append(
+            "backend deployment must use the dedicated Railway SSH identity secret"
+        )
+    for required in (
+        "--identity-file",
+        "RAILWAY_SSH_IDENTITY",
+        "scripts/deploy/railway_known_hosts",
+        "UserKnownHostsFile",
+        "StrictHostKeyChecking yes",
+        "BatchMode yes",
+        "SHA256:+S1xg92FrnHz6pY3bpkmh1OGtWQGNANXilPzlxA7B1g",
+    ):
+        if required not in backend_text:
+            errors.append(f"backend deployment SSH is missing {required}")
+    for forbidden in ("StrictHostKeyChecking no", "StrictHostKeyChecking accept-new"):
+        if forbidden in backend_text:
+            errors.append(f"backend deployment SSH contains unsafe {forbidden}")
+
+    for job_name in DEPLOY_JOBS:
+        for step in deploy_jobs.get(job_name, {}).get("steps", []):
+            run = step.get("run", "")
+            if "deploymentRollback" not in run or "wait-revision" not in run:
+                continue
+            if "wait-deployment" not in run or run.index("wait-deployment") > run.index(
+                "wait-revision"
+            ):
+                errors.append(
+                    f"deployment job {job_name} must verify rollback deployment before revision"
+                )
 
     for workflow_name, workflow in (("CI", ci), ("deployment", deploy)):
         for job_name, step in iter_steps(workflow):

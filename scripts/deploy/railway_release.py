@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 import time
@@ -61,10 +62,21 @@ def run_json(command: list[str], operation: str = "railway-command") -> Any:
     return parse_json_output(result.stdout)
 
 
-def run_command(command: list[str], operation: str) -> None:
+def run_command(
+    command: list[str],
+    operation: str,
+    *,
+    environment: dict[str, str] | None = None,
+) -> None:
     """Run a mutation without returning or logging credential-bearing output."""
     try:
-        subprocess.run(command, check=True, capture_output=True, text=True)
+        subprocess.run(
+            command,
+            check=True,
+            capture_output=True,
+            text=True,
+            env=environment,
+        )
     except subprocess.CalledProcessError as error:
         raise RailwayCommandError(
             operation,
@@ -243,6 +255,15 @@ def _service_reference(service: str, variable: str) -> str:
     return "${{" + f"{service}.{variable}" + "}}"
 
 
+def _service_creation_environment() -> dict[str, str]:
+    """Use workspace auth only for the service-creation boundary."""
+    environment = os.environ.copy()
+    if not environment.get("RAILWAY_API_TOKEN"):
+        raise ValueError("workspace Railway API token is required to create sync-worker")
+    environment.pop("RAILWAY_TOKEN", None)
+    return environment
+
+
 def configure_sync_worker(args: argparse.Namespace) -> int:
     """Create or reconcile the scheduled worker without exposing secret values."""
     write_status_evidence(args.evidence_output, "started")
@@ -265,6 +286,7 @@ def configure_sync_worker(args: argparse.Namespace) -> int:
     if len({record["id"] for record in matches}) > 1:
         raise ValueError(f"multiple Railway services named {args.service_name!r}")
     if not matches:
+        creation_environment = _service_creation_environment()
         run_command(
             [
                 "railway",
@@ -275,10 +297,12 @@ def configure_sync_worker(args: argparse.Namespace) -> int:
                 args.environment,
             ],
             "sync-project-link",
+            environment=creation_environment,
         )
         run_command(
             ["railway", "add", "--service", args.service_name, "--json"],
             "sync-service-create",
+            environment=creation_environment,
         )
         services = run_json(service_list, "sync-service-verify")
     service = exact_named(services, args.service_name, "service")

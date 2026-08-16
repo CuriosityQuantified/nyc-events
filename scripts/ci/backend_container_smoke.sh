@@ -25,15 +25,52 @@ docker run -d --name "$POSTGRES" --network "$NETWORK" \
   -e POSTGRES_PASSWORD=postgres -e POSTGRES_DB=nyc_events postgres:16-alpine >/dev/null
 docker run -d --name "$REDIS" --network "$NETWORK" redis:7-alpine >/dev/null
 
-for _ in $(seq 1 60); do
-  if docker exec "$POSTGRES" pg_isready -U postgres -d nyc_events >/dev/null 2>&1 && \
-     docker exec "$REDIS" redis-cli ping 2>/dev/null | grep -q PONG; then
-    break
+READINESS_MAX_PROBES=${READINESS_MAX_PROBES:-60}
+READINESS_STABLE_PROBES=${READINESS_STABLE_PROBES:-3}
+READINESS_INTERVAL_SECONDS=${READINESS_INTERVAL_SECONDS:-1}
+READINESS_LOG="$EVIDENCE/readiness.log"
+: >"$READINESS_LOG"
+stable_probes=0
+services_ready=false
+
+for probe in $(seq 1 "$READINESS_MAX_PROBES"); do
+  postgres_ready=false
+  redis_ready=false
+  if docker exec "$POSTGRES" pg_isready -U postgres -d nyc_events >/dev/null 2>&1; then
+    postgres_ready=true
   fi
-  sleep 1
+  if docker exec "$REDIS" redis-cli ping 2>/dev/null | grep -q PONG; then
+    redis_ready=true
+  fi
+
+  if [[ "$postgres_ready" == true && "$redis_ready" == true ]]; then
+    stable_probes=$((stable_probes + 1))
+    printf 'probe=%s postgres=ready redis=ready stable=%s/%s\n' \
+      "$probe" "$stable_probes" "$READINESS_STABLE_PROBES" >>"$READINESS_LOG"
+    if (( stable_probes >= READINESS_STABLE_PROBES )); then
+      services_ready=true
+      break
+    fi
+  else
+    if (( stable_probes > 0 )); then
+      printf 'probe=%s readiness reset after %s stable probe(s)\n' \
+        "$probe" "$stable_probes" >>"$READINESS_LOG"
+    fi
+    stable_probes=0
+    printf 'probe=%s postgres=%s redis=%s stable=0/%s\n' \
+      "$probe" "$postgres_ready" "$redis_ready" "$READINESS_STABLE_PROBES" \
+      >>"$READINESS_LOG"
+  fi
+  sleep "$READINESS_INTERVAL_SECONDS"
 done
-docker exec "$POSTGRES" pg_isready -U postgres -d nyc_events >/dev/null
-docker exec "$REDIS" redis-cli ping | grep -q PONG
+
+if [[ "$services_ready" != true ]]; then
+  docker inspect "$POSTGRES" >"$EVIDENCE/postgres-inspect.json" 2>&1 || true
+  docker inspect "$REDIS" >"$EVIDENCE/redis-inspect.json" 2>&1 || true
+  printf 'backend smoke dependencies never reached %s consecutive ready probes; see %s and container logs\n' \
+    "$READINESS_STABLE_PROBES" "$READINESS_LOG" >&2
+  exit 1
+fi
 
 docker build -t "$IMAGE" "$ROOT/backend"
 DATABASE_URL="postgresql+asyncpg://postgres:postgres@$POSTGRES:5432/nyc_events"

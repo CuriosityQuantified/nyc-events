@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getEvents } from "@/app/data/events";
+import { getFilteredEvents } from "@/app/data/events";
+import { parseStrictFilterSearchParams } from "@/app/data/filters";
 
 export const dynamic = "force-dynamic";
 
@@ -12,8 +13,12 @@ export async function GET(request: NextRequest) {
     );
   }
   try {
-    return NextResponse.json(await getEvents(Number(value)));
-  } catch {
+    const filters = parseStrictFilterSearchParams(request.nextUrl.searchParams);
+    return NextResponse.json(await getFilteredEvents(filters, Number(value)));
+  } catch (error) {
+    if (error instanceof TypeError && error.message.startsWith("Invalid ")) {
+      return NextResponse.json({ error: error.message }, { status: 400 });
+    }
     return NextResponse.json(
       { error: "Events are unavailable" },
       { status: 503 },

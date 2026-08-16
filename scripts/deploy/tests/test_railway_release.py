@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 import sys
 import tempfile
@@ -170,6 +171,14 @@ restartPolicyType = "NEVER"
                 evidence_output=None,
             )
             with (
+                patch.dict(
+                    os.environ,
+                    {
+                        "RAILWAY_TOKEN": "project-token",
+                        "RAILWAY_API_TOKEN": "workspace-token",
+                    },
+                    clear=True,
+                ),
                 patch(
                     "scripts.deploy.railway_release.run_json",
                     side_effect=[[], [{"id": "sync-1", "name": "sync-worker"}]],
@@ -179,8 +188,16 @@ restartPolicyType = "NEVER"
                 self.assertEqual(configure_sync_worker(args), 0)
 
         operations = [call.args[1] for call in run.call_args_list]
+        self.assertEqual(operations.count("sync-project-link"), 1)
         self.assertEqual(operations.count("sync-service-create"), 1)
         self.assertEqual(operations.count("sync-service-configure"), 1)
+        for creation_call in run.call_args_list[:2]:
+            creation_environment = creation_call.kwargs["environment"]
+            self.assertNotIn("RAILWAY_TOKEN", creation_environment)
+            self.assertEqual(
+                creation_environment["RAILWAY_API_TOKEN"],
+                "workspace-token",
+            )
 
     def test_failed_discovery_writes_actionable_sanitized_evidence(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
