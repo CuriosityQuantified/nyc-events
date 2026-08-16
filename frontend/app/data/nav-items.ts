@@ -14,7 +14,7 @@ export interface NavItem {
 export const coreNavItems: NavItem[] = [
   { id: "explore", label: "Explore", icon: "🔍", href: "/" },
   { id: "saved", label: "Saved", icon: "♥", href: "/saved" },
-  { id: "concierge", label: "Concierge", icon: "💬", href: null },
+  { id: "concierge", label: "Concierge", icon: "💬", href: "/concierge" },
   { id: "profile", label: "Profile", icon: "👤", href: "/profile" },
 ];
 
@@ -22,6 +22,6 @@ export const coreNavItems: NavItem[] = [
 export const sidebarNavItems: NavItem[] = [
   { id: "explore", label: "Explore", icon: "🔍", href: "/" },
   { id: "saved", label: "Saved Events", icon: "♥", href: "/saved" },
-  { id: "concierge", label: "Concierge", icon: "💬", href: null },
+  { id: "concierge", label: "Concierge", icon: "💬", href: "/concierge" },
   { id: "profile", label: "Profile", icon: "👤", href: "/profile" },
 ];
