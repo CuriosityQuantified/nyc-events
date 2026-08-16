@@ -54,6 +54,7 @@ async def _upsert_interest(
     alert_enabled: bool,
     origin: str,
     idempotency_key: str | None,
+    facets: list[dict[str, str]] | None = None,
 ) -> Interest:
     statement = insert(Interest).values(
         profile_id=profile_id,
@@ -63,6 +64,7 @@ async def _upsert_interest(
         alert_enabled=alert_enabled,
         origin=origin,
         origin_idempotency_key=idempotency_key,
+        facets=facets,
     )
     interest_id = await session.scalar(
         statement.on_conflict_do_update(
@@ -76,6 +78,7 @@ async def _upsert_interest(
                 "alert_enabled": statement.excluded.alert_enabled,
                 "origin": statement.excluded.origin,
                 "origin_idempotency_key": statement.excluded.origin_idempotency_key,
+                "facets": statement.excluded.facets,
                 "updated_at": datetime.now(UTC),
             },
         ).returning(Interest.id)
@@ -108,6 +111,55 @@ async def set_manual_interest(
         alert_enabled=alert_enabled,
         origin="manual",
         idempotency_key=None,
+    )
+
+
+_FACET_ORDER = {"borough": 0, "category": 1, "registration": 2}
+
+
+async def set_manual_composite_interest(
+    session: AsyncSession,
+    *,
+    profile_id: UUID,
+    facets: list[tuple[str, str]],
+    alert_enabled: bool,
+) -> Interest:
+    """Validate and persist one combined-Facet Interest (AND semantics)."""
+    if not 2 <= len(facets) <= 3:
+        raise PreferenceValidationError("A combined Interest needs 2 or 3 Facets")
+    normalized: list[dict[str, str]] = []
+    for facet_type, facet_value in facets:
+        normalized_type, normalized_value = _normalize_preference(
+            facet_type, facet_value
+        )
+        normalized.append(
+            {
+                "facet_type": normalized_type,
+                "facet_value": facet_value.strip(),
+                "normalized_value": normalized_value,
+            }
+        )
+    if len({member["facet_type"] for member in normalized}) != len(normalized):
+        raise PreferenceValidationError(
+            "A combined Interest uses each Facet type at most once"
+        )
+    normalized.sort(key=lambda member: _FACET_ORDER[member["facet_type"]])
+    canonical = "|".join(
+        f"{member['facet_type']}:{member['normalized_value']}" for member in normalized
+    )
+    if len(canonical) > 100:
+        raise PreferenceValidationError("Combined Interest is too long")
+    display = " + ".join(member["facet_value"] for member in normalized)[:100]
+    return await _upsert_interest(
+        session,
+        profile_id=profile_id,
+        facet_type="composite",
+        facet_value=display,
+        normalized_value=canonical,
+        alert_enabled=alert_enabled,
+        origin="manual",
+        idempotency_key=None,
+        facets=normalized,
     )
 
 
@@ -191,18 +243,30 @@ async def apply_concierge_preference(
     return interest
 
 
-def _event_matches_interest(event: CurrentEvent, interest: Interest) -> bool:
-    if interest.facet_type == "borough":
-        return (event.borough or "").casefold() == interest.normalized_value
-    if interest.facet_type == "category":
+def _matches_facet(event: CurrentEvent, facet_type: str, normalized_value: str) -> bool:
+    if facet_type == "borough":
+        return (event.borough or "").casefold() == normalized_value
+    if facet_type == "category":
         return any(
-            category.casefold() == interest.normalized_value
+            category.casefold() == normalized_value
             for category in event.categories or []
         )
-    if interest.facet_type == "registration":
+    if facet_type == "registration":
         registration = event.registration_status or "not_listed"
-        return registration.casefold() == interest.normalized_value
-    return False  # pragma: no cover - database constraint guard
+        return registration.casefold() == normalized_value
+    return False
+
+
+def _event_matches_interest(event: CurrentEvent, interest: Interest) -> bool:
+    facets = interest.facets or None
+    if facets:
+        # A composite Interest matches only when the Event satisfies every
+        # member Facet — "Brooklyn + Family" is an AND, not two follows.
+        return all(
+            _matches_facet(event, member["facet_type"], member["normalized_value"])
+            for member in facets
+        )
+    return _matches_facet(event, interest.facet_type, interest.normalized_value)
 
 
 async def match_new_events(session: AsyncSession) -> int:

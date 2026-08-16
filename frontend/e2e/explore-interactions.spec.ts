@@ -223,6 +223,54 @@ test.describe("Explore layout stability and interactions", () => {
     expect(after!.width).toBe(before!.width);
   });
 
+  test("a multi-filter combination can be followed as one Interest", async ({
+    page,
+  }) => {
+    await installRoutes(page);
+    let compositeBody: unknown = null;
+    await page.route("**/api/profile/interests", async (route) => {
+      compositeBody = route.request().postDataJSON();
+      await route.fulfill({
+        json: {
+          id: "22222222-3333-4444-5555-666666666666",
+          facetType: "composite",
+          facetValue: "Queens + Family",
+          facets: [
+            { facetType: "borough", facetValue: "Queens" },
+            { facetType: "category", facetValue: "Best for Kids" },
+          ],
+          alertEnabled: true,
+          origin: "manual",
+        },
+      });
+    });
+    await page.goto("/?borough=Queens&category=Best%20for%20Kids");
+
+    const combined = page.getByRole("button", {
+      name: "Follow Queens + Family (combined)",
+    });
+    await expect(combined).toBeVisible();
+    await combined.click();
+    await expect(
+      page.getByRole("button", { name: /Following Queens \+ Family/ }),
+    ).toHaveAttribute("aria-pressed", "true");
+    expect(compositeBody).toEqual({
+      facets: [
+        { facet_type: "borough", facet_value: "Queens" },
+        { facet_type: "category", facet_value: "Best for Kids" },
+      ],
+      alert_enabled: true,
+    });
+
+    // The individual follow buttons remain available beside the combination.
+    await expect(
+      page.getByRole("button", { name: "Follow Queens", exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: "Follow Family", exact: true }),
+    ).toBeVisible();
+  });
+
   test("hearting an event keeps the card in place and toggles state", async ({
     page,
   }) => {
