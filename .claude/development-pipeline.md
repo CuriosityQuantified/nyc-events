@@ -22,9 +22,11 @@ Last verified: 2026-08-15.
   on persistent branch `frontend`.
 - **Commit identity**: `CuriosityQuantified <curiosityquantified@gmail.com>`.
 
-## Current state — NO application code yet
+## Current state
 
-The repo contains only specification and design artifacts:
+The repository now has a FastAPI backend, a Next.js frontend, shared OpenAPI
+contracts, deterministic fixtures, and production-grade CI/CD. The historical
+specification and design artifacts remain binding where the ADRs say they do:
 
 - `HANDOFF.md` — product concept, NYC Parks "Upcoming 14 Days" data source,
   sync/ingestion requirements. Binds as the project spec.
@@ -66,14 +68,20 @@ issues, and PRs.
 
 ## Gate commands
 
-- **Env**: not yet provisioned in-tree. No `backend/`, no `frontend/package.json`,
-  no lockfile. The stack above is decided but uncreated — the scaffold issues
-  stand it up.
-- **Unit tests**: `cd backend && uv run pytest -v`. **No test may reach the
-  network** (`docs/adr/0005`); fixtures live in `backend/tests/fixtures/`.
-- **Build**: `cd frontend && npm run build`.
-- **Regressions**: Playwright MCP UAT, from the first UI issue onward, at both a
-  phone and a desktop viewport.
+- **Backend quality**: `cd backend && uv sync --frozen && uv lock --check &&
+  uv run ruff format --check . && uv run ruff check . && uv run mypy app`.
+- **Backend tests**: `cd backend && uv run pytest -v --cov=app
+  --cov-report=xml:coverage.xml --cov-fail-under=80`. Tests require real
+  Postgres and Redis but never call a third-party API (`docs/adr/0005`).
+- **Backend image**: `./scripts/ci/backend_container_smoke.sh`.
+- **Contracts**: `uv run contracts/validate_contract.py`, contract mock
+  unittests, real backend response validation, and the frontend golden consumer.
+- **Frontend**: `cd frontend && npm ci && npm run format:check && npm run lint &&
+  npm run typecheck && npm run test:unit && npm run build && npm run test:e2e`.
+- **Production browser**: `PLAYWRIGHT_BASE_URL=<public-origin>
+  EXPECTED_DEPLOY_REVISION=<sha> npm run test:production`; trusted workflow only.
+- **Workflow policy**: `uv run --with PyYAML==6.0.2 python -m unittest discover
+  -s scripts/ci/tests -v`.
 
 ## Code graph
 
@@ -122,7 +130,7 @@ rebuilds with graphify 0.9.43 and fails on any tracked-output drift.
 
 ## CI
 
-`.github/workflows/ci.yml` defines five jobs. The protected PR job names are
+`.github/workflows/ci.yml` defines protected and supplemental jobs. The protected PR job names are
 `backend`, `frontend`, `graph`, and `secrets`; renaming one silently removes a
 required check unless branch protection is updated too.
 
@@ -134,6 +142,16 @@ required check unless branch protection is updated too.
 - `frontend` — `npm ci`, `npm test --if-present`, `npm run build` in `frontend/`.
 - `graph` — rebuilds graphify and fails if any tracked knowledge-graph output drifts.
 - `secrets` — fails if `.env` is tracked or a Socrata credential is hardcoded.
+- `contract` — validates OpenAPI and golden fixtures against backend and frontend consumers.
+- `security` — validates workflow policy/syntax, lock drift, and high/critical dependencies.
+
+`.github/workflows/deploy-production.yml` runs only on trusted `main` pushes or
+manual dispatches in the `production` GitHub Environment. It deploys the exact
+backend and frontend revisions to Railway, polls terminal deployment state,
+verifies both public `/api/revision` endpoints plus backend service health, runs
+production Playwright at 390×844 and 1440×900, and rolls back on any cutover or
+browser failure. Manual `rollback_drill=true` deploys markers and proves
+exact-revision restoration plus service and browser health.
 
 Broad repository credentials are not passed to application tests or package
 install steps. Integration tickets must inject only their smallest required

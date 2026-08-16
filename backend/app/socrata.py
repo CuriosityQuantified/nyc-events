@@ -82,7 +82,9 @@ def _validated_endpoint(value: str) -> str:
         or parsed.query
         or parsed.fragment
     ):
-        raise SocrataError("SOCRATA_QUERY_ENDPOINT is not an approved NYC Open Data query URL")
+        raise SocrataError(
+            "SOCRATA_QUERY_ENDPOINT is not an approved NYC Open Data query URL"
+        )
     return value
 
 
@@ -128,13 +130,13 @@ class SocrataClient:
         if self._owns_client:
             await self._client.aclose()
 
-    async def _post_with_retry(
-        self, payload: dict[str, Any]
-    ) -> httpx.Response:
+    async def _post_with_retry(self, payload: dict[str, Any]) -> httpx.Response:
         """POST to the Socrata endpoint with exponential-backoff retry."""
-        auth = None
-        if self._api_key_id and self._api_key_secret:
-            auth = (self._api_key_id, self._api_key_secret)
+        auth = (
+            httpx.BasicAuth(self._api_key_id, self._api_key_secret)
+            if self._api_key_id and self._api_key_secret
+            else httpx.USE_CLIENT_DEFAULT
+        )
 
         headers: dict[str, str] = {
             "Accept": "application/json",
@@ -154,9 +156,7 @@ class SocrataClient:
                     timeout=60.0,
                 )
                 if response.status_code in _RETRYABLE_STATUS_CODES:
-                    last_exc = SocrataError(
-                        f"Server returned {response.status_code}"
-                    )
+                    last_exc = SocrataError(f"Server returned {response.status_code}")
                     if attempt < _MAX_RETRIES:
                         delay = _BASE_BACKOFF_SECONDS * (2**attempt)
                         logger.warning(

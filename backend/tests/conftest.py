@@ -73,9 +73,13 @@ def _maybe_start_postgres():
 
     # Set env vars so the app picks up the test database.
     from app.config import get_settings
+
     get_settings.cache_clear()
     os.environ["DATABASE_URL"] = _pg_async_url
-    os.environ["REDIS_URL"] = "redis://localhost:63999/0"  # intentionally invalid
+    # CI and the production-grade local gate provide a real Redis service.
+    # Keep an explicit caller value; otherwise require the standard local port.
+    redis_url_was_set = "REDIS_URL" in os.environ
+    os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
 
     # Run Alembic migrations.
     from alembic import command
@@ -94,7 +98,8 @@ def _maybe_start_postgres():
     _pg_container = None
     _pg_async_url = None
     os.environ.pop("DATABASE_URL", None)
-    os.environ.pop("REDIS_URL", None)
+    if not redis_url_was_set:
+        os.environ.pop("REDIS_URL", None)
     get_settings.cache_clear()
 
 
@@ -113,9 +118,11 @@ async def client():
         pytest.skip("Docker is not available")
 
     from app.database import reset_engine
+
     await reset_engine()
 
     from httpx import ASGITransport, AsyncClient
+
     from app.main import app
 
     transport = ASGITransport(app=app)
@@ -133,7 +140,7 @@ async def db_session():
 
     from sqlalchemy import delete
 
-    from app.database import reset_engine, get_session_factory
+    from app.database import get_session_factory, reset_engine
     from app.models.event import Event
 
     await reset_engine()
@@ -177,15 +184,11 @@ class MockTransport(httpx.AsyncBaseTransport):
         self._request_count = 0
         self.requests: list[dict[str, Any]] = []
 
-    async def handle_async_request(
-        self, request: httpx.Request
-    ) -> httpx.Response:
+    async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
         self._request_count += 1
 
         # The Socrata client must use POST for queries (AC-1).
-        assert request.method == "POST", (
-            f"Expected POST but got {request.method}"
-        )
+        assert request.method == "POST", f"Expected POST but got {request.method}"
         assert request.headers["accept"] == "application/json"
         assert request.headers["content-type"] == "application/json"
 
@@ -223,12 +226,8 @@ class AlwaysErrorTransport(httpx.AsyncBaseTransport):
     def __init__(self, status_code: int = 503) -> None:
         self._status_code = status_code
 
-    async def handle_async_request(
-        self, request: httpx.Request
-    ) -> httpx.Response:
-        assert request.method == "POST", (
-            f"Expected POST but got {request.method}"
-        )
+    async def handle_async_request(self, request: httpx.Request) -> httpx.Response:
+        assert request.method == "POST", f"Expected POST but got {request.method}"
         return httpx.Response(
             status_code=self._status_code,
             json={"error": "Service Unavailable"},

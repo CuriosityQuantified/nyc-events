@@ -6,10 +6,19 @@ export default defineConfig({
   forbidOnly: !!process.env.CI,
   retries: process.env.CI ? 2 : 0,
   workers: process.env.CI ? 1 : undefined,
-  reporter: "list",
+  reporter: process.env.CI
+    ? [
+        ["list"],
+        ["html", { outputFolder: "playwright-report", open: "never" }],
+        ["junit", { outputFile: "test-results/playwright-junit.xml" }],
+      ]
+    : "list",
+  outputDir: "test-results/local",
+  testIgnore: "production.spec.ts",
   use: {
     baseURL: "http://localhost:3000",
-    trace: "on-first-retry",
+    trace: "retain-on-failure",
+    screenshot: "only-on-failure",
   },
   projects: [
     {
@@ -28,9 +37,9 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "npm run dev",
+    command: "npm run build && npm run start",
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
-    timeout: 30000,
+    timeout: 120000,
   },
 });

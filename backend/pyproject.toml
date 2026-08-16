@@ -16,8 +16,11 @@ dependencies = [
 
 [dependency-groups]
 dev = [
+    "mypy>=1.15,<2",
+    "pytest-cov>=6,<8",
     "pytest>=8.0",
     "pytest-asyncio>=0.23",
+    "ruff>=0.11,<1",
     "testcontainers[postgres]>=4.0",
     "jsonschema>=4.20",
 ]
@@ -32,3 +35,19 @@ testpaths = ["tests"]
 
 [tool.hatch.build.targets.wheel]
 packages = ["app"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]
+
+[tool.mypy]
+python_version = "3.12"
+check_untyped_defs = true
+disallow_untyped_defs = true
+ignore_missing_imports = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true

@@ -6,6 +6,13 @@ on:
   push:
     branches: [main]
 
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 # The protected PR job names are backend, frontend, graph, and secrets.
 # Renaming one silently removes a required check — update protection too.
 jobs:
@@ -87,10 +94,29 @@ jobs:
 
   backend:
     runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      CI: "true"
+      REDIS_URL: redis://localhost:6379/0
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 20
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
 
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
 
       - name: Validate shared API contract and golden responses
         run: uv run contracts/validate_contract.py
@@ -112,22 +138,64 @@ jobs:
         working-directory: backend
         run: uv sync --frozen
 
-      - name: Test
+      - name: Lock, format, lint, type, and migration-head checks
         if: steps.probe.outputs.present == 'true'
         working-directory: backend
-        run: uv run pytest -v
+        run: |
+          set -euo pipefail
+          uv lock --check
+          uv run ruff format --check .
+          uv run ruff check .
+          uv run mypy app
+          test "$(uv run alembic heads | grep -c '(head)')" -eq 1
+
+      - name: Unit, integration, migration, and contract tests with coverage
+        if: steps.probe.outputs.present == 'true'
+        working-directory: backend
+        run: uv run pytest -v --cov=app --cov-report=term-missing --cov-report=xml:coverage.xml --cov-fail-under=80
+
+      - name: Production container migration and health smoke
+        if: steps.probe.outputs.present == 'true'
+        run: ./scripts/ci/backend_container_smoke.sh
+
+      - name: Write backend gate summary
+        if: always()
+        env:
+          GATE_STATUS: ${{ job.status }}
+        run: |
+          {
+            echo '## Backend gate'
+            echo "- Status: $GATE_STATUS"
+            echo '- Checks: lock, format, lint, types, one migration head, upgrade/idempotency, tests, coverage, Postgres/Redis, production container'
+            echo '- Evidence: backend/coverage.xml and artifacts/backend-container/'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload backend evidence
+        if: always() && steps.probe.outputs.present == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: backend-evidence
+          path: |
+            backend/coverage.xml
+            artifacts/backend-container/
+          if-no-files-found: error
 
   frontend:
     runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      CI: "true"
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
 
       - id: probe
         run: |
           if [ -f frontend/package.json ]; then echo "present=true" >> "$GITHUB_OUTPUT"
           else echo "present=false" >> "$GITHUB_OUTPUT"; echo "no frontend/package.json — nothing to build yet"; fi
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         if: steps.probe.outputs.present == 'true'
         with:
           node-version: '22'
@@ -139,15 +207,153 @@ jobs:
         working-directory: frontend
         run: npm ci
 
-      - name: Test
+      - name: Format, lint, and type checks
         if: steps.probe.outputs.present == 'true'
         working-directory: frontend
-        run: npm test --if-present
+        run: |
+          npm run format:check
+          npm run lint
+          npm run typecheck
+
+      - name: Unit and component tests
+        if: steps.probe.outputs.present == 'true'
+        working-directory: frontend
+        run: npm run test:unit
 
       - name: Build
         if: steps.probe.outputs.present == 'true'
         working-directory: frontend
         run: npm run build
+
+      - name: Install Chromium
+        if: steps.probe.outputs.present == 'true'
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+
+      - name: Production-server Playwright at phone and desktop viewports
+        if: steps.probe.outputs.present == 'true'
+        working-directory: frontend
+        run: npm run test:e2e
+
+      - name: Build Railway frontend container
+        if: steps.probe.outputs.present == 'true'
+        run: docker build -t nyc-events-frontend:ci frontend
+
+      - name: Write frontend gate summary
+        if: always()
+        env:
+          GATE_STATUS: ${{ job.status }}
+        run: |
+          {
+            echo '## Frontend gate'
+            echo "- Status: $GATE_STATUS"
+            echo '- Checks: format, lint, types, unit/component, build, phone/desktop Playwright, Railway container'
+            echo '- Evidence: frontend/playwright-report/ and frontend/test-results/'
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload frontend evidence
+        if: always() && steps.probe.outputs.present == 'true'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: frontend-evidence
+          path: |
+            frontend/playwright-report/
+            frontend/test-results/
+          if-no-files-found: error
+
+  contract:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+        with:
+          enable-cache: true
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Validate OpenAPI, golden fixtures, and mock behavior
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/contract
+          uv run contracts/validate_contract.py | tee artifacts/contract/validation.txt
+          python3 -m unittest discover -s contracts/tests -v 2>&1 | tee artifacts/contract/mock-tests.txt
+      - name: Validate the frontend contract consumer
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run test:unit -- app/data/api-contract.test.ts
+      - name: Write contract gate summary
+        if: always()
+        env:
+          GATE_STATUS: ${{ job.status }}
+        run: |
+          {
+            echo '## Contract gate'
+            echo "- Status: $GATE_STATUS"
+            echo '- Checks: OpenAPI, golden fixtures, mock server, backend responses, frontend consumer'
+            echo '- Evidence: artifacts/contract/'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Upload contract evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: contract-evidence
+          path: artifacts/contract/
+          if-no-files-found: error
+
+  security:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+        with:
+          enable-cache: true
+          cache-dependency-glob: backend/uv.lock
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Validate workflow policy and syntax
+        run: |
+          set -euo pipefail
+          uv run --with PyYAML==6.0.2 python -m unittest discover -s scripts/ci/tests -v
+          python3 -m unittest discover -s scripts/deploy/tests -v
+          go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7
+          uvx --from zizmor==1.29.0 zizmor .github/workflows
+      - name: Audit backend dependencies
+        working-directory: backend
+        run: |
+          set -euo pipefail
+          uv lock --check
+          uv export --frozen --no-dev --no-emit-project --format requirements-txt --output-file /tmp/backend-requirements.txt
+          uvx --from pip-audit==2.10.1 pip-audit \
+            --requirement /tmp/backend-requirements.txt --no-deps --disable-pip
+      - name: Audit frontend dependencies and lock drift
+        working-directory: frontend
+        run: |
+          set -euo pipefail
+          npm ci --ignore-scripts
+          npm audit --audit-level=high
+          git diff --exit-code -- package-lock.json ../backend/uv.lock
+      - name: Write security gate summary
+        if: always()
+        env:
+          GATE_STATUS: ${{ job.status }}
+        run: |
+          {
+            echo '## Security gate'
+            echo "- Status: $GATE_STATUS"
+            echo '- Checks: workflow policy/actionlint/zizmor, pip-audit, npm audit, lock drift'
+          } >> "$GITHUB_STEP_SUMMARY"
 
   graph:
     runs-on: ubuntu-latest
@@ -155,14 +361,18 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      # zizmor: ignore[artipacked] This job alone needs its scoped token to push canonical Linux outputs.
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           # PR merge refs have a synthetic commit and produce platform-specific
           # graph metadata. Rebuild the actual head branch instead.
           ref: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
           fetch-depth: 0
+          persist-credentials: true
 
-      - uses: astral-sh/setup-uv@v5
+      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
+        with:
+          enable-cache: true
 
       - name: Install graphify
         run: uv tool install "graphifyy[mcp]==0.9.43"
@@ -172,6 +382,8 @@ jobs:
 
       - name: Commit canonical Linux graph when a repository PR is stale
         if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          GRAPH_HEAD_REF: ${{ github.head_ref }}
         run: |
           if git diff --quiet -- \
             graphify-out/graph.json \
@@ -188,7 +400,7 @@ jobs:
             graphify-out/GRAPH_REPORT.md graphify-out/.graphify_labels.json \
             graphify-out/.graphify_labels.json.sig graphify-out/.graphify_root
           git commit -m "chore: rebuild the code knowledge graph"
-          git push origin "HEAD:${{ github.head_ref }}"
+          git push origin "HEAD:$GRAPH_HEAD_REF"
           echo "::error::Graph outputs were stale and have been rebuilt; verify the new head run"
           exit 1
 
@@ -204,10 +416,12 @@ jobs:
 
   secrets:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           fetch-depth: 0
+          persist-credentials: false
       - name: Block committed credentials
         run: |
           if git ls-files --error-unmatch .env 2>/dev/null; then
@@ -215,5 +429,8 @@ jobs:
           fi
           if git grep -nIE 'SOCRATA_(API_KEY_SECRET|APP_TOKEN)[[:space:]]*=[[:space:]]*[^[:space:]$]' -- ':!*.example' ':!.github/*'; then
             echo "::error::a Socrata credential appears to be hardcoded"; exit 1
+          fi
+          if git grep -nIE '(BEGIN (RSA|OPENSSH|EC) PRIVATE KEY|gh[pousr]_[A-Za-z0-9]{30,}|sk-[A-Za-z0-9]{32,})' -- ':!.github/workflows/ci.yml'; then
+            echo "::error::a private key or provider token appears to be committed"; exit 1
           fi
           echo "no credentials found in tracked files"
