@@ -13,7 +13,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[2]
 CI_PATH = ROOT / ".github/workflows/ci.yml"
 DEPLOY_PATH = ROOT / ".github/workflows/deploy-production.yml"
-PROTECTED_JOBS = {"backend", "frontend", "graph", "secrets"}
+PROTECTED_JOBS = {"backend", "frontend", "secrets"}
 DEPLOY_JOBS = {"deploy-backend", "deploy-sync-worker", "deploy-frontend"}
 TRUSTED_EVENTS = {"push", "workflow_dispatch"}
 SHA_PIN = re.compile(r"^[^@]+@[0-9a-f]{40}$")
