@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from datetime import UTC, datetime
-from typing import Any
+from datetime import UTC, date, datetime
+from typing import Any, Literal
 
 from fastapi import APIRouter, HTTPException, Path, Query
 from sqlalchemy import func, select
@@ -183,14 +183,54 @@ def _event_to_contract(event: CurrentEvent) -> dict[str, Any]:
 
 @router.get("/events")
 async def list_events(
+    borough: str | None = Query(default=None, min_length=1, max_length=100),
+    category: str | None = Query(default=None, min_length=1, max_length=100),
+    date_from: date | None = None,
+    date_to: date | None = None,
+    registration: Literal["required", "not_required", "closed", "not_listed"]
+    | None = Query(default=None),
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=100),
 ) -> dict[str, Any]:
     """Return a paginated list of events with optional filters."""
+    if date_from is not None and date_to is not None and date_from > date_to:
+        raise HTTPException(
+            status_code=400, detail="date_from must be on or before date_to"
+        )
+
+    applied_facets: dict[str, list[str]] = {}
+    filters = []
+    if borough is not None:
+        applied_facets["borough"] = [borough]
+        filters.append(func.lower(CurrentEvent.borough) == borough.casefold())
+    if category is not None:
+        applied_facets["category"] = [category]
+        category_values = func.jsonb_array_elements_text(
+            CurrentEvent.categories
+        ).table_valued("value")
+        filters.append(
+            select(1)
+            .select_from(category_values)
+            .where(func.lower(category_values.c.value) == category.casefold())
+            .exists()
+        )
+    if date_from is not None:
+        applied_facets["date_from"] = [date_from.isoformat()]
+        filters.append(CurrentEvent.start_date >= date_from)
+    if date_to is not None:
+        applied_facets["date_to"] = [date_to.isoformat()]
+        filters.append(CurrentEvent.start_date <= date_to)
+    if registration is not None:
+        applied_facets["registration"] = [registration]
+        if registration == "not_listed":
+            filters.append(CurrentEvent.registration_status.is_(None))
+        else:
+            filters.append(CurrentEvent.registration_status == registration)
+
     session_factory = get_session_factory()
     async with session_factory() as session:
         try:
-            query = select(CurrentEvent)
+            query = select(CurrentEvent).where(*filters)
             count_query = select(func.count()).select_from(query.subquery())
             total_result = await session.execute(count_query)
             total = total_result.scalar() or 0
@@ -211,7 +251,7 @@ async def list_events(
             "page": page,
             "page_size": page_size,
             "total": total,
-            "applied_facets": {},
+            "applied_facets": applied_facets,
         }
 
 
