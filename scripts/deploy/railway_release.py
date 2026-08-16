@@ -255,6 +255,15 @@ def _service_reference(service: str, variable: str) -> str:
     return "${{" + f"{service}.{variable}" + "}}"
 
 
+SYNC_WORKER_VARIABLES = (
+    "DATABASE_URL",
+    "REDIS_URL",
+    "SOCRATA_API_KEY_ID",
+    "SOCRATA_API_KEY_SECRET",
+    "SOCRATA_APP_TOKEN",
+)
+
+
 def _service_creation_environment() -> dict[str, str]:
     """Use workspace auth only for the service-creation boundary."""
     environment = os.environ.copy()
@@ -333,16 +342,10 @@ def configure_sync_worker(args: argparse.Namespace) -> int:
     command.extend(["--message", "Reconcile EventMatch scheduled sync worker"])
     run_command(command, "sync-service-configure")
 
-    variables = [
-        "DATABASE_URL",
-        "SOCRATA_API_KEY_ID",
-        "SOCRATA_API_KEY_SECRET",
-        "SOCRATA_APP_TOKEN",
-    ]
     variable_command = ["railway", "variable", "set"]
     variable_command.extend(
         f"{name}={_service_reference(args.backend_service, name)}"
-        for name in variables
+        for name in SYNC_WORKER_VARIABLES
     )
     variable_command.extend(
         [
@@ -359,6 +362,45 @@ def configure_sync_worker(args: argparse.Namespace) -> int:
     write_outputs(args.github_output, {"service_id": service["id"]})
     write_outputs(args.github_env, {"SYNC_RAILWAY_SERVICE_ID": service["id"]})
     write_status_evidence(args.evidence_output, "success")
+    return 0
+
+
+def verify_sync_worker_variables(args: argparse.Namespace) -> int:
+    """Verify worker references and write evidence that contains no values."""
+    variables = run_json(
+        [
+            "railway",
+            "variable",
+            "list",
+            "--project",
+            args.project_id,
+            "--environment",
+            args.environment,
+            "--service",
+            args.service,
+            "--json",
+        ],
+        "sync-variable-list",
+    )
+    if not isinstance(variables, dict):
+        raise ValueError("Railway worker variables are not a mapping")
+    missing = [name for name in SYNC_WORKER_VARIABLES if name not in variables]
+    if missing:
+        raise ValueError(f"sync-worker is missing required variables: {missing}")
+    if variables.get("DEPLOY_REVISION") != args.expected_revision:
+        raise ValueError("sync-worker DEPLOY_REVISION does not match the expected revision")
+    Path(args.output).write_text(
+        json.dumps(
+            {
+                "status": "success",
+                "configuredServiceReference": args.backend_service,
+                "requiredVariableNames": list(SYNC_WORKER_VARIABLES),
+                "revision": args.expected_revision,
+            },
+            indent=2,
+        )
+        + "\n"
+    )
     return 0
 
 
@@ -486,6 +528,16 @@ def parser() -> argparse.ArgumentParser:
     sync_worker.add_argument("--github-env")
     sync_worker.add_argument("--evidence-output")
     sync_worker.set_defaults(handler=configure_sync_worker)
+
+    verify_worker = commands.add_parser("verify-sync-worker-variables")
+    verify_worker.add_argument("--project-id", required=True)
+    verify_worker.add_argument("--environment", required=True)
+    verify_worker.add_argument("--service", required=True)
+    verify_worker.add_argument("--backend-service", required=True)
+    verify_worker.add_argument("--required-variable-name", choices=("REDIS_URL",), required=True)
+    verify_worker.add_argument("--expected-revision", required=True)
+    verify_worker.add_argument("--output", required=True)
+    verify_worker.set_defaults(handler=verify_sync_worker_variables)
 
     for name, handler in (("snapshot", snapshot), ("wait-deployment", wait_deployment)):
         command = commands.add_parser(name)
