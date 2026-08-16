@@ -243,5 +243,8 @@ def create_default_concierge_agent(
         model=primary,
         fallback_model=fallback,
         checkpointer=checkpointer,
-        profile_key=f"openai:{settings.concierge_model_primary}",
+        # ChatOpenAI resolves as the ``openai`` provider even when its base URL
+        # points at OpenRouter. Register the provider-level profile because
+        # OpenRouter model identifiers may themselves contain a colon.
+        profile_key="openai",
     )

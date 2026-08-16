@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from typing import Any
 
 from langchain_core.language_models.chat_models import BaseChatModel
@@ -14,6 +15,7 @@ from sqlalchemy import func, select
 from app.concierge import (
     ConciergeContext,
     create_concierge_agent,
+    create_default_concierge_agent,
     save_event_tool,
 )
 from app.main import app
@@ -77,6 +79,16 @@ def _agent(model: ScriptedToolModel) -> Any:
     )
 
 
+def _sse_events(body: str) -> list[tuple[str, dict[str, Any]]]:
+    events: list[tuple[str, dict[str, Any]]] = []
+    for block in body.strip().split("\n\n"):
+        lines = block.splitlines()
+        event = next(line[7:] for line in lines if line.startswith("event: "))
+        data = next(line[6:] for line in lines if line.startswith("data: "))
+        events.append((event, json.loads(data)))
+    return events
+
+
 async def test_model_sees_exactly_two_concierge_tools() -> None:
     model = ScriptedToolModel(responses=[AIMessage(content="Ready")])
     agent = _agent(model)
@@ -90,6 +102,22 @@ async def test_model_sees_exactly_two_concierge_tools() -> None:
     assert set(model.bound_tool_names) == {"search_current_events", "save_event"}
     assert len(model.bound_tool_names) == 2
     assert set(save_event_tool.args) == {"event_id"}
+
+
+def test_default_openrouter_model_builds_with_a_valid_harness_key(
+    monkeypatch,
+) -> None:
+    class Settings:
+        openrouter_api_key = "test-key"
+        openrouter_base_url = "https://openrouter.test/v1"
+        concierge_model_primary = "provider/model:free"
+        concierge_model_fallback = "provider/fallback:free"
+
+    monkeypatch.setattr("app.concierge.get_concierge_settings", Settings)
+
+    agent = create_default_concierge_agent(InMemorySaver())
+
+    assert agent is not None
 
 
 async def test_malformed_hidden_harness_tool_call_is_rejected() -> None:
@@ -333,6 +361,84 @@ async def test_approval_saves_once_and_cross_profile_resume_is_rejected(
             },
         )
         assert duplicate.status_code == 409
+        assert (
+            await db_session.scalar(select(func.count()).select_from(SavedEvent)) == 1
+        )
+    finally:
+        app.state.concierge_agent = None
+
+
+@requires_docker
+async def test_streams_tokens_and_resumes_human_approved_save(
+    client, db_session
+) -> None:
+    row = load_fixture("snapshot_a.json")[0]
+    await ingest_rows(db_session, [row])
+    model = ScriptedToolModel(
+        responses=[
+            AIMessage(content="I found a current Event."),
+            AIMessage(
+                content="",
+                tool_calls=[
+                    {
+                        "name": "save_event",
+                        "args": {"event_id": row["guid"]},
+                        "id": "streamed-save-call",
+                        "type": "tool_call",
+                    }
+                ],
+            ),
+            AIMessage(content="The Event is saved."),
+        ]
+    )
+    app.state.concierge_agent = _agent(model)
+    try:
+        discovery = await client.post(
+            "/concierge/messages/stream",
+            headers=_headers(DEVICE_TOKEN),
+            json={"message": "Find an Event"},
+        )
+        assert discovery.status_code == 200
+        assert discovery.headers["content-type"].startswith("text/event-stream")
+        discovery_events = _sse_events(discovery.text)
+        assert discovery_events[0][0] == "conversation"
+        assert any(
+            event == "token" and data["text"] == "I found a current Event."
+            for event, data in discovery_events
+        )
+        discovery_done = discovery_events[-1][1]
+        assert discovery_events[-1][0] == "done"
+        assert discovery_done["status"] == "completed"
+
+        conversation_id = discovery_done["conversation_id"]
+        proposed = await client.post(
+            "/concierge/messages/stream",
+            headers=_headers(DEVICE_TOKEN),
+            json={
+                "message": "Save it",
+                "conversation_id": conversation_id,
+            },
+        )
+        proposal = _sse_events(proposed.text)[-1][1]
+        assert proposal["status"] == "approval_required"
+        assert (
+            await db_session.scalar(select(func.count()).select_from(SavedEvent)) == 0
+        )
+
+        approved = await client.post(
+            f"/concierge/conversations/{conversation_id}/decision/stream",
+            headers=_headers(DEVICE_TOKEN),
+            json={
+                "interrupt_id": proposal["approval"]["interrupt_id"],
+                "decision": "approve",
+            },
+        )
+        approved_events = _sse_events(approved.text)
+        assert any(
+            event == "token" and data["text"] == "The Event is saved."
+            for event, data in approved_events
+        )
+        assert approved_events[-1][1]["status"] == "completed"
         assert (
             await db_session.scalar(select(func.count()).select_from(SavedEvent)) == 1
         )

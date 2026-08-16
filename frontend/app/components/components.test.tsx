@@ -187,4 +187,11 @@ describe("BottomNav", () => {
     expect(labels[3]).toContain("Profile");
     expect(labels.join(" ")).not.toContain("Calendar");
   });
+
+  it("navigates to the Concierge destination", () => {
+    render(<BottomNav />);
+
+    fireEvent.click(screen.getByRole("button", { name: /Concierge/ }));
+    expect(routerPush).toHaveBeenCalledWith("/concierge");
+  });
 });
