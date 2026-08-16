@@ -13,6 +13,8 @@ class Settings(BaseSettings):
     )
     redis_url: str = "redis://localhost:6379/0"
     environment: str = "development"
+    frontend_origin: str = "http://localhost:3000"
+    snapshot_stale_after_seconds: int = 21600
 
     socrata_api_key_id: str = ""
     socrata_api_key_secret: str = ""

@@ -5,8 +5,10 @@ export default function SearchBar() {
     <div className={styles.wrapper}>
       <input
         type="search"
+        name="event-search"
+        autoComplete="off"
         className={styles.input}
-        placeholder="Search parks and events..."
+        placeholder="Search parks and events…"
         aria-label="Search parks and events"
         data-testid="search-bar"
       />

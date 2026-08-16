@@ -2,13 +2,16 @@
 
 from __future__ import annotations
 
+from datetime import UTC, datetime
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Path, Query
 from sqlalchemy import func, select
+from sqlalchemy.exc import SQLAlchemyError
 
+from app.config import get_settings
 from app.database import get_session_factory
-from app.models.event import Event
+from app.models.event import CurrentEvent, SyncRun
 
 router = APIRouter()
 
@@ -80,7 +83,7 @@ def _registration_fact(
     return {"value": value, "provenance": provenance, "raw": raw}
 
 
-def _event_to_contract(event: Event) -> dict[str, Any]:
+def _event_to_contract(event: CurrentEvent) -> dict[str, Any]:
     """Convert an Event model instance to the contract Event shape."""
     raw = event.raw_data or {}
 
@@ -186,20 +189,22 @@ async def list_events(
     """Return a paginated list of events with optional filters."""
     session_factory = get_session_factory()
     async with session_factory() as session:
-        query = select(Event)
-
-        # Count total matching rows
-        count_query = select(func.count()).select_from(query.subquery())
-        total_result = await session.execute(count_query)
-        total = total_result.scalar() or 0
-
-        # Apply pagination
-        offset = (page - 1) * page_size
-        query = query.order_by(Event.start_datetime, Event.guid)
-        query = query.offset(offset).limit(page_size)
-
-        result = await session.execute(query)
-        events = result.scalars().all()
+        try:
+            query = select(CurrentEvent)
+            count_query = select(func.count()).select_from(query.subquery())
+            total_result = await session.execute(count_query)
+            total = total_result.scalar() or 0
+            offset = (page - 1) * page_size
+            query = query.order_by(
+                CurrentEvent.start_datetime.asc().nullslast(), CurrentEvent.guid
+            )
+            query = query.offset(offset).limit(page_size)
+            result = await session.execute(query)
+            events = result.scalars().all()
+        except SQLAlchemyError as error:
+            raise HTTPException(
+                status_code=503, detail="Event database unavailable"
+            ) from error
 
         return {
             "events": [_event_to_contract(e) for e in events],
@@ -215,8 +220,93 @@ async def get_event(guid: str = Path(min_length=1, max_length=255)) -> dict[str,
     """Return a single event by its source guid."""
     session_factory = get_session_factory()
     async with session_factory() as session:
-        result = await session.execute(select(Event).where(Event.guid == guid))
+        try:
+            result = await session.execute(
+                select(CurrentEvent).where(CurrentEvent.guid == guid)
+            )
+        except SQLAlchemyError as error:
+            raise HTTPException(
+                status_code=503, detail="Event database unavailable"
+            ) from error
         event = result.scalar_one_or_none()
         if event is None:
             raise HTTPException(status_code=404, detail="Event not found")
         return _event_to_contract(event)
+
+
+@router.get("/freshness")
+async def get_freshness() -> dict[str, Any]:
+    """Report the latest successful Snapshot and failed-attempt evidence."""
+    session_factory = get_session_factory()
+    async with session_factory() as session:
+        try:
+            latest_success = await session.scalar(
+                select(SyncRun)
+                .where(SyncRun.status == "succeeded")
+                .order_by(SyncRun.finished_at.desc())
+                .limit(1)
+            )
+            row_count = await session.scalar(
+                select(func.count()).select_from(CurrentEvent)
+            )
+        except SQLAlchemyError as error:
+            raise HTTPException(
+                status_code=503, detail="Event database unavailable"
+            ) from error
+
+    successful_at = latest_success.finished_at if latest_success else None
+    stale = True
+    if successful_at is not None:
+        age = datetime.now(UTC) - successful_at.astimezone(UTC)
+        stale = age.total_seconds() > get_settings().snapshot_stale_after_seconds
+    stale_after_seconds = get_settings().snapshot_stale_after_seconds
+    return {
+        "last_successful_sync": _text_fact(
+            successful_at.isoformat() if successful_at else None,
+            provenance="Derived" if successful_at else "Not listed",
+            raw="Latest successful Sync Run" if successful_at else None,
+        ),
+        "snapshot_row_count": {
+            "value": row_count if latest_success else None,
+            "provenance": "Derived" if latest_success else "Not listed",
+            "raw": "current_events row count" if latest_success else None,
+        },
+        "is_stale": {
+            "value": stale,
+            "provenance": "Derived",
+            "raw": (
+                "No successful Sync Run"
+                if latest_success is None
+                else f"stale after {stale_after_seconds} seconds"
+            ),
+        },
+    }
+
+
+@router.get("/ingestion-health")
+async def get_ingestion_health() -> dict[str, Any]:
+    """Expose secret-free evidence for the latest attempted synchronization."""
+    session_factory = get_session_factory()
+    async with session_factory() as session:
+        try:
+            latest = await session.scalar(
+                select(SyncRun)
+                .order_by(SyncRun.started_at.desc(), SyncRun.id.desc())
+                .limit(1)
+            )
+            row_count = await session.scalar(
+                select(func.count()).select_from(CurrentEvent)
+            )
+        except SQLAlchemyError as error:
+            raise HTTPException(
+                status_code=503, detail="Event database unavailable"
+            ) from error
+    return {
+        "status": latest.status if latest else "never_run",
+        "last_attempted_sync": latest.started_at.isoformat() if latest else None,
+        "last_finished_sync": (
+            latest.finished_at.isoformat() if latest and latest.finished_at else None
+        ),
+        "row_count": row_count,
+        "failure_code": latest.failure_code if latest else None,
+    }

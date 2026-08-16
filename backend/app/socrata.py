@@ -5,16 +5,19 @@ from __future__ import annotations
 import asyncio
 import logging
 import re
-from datetime import date, datetime
-from typing import Any
+from datetime import UTC, date, datetime
+from time import monotonic
+from typing import Any, Protocol
 from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
 import httpx
+from sqlalchemy import delete
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
-from app.models.event import Event
+from app.models.event import CurrentEvent, EventRepository, SyncRun
 
 logger = logging.getLogger(__name__)
 
@@ -66,6 +69,12 @@ class CredentialFilter(logging.Filter):
 
 class SocrataError(Exception):
     """Raised when the Socrata API returns an unrecoverable error."""
+
+
+class EventSource(Protocol):
+    """The narrow transport contract used by the synchronization job."""
+
+    async def fetch_all_events(self) -> list[dict[str, Any]]: ...
 
 
 def _validated_endpoint(value: str) -> str:
@@ -313,6 +322,16 @@ def _normalize_socrata_url(value: Any, field_name: str) -> str | None:
     return normalized
 
 
+def _optional_text(value: Any, field_name: str) -> str | None:
+    """Normalize an optional source string or reject an unsupported shape."""
+    if value is None:
+        return None
+    if not isinstance(value, str):
+        raise SocrataError(f"Socrata {field_name} must be a string or null")
+    normalized = value.strip()
+    return normalized or None
+
+
 def _derive_registration(
     registration_url: Any,
     registration_description: str | None,
@@ -364,33 +383,45 @@ def parse_event(row: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(title, str) or not title.strip():
         raise SocrataError(f"Socrata row {guid!r} is missing a non-empty title")
 
-    lat, lon, coordinates = _parse_coordinates(row.get("coordinates"))
-    location_id = row.get("parkids")
+    guid = guid.strip()
+    title = title.strip()
+    description = _optional_text(row.get("description"), "description")
+    location_id = _optional_text(row.get("parkids"), "parkids")
+    location_name = _optional_text(row.get("location"), "location")
+    start_date = _optional_text(row.get("startdate"), "startdate")
+    end_date = _optional_text(row.get("enddate"), "enddate")
+    start_time = _optional_text(row.get("starttime"), "starttime")
+    end_time = _optional_text(row.get("endtime"), "endtime")
+    categories = _optional_text(row.get("categories"), "categories")
+    coordinate_text = _optional_text(row.get("coordinates"), "coordinates")
+    registration_description = _optional_text(
+        row.get("registration_description"), "registration_description"
+    )
+    lat, lon, coordinates_list = _parse_coordinates(coordinate_text)
     official_event_url = _normalize_socrata_url(row.get("link"), "link")
     reg_status, _reg_prov = _derive_registration(
         row.get("registration_url"),
-        row.get("registration_description"),
+        registration_description,
     )
-    reg_desc = row.get("registration_description", "").strip() or None
 
     return {
         "guid": guid,
         "title": title,
-        "description": row.get("description"),
+        "description": description,
         "official_event_url": official_event_url,
-        "location_key": _location_key(location_id, coordinates),
+        "location_key": _location_key(location_id, coordinates_list),
         "location_id": location_id,
-        "location_name": row.get("location"),
-        "start_date": _parse_date(row.get("startdate")),
-        "end_date": _parse_date(row.get("enddate")),
-        "start_datetime": _parse_datetime(row.get("starttime")),
-        "end_datetime": _parse_datetime(row.get("endtime")),
-        "categories": _parse_categories(row.get("categories")),
+        "location_name": location_name,
+        "start_date": _parse_date(start_date),
+        "end_date": _parse_date(end_date),
+        "start_datetime": _parse_datetime(start_time),
+        "end_datetime": _parse_datetime(end_time),
+        "categories": _parse_categories(categories),
         "latitude": lat,
         "longitude": lon,
-        "borough": _derive_borough(row.get("parkids")),
+        "borough": _derive_borough(location_id),
         "registration_status": reg_status,
-        "registration_description": reg_desc,
+        "registration_description": registration_description,
         "is_free_explicit": None,
         "accessibility_mentioned": None,
         "raw_data": row,
@@ -398,31 +429,90 @@ def parse_event(row: dict[str, Any]) -> dict[str, Any]:
 
 
 async def ingest_events(session: AsyncSession, rows: list[dict[str, Any]]) -> int:
-    """Atomically upsert validated source rows by source guid."""
+    """Atomically archive a valid Snapshot and replace the current dataset."""
+    if not rows:
+        raise SocrataError("Socrata returned an empty Snapshot")
+
+    parsed: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    snapshot_at = datetime.now(UTC)
+    for row in rows:
+        values = parse_event(row)
+        if values["guid"] in seen:
+            raise SocrataError(f"Socrata Snapshot repeats guid {values['guid']!r}")
+        seen.add(values["guid"])
+        if values["start_date"]:
+            values["start_date"] = date.fromisoformat(values["start_date"])
+        if values["end_date"]:
+            values["end_date"] = date.fromisoformat(values["end_date"])
+        values["synced_at"] = snapshot_at
+        parsed.append(values)
+
     try:
-        for row in rows:
-            values = parse_event(row)
-            if values["start_date"]:
-                values["start_date"] = date.fromisoformat(values["start_date"])
-            if values["end_date"]:
-                values["end_date"] = date.fromisoformat(values["end_date"])
-            await session.merge(Event(**values))
+        mutable = {
+            column.name
+            for column in EventRepository.__table__.columns
+            if column.name not in {"guid", "first_seen_at"}
+        }
+        for values in parsed:
+            archival = {
+                **values,
+                "first_seen_at": snapshot_at,
+                "last_seen_at": snapshot_at,
+            }
+            statement = insert(EventRepository).values(**archival)
+            await session.execute(
+                statement.on_conflict_do_update(
+                    index_elements=[EventRepository.guid],
+                    set_={name: getattr(statement.excluded, name) for name in mutable},
+                )
+            )
+        await session.execute(delete(CurrentEvent))
+        await session.execute(
+            insert(CurrentEvent),
+            [{**values, "snapshot_at": snapshot_at} for values in parsed],
+        )
         await session.commit()
+        session.expire_all()
     except Exception:
         await session.rollback()
         raise
     return len(rows)
 
 
-async def sync_events(
-    session: AsyncSession, client: SocrataClient | None = None
-) -> int:
-    """Fetch the complete source Snapshot and store it in Postgres."""
+async def sync_events(session: AsyncSession, client: EventSource | None = None) -> int:
+    """Fetch and store one complete Snapshot with durable attempt evidence."""
     source = client or SocrataClient()
     owns_client = client is None
+    started = monotonic()
+    run = SyncRun(status="running")
+    session.add(run)
+    await session.commit()
+    run_id = run.id
     try:
         rows = await source.fetch_all_events()
-        return await ingest_events(session, rows)
+        count = await ingest_events(session, rows)
+        completed_run = await session.get(SyncRun, run_id)
+        if completed_run is None:  # pragma: no cover - database invariant
+            raise RuntimeError("Sync Run disappeared")
+        completed_run.status = "succeeded"
+        completed_run.finished_at = datetime.now(UTC)
+        completed_run.row_count = count
+        completed_run.duration_ms = int((monotonic() - started) * 1000)
+        await session.commit()
+        return count
+    except Exception as error:
+        await session.rollback()
+        failed_run = await session.get(SyncRun, run_id)
+        if failed_run is not None:
+            failed_run.status = "failed"
+            failed_run.finished_at = datetime.now(UTC)
+            failed_run.row_count = None
+            failed_run.duration_ms = int((monotonic() - started) * 1000)
+            failed_run.failure_code = type(error).__name__
+            await session.commit()
+        raise
     finally:
         if owns_client:
+            assert isinstance(source, SocrataClient)
             await source.close()

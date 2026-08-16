@@ -15,7 +15,9 @@ RUN uv sync --frozen --no-dev --no-install-project
 COPY app/ app/
 COPY migrations/ migrations/
 COPY alembic.ini .
+COPY start.sh .
 RUN uv sync --frozen --no-dev
+RUN chmod 755 start.sh
 
 # Run as non-root
 RUN useradd --create-home appuser
@@ -23,4 +25,4 @@ USER appuser
 
 EXPOSE 8000
 
-CMD [".venv/bin/uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["./start.sh"]

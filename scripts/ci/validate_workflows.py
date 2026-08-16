@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[2]
 CI_PATH = ROOT / ".github/workflows/ci.yml"
 DEPLOY_PATH = ROOT / ".github/workflows/deploy-production.yml"
 PROTECTED_JOBS = {"backend", "frontend", "graph", "secrets"}
-DEPLOY_JOBS = {"deploy-backend", "deploy-frontend"}
+DEPLOY_JOBS = {"deploy-backend", "deploy-sync-worker", "deploy-frontend"}
 TRUSTED_EVENTS = {"push", "workflow_dispatch"}
 SHA_PIN = re.compile(r"^[^@]+@[0-9a-f]{40}$")
 
@@ -61,8 +61,13 @@ def validate_workflows(ci: dict[str, Any], deploy: dict[str, Any]) -> list[str]:
     if missing_deploy:
         errors.append(f"full-stack deployment jobs missing: {sorted(missing_deploy)}")
     frontend_needs = deploy_jobs.get("deploy-frontend", {}).get("needs")
-    if frontend_needs != "deploy-backend":
-        errors.append("frontend deployment must wait for the backend deployment")
+    if not (
+        isinstance(frontend_needs, list)
+        and {"deploy-backend", "deploy-sync-worker"}.issubset(frontend_needs)
+    ):
+        errors.append(
+            "frontend deployment must wait for the backend and sync-worker deployments"
+        )
 
     for workflow_name, workflow in (("CI", ci), ("deployment", deploy)):
         if workflow.get("permissions") != {"contents": "read"}:
@@ -142,8 +147,12 @@ def validate_workflows(ci: dict[str, Any], deploy: dict[str, Any]) -> list[str]:
     for required in (
         "EXPECTED_DEPLOY_REVISION",
         "BACKEND_PUBLIC_ORIGIN",
+        "FRONTEND_ORIGIN",
+        "configure-sync-worker",
         "railway up backend --path-as-root",
         "railway up frontend --path-as-root",
+        "app.verify_snapshot",
+        "database-snapshot.json",
         "test:production",
         "deploymentRollback",
         "playwright-production-report",
@@ -159,7 +168,10 @@ def main() -> int:
         for error in errors:
             print(f"ERROR: {error}", file=sys.stderr)
         return 1
-    print("workflow policy passed: protected names, trust boundaries, pins, timeouts, full-stack deploy and rollback")
+    print(
+        "workflow policy passed: protected names, trust boundaries, pins, "
+        "timeouts, database/API trace, full-stack deploy and rollback"
+    )
     return 0
 
 

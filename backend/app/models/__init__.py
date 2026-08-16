@@ -7,4 +7,4 @@ class Base(DeclarativeBase):
     """Base class for all SQLAlchemy models."""
 
 
-from app.models.event import Event  # noqa: E402, F401
+from app.models.event import CurrentEvent, EventRepository, SyncRun  # noqa: E402, F401

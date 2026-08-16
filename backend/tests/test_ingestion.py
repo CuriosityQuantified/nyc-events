@@ -9,8 +9,8 @@ import httpx
 import pytest
 from sqlalchemy import func, select
 
-from app.models.event import Event
-from app.socrata import SocrataClient, SocrataError
+from app.models.event import CurrentEvent, EventRepository, SyncRun
+from app.socrata import SocrataClient, SocrataError, sync_events
 from tests.conftest import (
     AlwaysErrorTransport,
     ingest_rows,
@@ -21,20 +21,22 @@ from tests.conftest import (
 
 @requires_docker
 class TestIngestionWithDb:
-    """Verify snapshot ingestion, deltas, and guid-based identity (needs Postgres)."""
+    """Verify atomic current Snapshot replacement and archival retention."""
 
     async def test_ingest_snapshot_a(self, db_session):
         """All events from snapshot_a must be stored in the database."""
         rows = load_fixture("snapshot_a.json")
         await ingest_rows(db_session, rows)
 
-        count_result = await db_session.execute(select(func.count()).select_from(Event))
-        assert count_result.scalar() == 3
+        assert await db_session.scalar(
+            select(func.count()).select_from(CurrentEvent)
+        ) == len(rows)
+        assert await db_session.scalar(
+            select(func.count()).select_from(EventRepository)
+        ) == len(rows)
 
-        result = await db_session.execute(
-            select(Event).where(Event.guid == "2,146,733")
-        )
-        event = result.scalar_one()
+        event = await db_session.get(CurrentEvent, "2,146,733")
+        assert event is not None
         assert event.title == "Summer on the Hudson: Tai Chi"
         assert event.borough == "Manhattan"
 
@@ -44,7 +46,7 @@ class TestIngestionWithDb:
 
         await ingest_rows(db_session, rows)
 
-        event = await db_session.get(Event, "live-object-1")
+        event = await db_session.get(CurrentEvent, "live-object-1")
         assert event is not None
         assert event.official_event_url == rows[0]["link"]["url"]
         assert event.registration_status == "required"
@@ -60,22 +62,20 @@ class TestIngestionWithDb:
         rows_b = load_fixture("snapshot_b.json")
         await ingest_rows(db_session, rows_b)
 
-        # snapshot_b has 4 events: 3 from A (1 modified) + 1 new
-        count_result = await db_session.execute(select(func.count()).select_from(Event))
-        assert count_result.scalar() == 4
+        assert await db_session.scalar(
+            select(func.count()).select_from(CurrentEvent)
+        ) == len(rows_b)
+        assert await db_session.scalar(
+            select(func.count()).select_from(EventRepository)
+        ) == len({row["guid"] for row in rows_a + rows_b})
 
-        # Verify the new event exists.
-        result = await db_session.execute(
-            select(Event).where(Event.guid == "2,098,303")
-        )
-        new_event = result.scalar_one()
+        new_event = await db_session.get(CurrentEvent, "2,098,303")
+        assert new_event is not None
         assert new_event.borough == "Queens"
 
         # Verify the modified event was updated (endtime changed to 16:00).
-        result2 = await db_session.execute(
-            select(Event).where(Event.guid == "2,181,767")
-        )
-        modified_event = result2.scalar_one()
+        modified_event = await db_session.get(CurrentEvent, "2,181,767")
+        assert modified_event is not None
         local_end = modified_event.end_datetime.astimezone(ZoneInfo("America/New_York"))
         assert local_end.hour == 16
 
@@ -89,15 +89,17 @@ class TestIngestionWithDb:
         modified["title"] = "Updated Title"
         await ingest_rows(db_session, [modified])
 
-        count_result = await db_session.execute(
-            select(func.count()).select_from(Event).where(Event.guid == "2,146,733")
+        assert (
+            await db_session.scalar(
+                select(func.count())
+                .select_from(CurrentEvent)
+                .where(CurrentEvent.guid == "2,146,733")
+            )
+            == 1
         )
-        assert count_result.scalar() == 1
 
-        result = await db_session.execute(
-            select(Event).where(Event.guid == "2,146,733")
-        )
-        event = result.scalar_one()
+        event = await db_session.get(CurrentEvent, "2,146,733")
+        assert event is not None
         assert event.title == "Updated Title"
 
     async def test_invalid_row_rolls_back_the_whole_snapshot(self, db_session):
@@ -109,8 +111,99 @@ class TestIngestionWithDb:
         with pytest.raises(SocrataError, match="guid"):
             await ingest_rows(db_session, [valid, invalid])
 
-        count = await db_session.scalar(select(func.count()).select_from(Event))
+        count = await db_session.scalar(select(func.count()).select_from(CurrentEvent))
         assert count == 0
+
+    async def test_snapshot_replacement_preserves_archival_union(self, db_session):
+        rows_a = load_fixture("snapshot_a.json")
+        rows_b = [dict(rows_a[1], title="Changed title"), rows_a[2]]
+
+        await ingest_rows(db_session, rows_a)
+        archived = await db_session.get(EventRepository, rows_a[1]["guid"])
+        assert archived is not None
+        first_seen_at = archived.first_seen_at
+        await ingest_rows(db_session, rows_b)
+
+        current = (await db_session.scalars(select(CurrentEvent))).all()
+        repository = (await db_session.scalars(select(EventRepository))).all()
+        assert {event.guid for event in current} == {
+            rows_a[1]["guid"],
+            rows_a[2]["guid"],
+        }
+        assert {event.guid for event in repository} == {row["guid"] for row in rows_a}
+        changed = await db_session.get(EventRepository, rows_a[1]["guid"])
+        assert changed is not None
+        assert changed.title == "Changed title"
+        assert changed.first_seen_at == first_seen_at
+        assert changed.first_seen_at <= changed.last_seen_at
+
+    async def test_empty_and_malformed_snapshots_preserve_both_tables(self, db_session):
+        rows = load_fixture("snapshot_a.json")
+        await ingest_rows(db_session, rows)
+        before_current = {
+            item.guid: item.title
+            for item in (await db_session.scalars(select(CurrentEvent))).all()
+        }
+        before_repository = {
+            item.guid: item.title
+            for item in (await db_session.scalars(select(EventRepository))).all()
+        }
+
+        with pytest.raises(SocrataError, match="empty Snapshot"):
+            await ingest_rows(db_session, [])
+        with pytest.raises(SocrataError, match="title"):
+            await ingest_rows(db_session, [dict(rows[0]), {"guid": "broken"}])
+
+        after_current = {
+            item.guid: item.title
+            for item in (await db_session.scalars(select(CurrentEvent))).all()
+        }
+        after_repository = {
+            item.guid: item.title
+            for item in (await db_session.scalars(select(EventRepository))).all()
+        }
+        assert after_current == before_current
+        assert after_repository == before_repository
+
+    async def test_unsupported_optional_field_shape_preserves_snapshot(
+        self, db_session
+    ):
+        rows = load_fixture("snapshot_a.json")
+        await ingest_rows(db_session, rows)
+        malformed = dict(rows[0], categories={"unexpected": "object"})
+
+        with pytest.raises(SocrataError, match="categories must be a string"):
+            await ingest_rows(db_session, [malformed])
+
+        current = (await db_session.scalars(select(CurrentEvent))).all()
+        repository = (await db_session.scalars(select(EventRepository))).all()
+        assert {event.guid for event in current} == {row["guid"] for row in rows}
+        assert {event.guid for event in repository} == {row["guid"] for row in rows}
+
+    async def test_sync_run_records_success_and_failure_without_secrets(
+        self, db_session
+    ):
+        class FixtureClient:
+            def __init__(self, result):
+                self.result = result
+
+            async def fetch_all_events(self):
+                if isinstance(self.result, Exception):
+                    raise self.result
+                return self.result
+
+        rows = load_fixture("snapshot_a.json")
+        assert await sync_events(db_session, FixtureClient(rows)) == len(rows)
+        with pytest.raises(SocrataError, match="upstream unavailable"):
+            await sync_events(
+                db_session, FixtureClient(SocrataError("upstream unavailable"))
+            )
+
+        runs = (await db_session.scalars(select(SyncRun).order_by(SyncRun.id))).all()
+        assert [run.status for run in runs] == ["succeeded", "failed"]
+        assert runs[0].row_count == len(rows)
+        assert runs[1].failure_code == "SocrataError"
+        assert "upstream unavailable" not in repr(runs[1].__dict__)
 
 
 class TestNetworkEnforcement:
