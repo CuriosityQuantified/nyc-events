@@ -1,5 +1,7 @@
 """FastAPI application entry point."""
 
+import os
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 import redis.asyncio as aioredis
@@ -13,7 +15,7 @@ from app.routes.events import router as events_router
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Manage application startup and shutdown."""
     yield
     await reset_engine()
@@ -23,8 +25,21 @@ app = FastAPI(title="NYC Events API", lifespan=lifespan)
 app.include_router(events_router)
 
 
+@app.get("/api/revision")
+async def deployment_revision() -> JSONResponse:
+    """Return the immutable revision attached to the running deployment."""
+    revision = os.environ.get("DEPLOY_REVISION", "unknown")
+    return JSONResponse(
+        content={"revision": revision},
+        headers={
+            "Cache-Control": "no-store, max-age=0",
+            "X-Deployment-Revision": revision,
+        },
+    )
+
+
 @app.get("/health")
-async def health_check():
+async def health_check() -> JSONResponse:
     """Check database and Redis connectivity.
 
     Returns 200 with all-healthy status when both services respond.

@@ -6,7 +6,6 @@ import json
 from pathlib import Path
 from typing import Any
 
-import pytest
 from jsonschema import Draft202012Validator, FormatChecker
 
 from tests.conftest import ingest_rows, load_fixture, requires_docker
@@ -45,9 +44,7 @@ class TestContractValidation:
         assert resp.status_code == 200
         body = resp.json()
 
-        validator = _build_validator(
-            "#/components/schemas/EventListResponse"
-        )
+        validator = _build_validator("#/components/schemas/EventListResponse")
         # This raises if the response does not match the schema.
         validator.validate(body)
 
@@ -63,9 +60,7 @@ class TestContractValidation:
         validator = _build_validator("#/components/schemas/Event")
         validator.validate(body)
 
-    async def test_event_with_registration_validates(
-        self, client, db_session
-    ):
+    async def test_event_with_registration_validates(self, client, db_session):
         """An event with registration_status=closed must still validate."""
         await ingest_rows(db_session, load_fixture("snapshot_a.json"))
         resp = await client.get("/events/2,181,767")

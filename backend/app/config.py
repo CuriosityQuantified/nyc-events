@@ -8,7 +8,9 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     """Settings loaded from environment variables."""
 
-    database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/nyc_events"
+    database_url: str = (
+        "postgresql+asyncpg://postgres:postgres@localhost:5432/nyc_events"
+    )
     redis_url: str = "redis://localhost:6379/0"
     environment: str = "development"
 

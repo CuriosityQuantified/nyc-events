@@ -95,7 +95,9 @@ class TestIdentity:
     ):
         row = load_fixture("snapshot_a.json")[0]
         await ingest_rows(db_session, [row])
-        original = await db_session.scalar(select(Event).where(Event.guid == row["guid"]))
+        original = await db_session.scalar(
+            select(Event).where(Event.guid == row["guid"])
+        )
         original_key = original.location_key
 
         renamed = dict(row, location="A renamed display label")
@@ -109,5 +111,7 @@ class TestIdentity:
 
         moved = dict(row, coordinates="40.700000, -73.900000")
         await ingest_rows(db_session, [moved])
-        moved_event = await db_session.scalar(select(Event).where(Event.guid == row["guid"]))
+        moved_event = await db_session.scalar(
+            select(Event).where(Event.guid == row["guid"])
+        )
         assert moved_event.location_key != original_key

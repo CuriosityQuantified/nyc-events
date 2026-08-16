@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "format:check": "prettier --check app/api/revision/**/*.ts app/data/api-contract.test.ts e2e/production.spec.ts next.config.ts playwright.config.ts playwright.production.config.ts tsconfig.json tsconfig.tests.json",
     "lint": "eslint",
+    "typecheck": "next typegen && tsc --noEmit && tsc --noEmit --project tsconfig.tests.json",
     "pretest": "playwright install --with-deps chromium",
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "vitest run",
@@ -29,6 +31,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.1",
     "jsdom": "^30.0.1",
+    "prettier": "3.6.2",
     "typescript": "^5",
     "vitest": "^4.1.10"
   }

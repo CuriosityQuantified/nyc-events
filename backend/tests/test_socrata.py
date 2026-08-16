@@ -26,7 +26,9 @@ class TestPagination:
         http_client = httpx.AsyncClient(transport=transport)
 
         with patch("app.socrata.get_settings") as mock_settings:
-            mock_settings.return_value.socrata_query_endpoint = "https://data.cityofnewyork.us/api/v3/views/w3wp-dpdi/query.json"
+            mock_settings.return_value.socrata_query_endpoint = (
+                "https://data.cityofnewyork.us/api/v3/views/w3wp-dpdi/query.json"
+            )
             mock_settings.return_value.socrata_api_key_id = ""
             mock_settings.return_value.socrata_api_key_secret = ""
             mock_settings.return_value.socrata_app_token = ""
@@ -53,7 +55,9 @@ class TestPagination:
         http_client = httpx.AsyncClient(transport=transport)
 
         with patch("app.socrata.get_settings") as mock_settings:
-            mock_settings.return_value.socrata_query_endpoint = "https://data.cityofnewyork.us/api/v3/views/w3wp-dpdi/query.json"
+            mock_settings.return_value.socrata_query_endpoint = (
+                "https://data.cityofnewyork.us/api/v3/views/w3wp-dpdi/query.json"
+            )
             mock_settings.return_value.socrata_api_key_id = ""
             mock_settings.return_value.socrata_api_key_secret = ""
             mock_settings.return_value.socrata_app_token = ""
@@ -77,7 +81,9 @@ class TestRetry:
         http_client = httpx.AsyncClient(transport=transport)
 
         with patch("app.socrata.get_settings") as mock_settings:
-            mock_settings.return_value.socrata_query_endpoint = "https://data.cityofnewyork.us/api/v3/views/w3wp-dpdi/query.json"
+            mock_settings.return_value.socrata_query_endpoint = (
+                "https://data.cityofnewyork.us/api/v3/views/w3wp-dpdi/query.json"
+            )
             mock_settings.return_value.socrata_api_key_id = ""
             mock_settings.return_value.socrata_api_key_secret = ""
             mock_settings.return_value.socrata_app_token = ""
@@ -100,7 +106,9 @@ class TestRetry:
         http_client = httpx.AsyncClient(transport=transport)
 
         with patch("app.socrata.get_settings") as mock_settings:
-            mock_settings.return_value.socrata_query_endpoint = "https://data.cityofnewyork.us/api/v3/views/w3wp-dpdi/query.json"
+            mock_settings.return_value.socrata_query_endpoint = (
+                "https://data.cityofnewyork.us/api/v3/views/w3wp-dpdi/query.json"
+            )
             mock_settings.return_value.socrata_api_key_id = ""
             mock_settings.return_value.socrata_api_key_secret = ""
             mock_settings.return_value.socrata_app_token = ""
@@ -130,16 +138,20 @@ class TestCredentialFiltering:
         http_client = httpx.AsyncClient(transport=transport)
 
         with patch("app.socrata.get_settings") as mock_settings:
-            mock_settings.return_value.socrata_query_endpoint = "https://data.cityofnewyork.us/api/v3/views/w3wp-dpdi/query.json"
+            mock_settings.return_value.socrata_query_endpoint = (
+                "https://data.cityofnewyork.us/api/v3/views/w3wp-dpdi/query.json"
+            )
             mock_settings.return_value.socrata_api_key_id = secret_key_id
             mock_settings.return_value.socrata_api_key_secret = secret_key
             mock_settings.return_value.socrata_app_token = secret_token
 
-            with caplog.at_level(logging.DEBUG, logger="app.socrata"):
-                with patch("app.socrata.asyncio.sleep", return_value=None):
-                    client = SocrataClient(http_client=http_client)
-                    client._page_size = 10
-                    await client.fetch_all_events()
+            with (
+                caplog.at_level(logging.DEBUG, logger="app.socrata"),
+                patch("app.socrata.asyncio.sleep", return_value=None),
+            ):
+                client = SocrataClient(http_client=http_client)
+                client._page_size = 10
+                await client.fetch_all_events()
 
         full_log = caplog.text
         assert secret_key_id not in full_log
@@ -155,9 +167,7 @@ class TestCredentialFiltering:
             (secret_key_id, secret_key, secret_token),
             None,
         )
-        credential_filter = CredentialFilter(
-            [secret_key_id, secret_key, secret_token]
-        )
+        credential_filter = CredentialFilter([secret_key_id, secret_key, secret_token])
         assert credential_filter.filter(record)
         assert record.getMessage() == (
             "api_key=[REDACTED] authorization=[REDACTED] token=[REDACTED]"
@@ -225,8 +235,7 @@ class TestParseEvent:
         assert parsed["guid"] == "2,146,733"
         assert parsed["title"] == "Summer on the Hudson: Tai Chi"
         assert parsed["official_event_url"] == (
-            "http://www.nycgovparks.org/events/2026/08/09/"
-            "summer-on-the-hudson-tai-chi"
+            "http://www.nycgovparks.org/events/2026/08/09/summer-on-the-hudson-tai-chi"
         )
         assert parsed["location_id"] == "M072"
         assert parsed["location_name"] == (
@@ -334,9 +343,7 @@ class TestParseEvent:
             "https:///missing-host",
         ],
     )
-    def test_unsafe_or_malformed_registration_url_is_rejected(
-        self, registration_url
-    ):
+    def test_unsafe_or_malformed_registration_url_is_rejected(self, registration_url):
         """Unsupported URL values must fail closed instead of implying registration."""
         row = dict(load_fixture("snapshot_a.json")[0])
         row["registration_url"] = registration_url

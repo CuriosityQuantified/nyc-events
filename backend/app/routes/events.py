@@ -5,10 +5,10 @@ from __future__ import annotations
 from typing import Any
 
 from fastapi import APIRouter, HTTPException, Path, Query
-from sqlalchemy import select, func
+from sqlalchemy import func, select
+
 from app.database import get_session_factory
 from app.models.event import Event
-
 
 router = APIRouter()
 
@@ -21,7 +21,11 @@ def _text_fact(
         provenance = "Not listed"
     if provenance == "Not listed":
         return {"value": None, "provenance": "Not listed", "raw": None}
-    return {"value": value, "provenance": provenance, "raw": raw if raw is not None else value}
+    return {
+        "value": value,
+        "provenance": provenance,
+        "raw": raw if raw is not None else value,
+    }
 
 
 def _uri_fact(
@@ -30,7 +34,11 @@ def _uri_fact(
     """Build a UriFact dict."""
     if not value:
         return {"value": None, "provenance": "Not listed", "raw": None}
-    return {"value": value, "provenance": provenance, "raw": raw if raw is not None else value}
+    return {
+        "value": value,
+        "provenance": provenance,
+        "raw": raw if raw is not None else value,
+    }
 
 
 def _date_fact(
@@ -139,9 +147,7 @@ def _event_to_contract(event: Event) -> dict[str, Any]:
         "guid": event.guid,
         "title": _text_fact(event.title, raw=raw.get("title")),
         "description": _text_fact(event.description, raw=raw.get("description")),
-        "official_event_url": _uri_fact(
-            event.official_event_url, raw=raw.get("link")
-        ),
+        "official_event_url": _uri_fact(event.official_event_url, raw=raw.get("link")),
         "location_id": _text_fact(event.location_id, raw=raw.get("parkids")),
         "location_name": _text_fact(event.location_name, raw=raw.get("location")),
         "start_date": _date_fact(start_date_val, raw=start_date_raw),
@@ -182,7 +188,6 @@ async def list_events(
     async with session_factory() as session:
         query = select(Event)
 
-
         # Count total matching rows
         count_query = select(func.count()).select_from(query.subquery())
         total_result = await session.execute(count_query)
@@ -210,9 +215,7 @@ async def get_event(guid: str = Path(min_length=1, max_length=255)) -> dict[str,
     """Return a single event by its source guid."""
     session_factory = get_session_factory()
     async with session_factory() as session:
-        result = await session.execute(
-            select(Event).where(Event.guid == guid)
-        )
+        result = await session.execute(select(Event).where(Event.guid == guid))
         event = result.scalar_one_or_none()
         if event is None:
             raise HTTPException(status_code=404, detail="Event not found")

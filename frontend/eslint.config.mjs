@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Generated browser evidence can exist before a repeated local gate run.
+    "playwright-report/**",
+    "playwright-production-report/**",
+    "test-results/**",
   ]),
 ]);
 

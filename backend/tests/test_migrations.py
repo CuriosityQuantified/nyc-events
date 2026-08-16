@@ -29,3 +29,10 @@ def test_events_migration_upgrade_and_idempotency(postgres_url):
         assert "0002 (head)" in current.stdout
     finally:
         _alembic("upgrade", "head")
+
+
+def test_migration_history_has_exactly_one_head():
+    """Parallel migration work must not leave an undeployable split head."""
+    heads = [line for line in _alembic("heads").stdout.splitlines() if line.strip()]
+    assert len(heads) == 1
+    assert heads[0].endswith("(head)")

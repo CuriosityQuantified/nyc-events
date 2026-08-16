@@ -7,11 +7,16 @@ from zoneinfo import ZoneInfo
 
 import httpx
 import pytest
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 
 from app.models.event import Event
 from app.socrata import SocrataClient, SocrataError
-from tests.conftest import AlwaysErrorTransport, ingest_rows, load_fixture, requires_docker
+from tests.conftest import (
+    AlwaysErrorTransport,
+    ingest_rows,
+    load_fixture,
+    requires_docker,
+)
 
 
 @requires_docker
@@ -23,9 +28,7 @@ class TestIngestionWithDb:
         rows = load_fixture("snapshot_a.json")
         await ingest_rows(db_session, rows)
 
-        count_result = await db_session.execute(
-            select(func.count()).select_from(Event)
-        )
+        count_result = await db_session.execute(select(func.count()).select_from(Event))
         assert count_result.scalar() == 3
 
         result = await db_session.execute(
@@ -58,9 +61,7 @@ class TestIngestionWithDb:
         await ingest_rows(db_session, rows_b)
 
         # snapshot_b has 4 events: 3 from A (1 modified) + 1 new
-        count_result = await db_session.execute(
-            select(func.count()).select_from(Event)
-        )
+        count_result = await db_session.execute(select(func.count()).select_from(Event))
         assert count_result.scalar() == 4
 
         # Verify the new event exists.
@@ -89,9 +90,7 @@ class TestIngestionWithDb:
         await ingest_rows(db_session, [modified])
 
         count_result = await db_session.execute(
-            select(func.count()).select_from(Event).where(
-                Event.guid == "2,146,733"
-            )
+            select(func.count()).select_from(Event).where(Event.guid == "2,146,733")
         )
         assert count_result.scalar() == 1
 
