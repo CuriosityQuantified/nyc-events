@@ -157,6 +157,34 @@ class WorkflowPolicyTests(unittest.TestCase):
             self.assertEqual(initializers, [0])
             self.assertLess(initializers[0], checkout)
 
+    def test_backend_remote_execution_requires_noninteractive_ssh_identity(
+        self,
+    ) -> None:
+        backend = self.deploy["jobs"]["deploy-backend"]
+        self.assertEqual(
+            backend["env"].get("RAILWAY_SSH_PRIVATE_KEY"),
+            "${{ secrets.RAILWAY_SSH_PRIVATE_KEY }}",
+        )
+        backend_text = str(backend)
+        self.assertIn("--identity-file", backend_text)
+        self.assertIn("RAILWAY_SSH_IDENTITY", backend_text)
+
+    def test_rollbacks_wait_for_terminal_deployment_before_revision(self) -> None:
+        rollback_steps = [
+            step["run"]
+            for job_name in ("deploy-backend", "deploy-sync-worker", "deploy-frontend")
+            for step in self.deploy["jobs"][job_name]["steps"]
+            if "deploymentRollback" in step.get("run", "")
+            and "wait-revision" in step.get("run", "")
+        ]
+        self.assertGreaterEqual(len(rollback_steps), 5)
+        for run in rollback_steps:
+            with self.subTest(run=run):
+                self.assertIn("wait-deployment", run)
+                self.assertLess(
+                    run.index("wait-deployment"), run.index("wait-revision")
+                )
+
 
 if __name__ == "__main__":
     unittest.main()
