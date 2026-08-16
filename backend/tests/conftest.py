@@ -141,16 +141,20 @@ async def db_session():
     from sqlalchemy import delete
 
     from app.database import get_session_factory, reset_engine
-    from app.models.event import Event
+    from app.models.event import CurrentEvent, EventRepository, SyncRun
 
     await reset_engine()
     factory = get_session_factory()
     async with factory() as session:
-        await session.execute(delete(Event))
+        await session.execute(delete(CurrentEvent))
+        await session.execute(delete(EventRepository))
+        await session.execute(delete(SyncRun))
         await session.commit()
         yield session
         await session.rollback()
-        await session.execute(delete(Event))
+        await session.execute(delete(CurrentEvent))
+        await session.execute(delete(EventRepository))
+        await session.execute(delete(SyncRun))
         await session.commit()
 
     await reset_engine()

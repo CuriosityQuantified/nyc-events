@@ -34,6 +34,7 @@ jobs:
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       CONFIGURED_RAILWAY_PROJECT_ID: ${{ vars.RAILWAY_PROJECT_ID }}
       CONFIGURED_PUBLIC_ORIGIN: ${{ vars.BACKEND_PUBLIC_ORIGIN }}
+      CONFIGURED_FRONTEND_ORIGIN: ${{ vars.FRONTEND_PUBLIC_ORIGIN }}
       EXPECTED_DEPLOY_REVISION: ${{ github.sha }}
       ROLLBACK_DRILL: ${{ inputs.rollback_drill || false }}
     steps:
@@ -68,6 +69,7 @@ jobs:
           set -euo pipefail
           test -n "$RAILWAY_TOKEN" || { echo "::error::RAILWAY_TOKEN is missing from the production environment"; exit 1; }
           test -n "$CONFIGURED_RAILWAY_PROJECT_ID" || { echo "::error::RAILWAY_PROJECT_ID is missing from the production environment"; exit 1; }
+          test -n "$CONFIGURED_FRONTEND_ORIGIN" || { echo "::error::FRONTEND_PUBLIC_ORIGIN is missing from the production environment"; exit 1; }
 
       - name: Discover the exact backend service and public origin
         id: railway
@@ -101,10 +103,13 @@ jobs:
             --github-output "$GITHUB_OUTPUT" \
             --github-env "$GITHUB_ENV"
 
-      - name: Attach the exact GitHub revision to the backend release
+      - name: Attach the exact revision and frontend CORS origin to the backend release
         run: |
           set -euo pipefail
-          railway variable set "DEPLOY_REVISION=$GITHUB_SHA" --skip-deploys \
+          railway variable set \
+            "DEPLOY_REVISION=$GITHUB_SHA" \
+            "FRONTEND_ORIGIN=$CONFIGURED_FRONTEND_ORIGIN" \
+            --skip-deploys \
             --project "$RAILWAY_PROJECT_ID" \
             --service "$RAILWAY_SERVICE_ID" \
             --environment production
@@ -149,6 +154,49 @@ jobs:
           expected = {"status": "healthy", "database": "connected", "redis": "connected"}
           if health != expected:
               raise SystemExit(f"backend health mismatch: {health!r}")
+          PY
+
+      - name: Run the production synchronization path and verify the live Snapshot
+        run: |
+          set -euo pipefail
+          timeout 600 railway ssh \
+            --project "$RAILWAY_PROJECT_ID" \
+            --service "$RAILWAY_SERVICE_ID" \
+            --environment production \
+            .venv/bin/python -m app.sync \
+            | tee artifacts/backend-deployment/sync.log
+          curl --fail --silent --show-error "$PUBLIC_ORIGIN/freshness" \
+            --output artifacts/backend-deployment/freshness.json
+          curl --fail --silent --show-error "$PUBLIC_ORIGIN/ingestion-health" \
+            --output artifacts/backend-deployment/ingestion-health.json
+          curl --fail --silent --show-error "$PUBLIC_ORIGIN/events?page_size=1" \
+            --output artifacts/backend-deployment/events.json
+          timeout 60 railway ssh \
+            --project "$RAILWAY_PROJECT_ID" \
+            --service "$RAILWAY_SERVICE_ID" \
+            --environment production \
+            .venv/bin/python -m app.verify_snapshot \
+            > artifacts/backend-deployment/database-snapshot.json
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          freshness = json.loads(Path("artifacts/backend-deployment/freshness.json").read_text())
+          ingestion = json.loads(Path("artifacts/backend-deployment/ingestion-health.json").read_text())
+          events = json.loads(Path("artifacts/backend-deployment/events.json").read_text())
+          database = json.loads(Path("artifacts/backend-deployment/database-snapshot.json").read_text())
+          if freshness["is_stale"]["value"] is not False:
+              raise SystemExit(f"production Snapshot is stale: {freshness!r}")
+          if not freshness["snapshot_row_count"]["value"]:
+              raise SystemExit(f"production Snapshot is empty: {freshness!r}")
+          if not events.get("events") or not events["events"][0].get("guid"):
+              raise SystemExit(f"production API has no source guid: {events!r}")
+          if ingestion.get("status") != "succeeded" or ingestion.get("row_count", 0) <= 0:
+              raise SystemExit(f"production ingestion is not healthy: {ingestion!r}")
+          if database.get("row_count") != freshness["snapshot_row_count"]["value"]:
+              raise SystemExit("database and freshness row counts differ")
+          if database.get("first_guid") != events["events"][0]["guid"]:
+              raise SystemExit("database and API first Event GUIDs differ")
           PY
 
       - name: Snapshot the verified backend before the rollback drill
@@ -224,8 +272,131 @@ jobs:
             artifacts/backend-deployment/
           if-no-files-found: error
 
-  deploy-frontend:
+  deploy-sync-worker:
     needs: deploy-backend
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    environment: production
+    outputs:
+      previous_id: ${{ steps.before.outputs.previous_id }}
+      deployment_id: ${{ steps.wait.outputs.deployment_id }}
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      CONFIGURED_RAILWAY_PROJECT_ID: ${{ vars.RAILWAY_PROJECT_ID }}
+    steps:
+      - name: Initialize deployment failure evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/sync-worker"
+          printf '%s\n' '{"status":"initialized","stage":"job"}' > "$RUNNER_TEMP/sync-worker/status.json"
+
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+
+      - name: Install the checksum-pinned Railway CLI
+        shell: bash
+        run: |
+          set -euo pipefail
+          railway_deb=/tmp/railway-v5.41.2-amd64.deb
+          curl --fail --silent --show-error --location \
+            --output "$railway_deb" \
+            https://github.com/railwayapp/cli/releases/download/v5.41.2/railway-v5.41.2-amd64.deb
+          printf '%s  %s\n' \
+            a66321d03f8970db2be727ca9b8861b6e55a788f81c5864ff367432b22a9d8e8 \
+            "$railway_deb" | sha256sum --check --strict
+          sudo dpkg --install "$railway_deb"
+          test "$(railway --version)" = "railway 5.41.2"
+
+      - name: Require the trusted Railway credential
+        run: |
+          set -euo pipefail
+          test -n "$RAILWAY_TOKEN" || { echo "::error::RAILWAY_TOKEN is missing"; exit 1; }
+          test -n "$CONFIGURED_RAILWAY_PROJECT_ID" || { echo "::error::RAILWAY_PROJECT_ID is missing"; exit 1; }
+
+      - name: Create or reconcile the scheduled synchronization service
+        id: worker
+        run: |
+          set -euo pipefail
+          mkdir -p artifacts/sync-worker
+          python3 scripts/deploy/railway_release.py configure-sync-worker \
+            --project-id "$CONFIGURED_RAILWAY_PROJECT_ID" \
+            --environment production \
+            --service-name sync-worker \
+            --backend-service backend \
+            --config backend/railway-sync.toml \
+            --github-output "$GITHUB_OUTPUT" \
+            --github-env "$GITHUB_ENV" \
+            --evidence-output artifacts/sync-worker/configuration.json
+
+      - name: Record the previous scheduled-worker deployment
+        id: before
+        run: |
+          python3 scripts/deploy/railway_release.py snapshot \
+            --project "$CONFIGURED_RAILWAY_PROJECT_ID" \
+            --service "$SYNC_RAILWAY_SERVICE_ID" \
+            --environment production \
+            --output artifacts/sync-worker/before.json \
+            --github-output "$GITHUB_OUTPUT" \
+            --github-env "$GITHUB_ENV"
+
+      - name: Upload the exact worker revision without backend service config
+        id: deploy
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/sync-worker-source"
+          rsync -a --exclude railway.toml backend/ "$RUNNER_TEMP/sync-worker-source/"
+          railway variable set "DEPLOY_REVISION=$GITHUB_SHA" --skip-deploys \
+            --project "$CONFIGURED_RAILWAY_PROJECT_ID" \
+            --service "$SYNC_RAILWAY_SERVICE_ID" \
+            --environment production
+          railway up "$RUNNER_TEMP/sync-worker-source" --path-as-root --detach --json \
+            --project "$CONFIGURED_RAILWAY_PROJECT_ID" \
+            --service "$SYNC_RAILWAY_SERVICE_ID" \
+            --environment production \
+            --message "Scheduled sync GitHub $GITHUB_SHA" \
+            | tee artifacts/sync-worker/upload.json
+
+      - name: Poll the worker deployment to terminal success
+        id: wait
+        run: |
+          python3 scripts/deploy/railway_release.py wait-deployment \
+            --project "$CONFIGURED_RAILWAY_PROJECT_ID" \
+            --service "$SYNC_RAILWAY_SERVICE_ID" \
+            --environment production \
+            --before artifacts/sync-worker/before.json \
+            --output artifacts/sync-worker/deployed.json \
+            --github-output "$GITHUB_OUTPUT" \
+            --github-env "$GITHUB_ENV"
+
+      - name: Roll back worker and backend when the scheduled deployment fails
+        if: ${{ failure() && steps.deploy.outcome != 'skipped' }}
+        env:
+          BACKEND_PREVIOUS_DEPLOYMENT_ID: ${{ needs.deploy-backend.outputs.previous_id }}
+        run: |
+          set -euo pipefail
+          if [ -n "$PREVIOUS_DEPLOYMENT_ID" ]; then
+            railway api "mutation(\$id: String!) { deploymentRollback(id: \$id) }" \
+              --var id="$PREVIOUS_DEPLOYMENT_ID" > artifacts/sync-worker/failure-rollback.json
+          fi
+          test -n "$BACKEND_PREVIOUS_DEPLOYMENT_ID" || { echo "::error::no backend rollback target"; exit 1; }
+          railway api "mutation(\$id: String!) { deploymentRollback(id: \$id) }" \
+            --var id="$BACKEND_PREVIOUS_DEPLOYMENT_ID" \
+            > artifacts/sync-worker/failure-backend-rollback.json
+
+      - name: Upload scheduled-worker deployment evidence
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: production-sync-worker-${{ github.sha }}
+          path: |
+            ${{ runner.temp }}/sync-worker/
+            artifacts/sync-worker/
+          if-no-files-found: error
+
+  deploy-frontend:
+    needs: [deploy-backend, deploy-sync-worker]
     runs-on: ubuntu-latest
     timeout-minutes: 60
     environment: production
@@ -233,6 +404,7 @@ jobs:
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
       CONFIGURED_RAILWAY_PROJECT_ID: ${{ vars.RAILWAY_PROJECT_ID }}
       CONFIGURED_PUBLIC_ORIGIN: ${{ vars.FRONTEND_PUBLIC_ORIGIN }}
+      BACKEND_PUBLIC_ORIGIN: ${{ needs.deploy-backend.outputs.origin }}
       EXPECTED_DEPLOY_REVISION: ${{ github.sha }}
       ROLLBACK_DRILL: ${{ inputs.rollback_drill || false }}
     steps:
@@ -312,10 +484,14 @@ jobs:
             --github-output "$GITHUB_OUTPUT" \
             --github-env "$GITHUB_ENV"
 
-      - name: Attach the exact GitHub revision to the Railway release
+      - name: Attach the exact revision and backend API origin to the Railway release
         run: |
           set -euo pipefail
-          railway variable set "DEPLOY_REVISION=$GITHUB_SHA" --skip-deploys \
+          test -n "$BACKEND_PUBLIC_ORIGIN" || { echo "::error::backend origin is missing"; exit 1; }
+          railway variable set \
+            "DEPLOY_REVISION=$GITHUB_SHA" \
+            "API_BASE_URL=$BACKEND_PUBLIC_ORIGIN" \
+            --skip-deploys \
             --project "$RAILWAY_PROJECT_ID" \
             --service "$RAILWAY_SERVICE_ID" \
             --environment production

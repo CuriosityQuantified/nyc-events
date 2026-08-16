@@ -15,6 +15,7 @@ sys.path.insert(0, str(ROOT))
 
 from scripts.deploy.railway_release import (  # noqa: E402
     choose_origin,
+    configure_sync_worker,
     discover,
     deployment_records,
     exact_named,
@@ -105,6 +106,81 @@ class RailwayReleaseTests(unittest.TestCase):
         self.assertNotIn(["railway", "list", "--json"], commands)
         self.assertEqual(commands[0][:4], ["railway", "service", "list", "--project"])
         self.assertEqual(commands[0][4], "project-1")
+
+    def test_sync_worker_reconciliation_is_secret_free_and_deterministic(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            config = Path(directory) / "sync.toml"
+            config.write_text(
+                """
+[deploy]
+startCommand = ".venv/bin/python -m app.sync"
+cronSchedule = "0 */2 * * *"
+restartPolicyType = "NEVER"
+""".strip()
+                + "\n"
+            )
+            args = Namespace(
+                project_id="project-1",
+                environment="production",
+                service_name="sync-worker",
+                backend_service="backend",
+                config=str(config),
+                github_output=None,
+                github_env=None,
+                evidence_output=None,
+            )
+            with (
+                patch(
+                    "scripts.deploy.railway_release.run_json",
+                    return_value=[{"id": "sync-1", "name": "sync-worker"}],
+                ),
+                patch("scripts.deploy.railway_release.run_command") as run,
+            ):
+                self.assertEqual(configure_sync_worker(args), 0)
+
+        config_command = run.call_args_list[0].args[0]
+        variables_command = run.call_args_list[1].args[0]
+        self.assertIn("deploy.cronSchedule", config_command)
+        self.assertIn("0 */2 * * *", config_command)
+        self.assertIn("DATABASE_URL=${{backend.DATABASE_URL}}", variables_command)
+        self.assertIn(
+            "SOCRATA_API_KEY_SECRET=${{backend.SOCRATA_API_KEY_SECRET}}",
+            variables_command,
+        )
+        self.assertIn("SOCRATA_APP_TOKEN=${{backend.SOCRATA_APP_TOKEN}}", variables_command)
+        self.assertNotIn("secret-value", json.dumps(run.call_args_list))
+
+    def test_sync_worker_is_created_once_when_missing(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            config = Path(directory) / "sync.toml"
+            config.write_text(
+                "[deploy]\n"
+                'startCommand = "sync"\n'
+                'cronSchedule = "0 */2 * * *"\n'
+                'restartPolicyType = "NEVER"\n'
+            )
+            args = Namespace(
+                project_id="project-1",
+                environment="production",
+                service_name="sync-worker",
+                backend_service="backend",
+                config=str(config),
+                github_output=None,
+                github_env=None,
+                evidence_output=None,
+            )
+            with (
+                patch(
+                    "scripts.deploy.railway_release.run_json",
+                    side_effect=[[], [{"id": "sync-1", "name": "sync-worker"}]],
+                ),
+                patch("scripts.deploy.railway_release.run_command") as run,
+            ):
+                self.assertEqual(configure_sync_worker(args), 0)
+
+        operations = [call.args[1] for call in run.call_args_list]
+        self.assertEqual(operations.count("sync-service-create"), 1)
+        self.assertEqual(operations.count("sync-service-configure"), 1)
 
     def test_failed_discovery_writes_actionable_sanitized_evidence(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

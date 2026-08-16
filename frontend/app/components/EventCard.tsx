@@ -10,9 +10,9 @@ function costLabel(event: ParkEvent): string {
     case "Free":
       return "Free";
     case "Paid":
-      return `$${event.costAmount}`;
-    case "RSVP":
-      return "RSVP";
+      return "Paid";
+    case "Not listed":
+      return "Cost not listed";
   }
 }
 
@@ -22,15 +22,19 @@ function costBadgeClass(costType: ParkEvent["costType"]): string {
       return styles.badgeFree;
     case "Paid":
       return styles.badgePaid;
-    case "RSVP":
+    case "Not listed":
       return styles.badgeRsvp;
   }
 }
 
 export default function EventCard({ event }: EventCardProps) {
   return (
-    <article className={styles.card} data-testid="event-card">
-      <div className={styles.imagePlaceholder} role="img" aria-label={event.imageAlt}>
+    <article
+      className={styles.card}
+      data-testid="event-card"
+      data-event-guid={event.guid}
+    >
+      <div className={styles.imagePlaceholder} aria-hidden="true">
         <span className={styles.imagePlaceholderIcon} aria-hidden="true">
           🌿
         </span>
@@ -54,9 +58,21 @@ export default function EventCard({ event }: EventCardProps) {
             <span className={styles.metaIcon} aria-hidden="true">
               🕐
             </span>
-            <span>{event.time}</span>
+            <span>
+              {event.date} · {event.time}
+            </span>
           </p>
+          <p className={styles.metaItem}>{event.registration}</p>
+          <p className={styles.metaItem}>{event.accessibility}</p>
         </div>
+        {event.officialUrl ? (
+          <a href={event.officialUrl} rel="noreferrer" target="_blank">
+            Official event details{" "}
+            <span className={styles.newTabNotice}>(opens in a new tab)</span>
+          </a>
+        ) : (
+          <p className={styles.metaItem}>Official event link not listed</p>
+        )}
       </div>
     </article>
   );

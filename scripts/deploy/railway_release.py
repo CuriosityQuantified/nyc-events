@@ -8,6 +8,7 @@ import json
 import subprocess
 import sys
 import time
+import tomllib
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -58,6 +59,18 @@ def run_json(command: list[str], operation: str = "railway-command") -> Any:
             classify_cli_diagnostic(error.stderr),
         ) from None
     return parse_json_output(result.stdout)
+
+
+def run_command(command: list[str], operation: str) -> None:
+    """Run a mutation without returning or logging credential-bearing output."""
+    try:
+        subprocess.run(command, check=True, capture_output=True, text=True)
+    except subprocess.CalledProcessError as error:
+        raise RailwayCommandError(
+            operation,
+            error.returncode,
+            classify_cli_diagnostic(error.stderr),
+        ) from None
 
 
 def named_records(value: Any) -> list[dict[str, Any]]:
@@ -226,6 +239,105 @@ def discover(args: argparse.Namespace) -> int:
     return 0
 
 
+def _service_reference(service: str, variable: str) -> str:
+    return "${{" + f"{service}.{variable}" + "}}"
+
+
+def configure_sync_worker(args: argparse.Namespace) -> int:
+    """Create or reconcile the scheduled worker without exposing secret values."""
+    write_status_evidence(args.evidence_output, "started")
+    service_list = [
+        "railway",
+        "service",
+        "list",
+        "--project",
+        args.project_id,
+        "--environment",
+        args.environment,
+        "--json",
+    ]
+    services = run_json(service_list, "sync-service-list")
+    matches = [
+        record
+        for record in named_records(services)
+        if record["name"] == args.service_name
+    ]
+    if len({record["id"] for record in matches}) > 1:
+        raise ValueError(f"multiple Railway services named {args.service_name!r}")
+    if not matches:
+        run_command(
+            [
+                "railway",
+                "link",
+                "--project",
+                args.project_id,
+                "--environment",
+                args.environment,
+            ],
+            "sync-project-link",
+        )
+        run_command(
+            ["railway", "add", "--service", args.service_name, "--json"],
+            "sync-service-create",
+        )
+        services = run_json(service_list, "sync-service-verify")
+    service = exact_named(services, args.service_name, "service")
+
+    config = tomllib.loads(Path(args.config).read_text(encoding="utf-8"))
+    deploy = config.get("deploy")
+    if not isinstance(deploy, dict):
+        raise ValueError("sync worker config has no deploy section")
+    required = {"startCommand", "cronSchedule", "restartPolicyType"}
+    if set(deploy) != required or not all(
+        isinstance(deploy[key], str) and deploy[key] for key in required
+    ):
+        raise ValueError("sync worker deploy config must contain exactly three values")
+
+    command = [
+        "railway",
+        "environment",
+        "edit",
+        "--project",
+        args.project_id,
+        "--environment",
+        args.environment,
+    ]
+    for key in sorted(required):
+        command.extend(
+            ["--service-config", service["id"], f"deploy.{key}", deploy[key]]
+        )
+    command.extend(["--message", "Reconcile EventMatch scheduled sync worker"])
+    run_command(command, "sync-service-configure")
+
+    variables = [
+        "DATABASE_URL",
+        "SOCRATA_API_KEY_ID",
+        "SOCRATA_API_KEY_SECRET",
+        "SOCRATA_APP_TOKEN",
+    ]
+    variable_command = ["railway", "variable", "set"]
+    variable_command.extend(
+        f"{name}={_service_reference(args.backend_service, name)}"
+        for name in variables
+    )
+    variable_command.extend(
+        [
+            "--project",
+            args.project_id,
+            "--environment",
+            args.environment,
+            "--service",
+            service["id"],
+            "--skip-deploys",
+        ]
+    )
+    run_command(variable_command, "sync-service-variables")
+    write_outputs(args.github_output, {"service_id": service["id"]})
+    write_outputs(args.github_env, {"SYNC_RAILWAY_SERVICE_ID": service["id"]})
+    write_status_evidence(args.evidence_output, "success")
+    return 0
+
+
 def deployment_command(args: argparse.Namespace) -> list[str]:
     return [
         "railway",
@@ -339,6 +451,17 @@ def parser() -> argparse.ArgumentParser:
     discover_parser.add_argument("--github-env")
     discover_parser.add_argument("--evidence-output")
     discover_parser.set_defaults(handler=discover)
+
+    sync_worker = commands.add_parser("configure-sync-worker")
+    sync_worker.add_argument("--project-id", required=True)
+    sync_worker.add_argument("--environment", required=True)
+    sync_worker.add_argument("--service-name", default="sync-worker")
+    sync_worker.add_argument("--backend-service", default="backend")
+    sync_worker.add_argument("--config", required=True)
+    sync_worker.add_argument("--github-output")
+    sync_worker.add_argument("--github-env")
+    sync_worker.add_argument("--evidence-output")
+    sync_worker.set_defaults(handler=configure_sync_worker)
 
     for name, handler in (("snapshot", snapshot), ("wait-deployment", wait_deployment)):
         command = commands.add_parser(name)

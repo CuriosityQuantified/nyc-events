@@ -1,19 +1,17 @@
-"""Event SQLAlchemy model for NYC Parks events."""
+"""Current, archival, and synchronization persistence models."""
 
 from datetime import date, datetime
 from typing import Any
 
-from sqlalchemy import Boolean, Date, DateTime, Float, String, Text, func
+from sqlalchemy import BigInteger, Boolean, Date, DateTime, Float, String, Text, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.models import Base
 
 
-class Event(Base):
-    """A single NYC Parks event identified by its source guid."""
-
-    __tablename__ = "events"
+class EventFields:
+    """Columns shared by the current Snapshot and archival repository."""
 
     guid: Mapped[str] = mapped_column(String, primary_key=True)
     title: Mapped[str] = mapped_column(String, nullable=False)
@@ -42,3 +40,42 @@ class Event(Base):
     synced_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), nullable=False
     )
+
+
+class EventRepository(EventFields, Base):
+    """The union of all source Events observed in successful Sync Runs."""
+
+    __tablename__ = "event_repository"
+
+    first_seen_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    last_seen_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
+class CurrentEvent(EventFields, Base):
+    """One Event in the latest complete successful source Snapshot."""
+
+    __tablename__ = "current_events"
+
+    snapshot_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False
+    )
+
+
+class SyncRun(Base):
+    """Secret-free operational evidence for one attempted synchronization."""
+
+    __tablename__ = "sync_runs"
+
+    id: Mapped[int] = mapped_column(BigInteger, primary_key=True, autoincrement=True)
+    started_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    status: Mapped[str] = mapped_column(String(16), nullable=False)
+    row_count: Mapped[int | None] = mapped_column(nullable=True)
+    duration_ms: Mapped[int | None] = mapped_column(nullable=True)
+    failure_code: Mapped[str | None] = mapped_column(String(64), nullable=True)

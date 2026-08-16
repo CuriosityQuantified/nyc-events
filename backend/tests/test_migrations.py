@@ -20,13 +20,13 @@ def _alembic(*args: str) -> subprocess.CompletedProcess[str]:
 
 @requires_docker
 def test_events_migration_upgrade_and_idempotency(postgres_url):
-    """Revision 0002 must downgrade, upgrade, and re-upgrade cleanly."""
+    """Revision 0003 must downgrade, upgrade, and re-upgrade cleanly."""
     try:
         _alembic("downgrade", "0001")
         _alembic("upgrade", "head")
         _alembic("upgrade", "head")
         current = _alembic("current")
-        assert "0002 (head)" in current.stdout
+        assert "0003 (head)" in current.stdout
     finally:
         _alembic("upgrade", "head")
 

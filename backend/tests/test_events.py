@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from sqlalchemy import func, select
 
-from app.models.event import Event
+from app.models.event import CurrentEvent, EventRepository
 from tests.conftest import ingest_rows, load_fixture, requires_docker
 
 
@@ -84,9 +84,13 @@ class TestIdentity:
         await ingest_rows(db_session, [changed])
 
         count = await db_session.scalar(
-            select(func.count()).select_from(Event).where(Event.guid == row["guid"])
+            select(func.count())
+            .select_from(CurrentEvent)
+            .where(CurrentEvent.guid == row["guid"])
         )
-        stored = await db_session.scalar(select(Event).where(Event.guid == row["guid"]))
+        stored = await db_session.scalar(
+            select(CurrentEvent).where(CurrentEvent.guid == row["guid"])
+        )
         assert count == 1
         assert stored.title == "Updated title"
 
@@ -96,14 +100,14 @@ class TestIdentity:
         row = load_fixture("snapshot_a.json")[0]
         await ingest_rows(db_session, [row])
         original = await db_session.scalar(
-            select(Event).where(Event.guid == row["guid"])
+            select(CurrentEvent).where(CurrentEvent.guid == row["guid"])
         )
         original_key = original.location_key
 
         renamed = dict(row, location="A renamed display label")
         await ingest_rows(db_session, [renamed])
         renamed_event = await db_session.scalar(
-            select(Event).where(Event.guid == row["guid"])
+            select(CurrentEvent).where(CurrentEvent.guid == row["guid"])
         )
         assert renamed_event.location_key == original_key
         assert renamed_event.location_name == "A renamed display label"
@@ -112,6 +116,19 @@ class TestIdentity:
         moved = dict(row, coordinates="40.700000, -73.900000")
         await ingest_rows(db_session, [moved])
         moved_event = await db_session.scalar(
-            select(Event).where(Event.guid == row["guid"])
+            select(CurrentEvent).where(CurrentEvent.guid == row["guid"])
         )
         assert moved_event.location_key != original_key
+
+    async def test_public_api_never_reads_repository_only_event(
+        self, client, db_session
+    ):
+        rows = load_fixture("snapshot_a.json")
+        await ingest_rows(db_session, rows)
+        await ingest_rows(db_session, rows[1:])
+
+        assert await db_session.get(EventRepository, rows[0]["guid"]) is not None
+        assert await db_session.get(CurrentEvent, rows[0]["guid"]) is None
+        assert (await client.get(f"/events/{rows[0]['guid']}")).status_code == 404
+        listed = (await client.get("/events")).json()
+        assert rows[0]["guid"] not in {event["guid"] for event in listed["events"]}

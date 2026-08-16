@@ -64,11 +64,41 @@ class WorkflowPolicyTests(unittest.TestCase):
         errors = validate_workflows(self.ci, broken)
         self.assertTrue(any("deployment jobs missing" in error for error in errors))
 
+    def test_missing_scheduled_worker_deployment_is_rejected(self) -> None:
+        broken = copy.deepcopy(self.deploy)
+        del broken["jobs"]["deploy-sync-worker"]
+        errors = validate_workflows(self.ci, broken)
+        self.assertTrue(any("deployment jobs missing" in error for error in errors))
+
     def test_frontend_must_wait_for_backend_cutover(self) -> None:
         broken = copy.deepcopy(self.deploy)
         del broken["jobs"]["deploy-frontend"]["needs"]
         errors = validate_workflows(self.ci, broken)
-        self.assertTrue(any("wait for the backend" in error for error in errors))
+        self.assertTrue(
+            any("wait for the backend and sync-worker" in error for error in errors)
+        )
+
+    def test_production_requires_database_to_api_trace_evidence(self) -> None:
+        broken = copy.deepcopy(self.deploy)
+        for step in broken["jobs"]["deploy-backend"]["steps"]:
+            if "run" in step:
+                step["run"] = step["run"].replace(
+                    "database-snapshot.json", "removed-snapshot.json"
+                )
+        errors = validate_workflows(self.ci, broken)
+        self.assertTrue(any("database-snapshot.json" in error for error in errors))
+
+    def test_backend_deployment_requires_the_frontend_cors_origin(self) -> None:
+        broken = copy.deepcopy(self.deploy)
+        backend = broken["jobs"]["deploy-backend"]
+        backend["env"].pop("CONFIGURED_FRONTEND_ORIGIN", None)
+        for step in backend["steps"]:
+            if "run" in step:
+                step["run"] = step["run"].replace(
+                    "FRONTEND_ORIGIN", "REMOVED_ORIGIN"
+                )
+        errors = validate_workflows(self.ci, broken)
+        self.assertTrue(any("FRONTEND_ORIGIN" in error for error in errors))
 
     def test_human_and_machine_readable_evidence_is_required(self) -> None:
         broken = copy.deepcopy(self.ci)
@@ -115,7 +145,7 @@ class WorkflowPolicyTests(unittest.TestCase):
         self.assertTrue(any("account-level Railway discovery" in error for error in errors))
 
     def test_failure_evidence_is_initialized_before_checkout(self) -> None:
-        for job_name in ("deploy-backend", "deploy-frontend"):
+        for job_name in ("deploy-backend", "deploy-sync-worker", "deploy-frontend"):
             steps = self.deploy["jobs"][job_name]["steps"]
             checkout = next(index for index, step in enumerate(steps) if "uses" in step)
             initializers = [
