@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     environment: str = "development"
     frontend_origin: str = "http://localhost:3000"
     snapshot_stale_after_seconds: int = 21600
+    sync_lock_timeout_seconds: int = 10800
 
     socrata_api_key_id: str = ""
     socrata_api_key_secret: str = ""
