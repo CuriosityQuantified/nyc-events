@@ -130,9 +130,20 @@ def validate_workflows(ci: dict[str, Any], deploy: dict[str, Any]) -> list[str]:
         errors.append(
             "backend deployment must use the dedicated Railway SSH identity secret"
         )
-    for required in ("--identity-file", "RAILWAY_SSH_IDENTITY"):
+    for required in (
+        "--identity-file",
+        "RAILWAY_SSH_IDENTITY",
+        "scripts/deploy/railway_known_hosts",
+        "UserKnownHostsFile",
+        "StrictHostKeyChecking yes",
+        "BatchMode yes",
+        "SHA256:+S1xg92FrnHz6pY3bpkmh1OGtWQGNANXilPzlxA7B1g",
+    ):
         if required not in backend_text:
             errors.append(f"backend deployment SSH is missing {required}")
+    for forbidden in ("StrictHostKeyChecking no", "StrictHostKeyChecking accept-new"):
+        if forbidden in backend_text:
+            errors.append(f"backend deployment SSH contains unsafe {forbidden}")
 
     for job_name in DEPLOY_JOBS:
         for step in deploy_jobs.get(job_name, {}).get("steps", []):

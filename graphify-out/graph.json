@@ -260,7 +260,7 @@
       "_origin": "ast",
       "id": "backend_app_config_settings",
       "community": 46,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "settings"
     },
     {
@@ -299,8 +299,73 @@
       "_origin": "ast",
       "id": "backend_app_concierge_tools_currenteventsearch",
       "community": 48,
-      "community_name": "sync_events",
+      "community_name": "CurrentEvent",
       "norm_label": "currenteventsearch"
+    },
+    {
+      "label": "CurrentEvent",
+      "file_type": "code",
+      "source_file": "backend/app/models/event.py",
+      "source_location": "L58",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "id": "backend_app_models_event_currentevent",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "currentevent"
+    },
+    {
+      "label": "EventFields",
+      "file_type": "code",
+      "source_file": "backend/app/models/event.py",
+      "source_location": "L13",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "id": "backend_app_models_event_eventfields",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "eventfields"
+    },
+    {
+      "label": "EventRepository",
+      "file_type": "code",
+      "source_file": "backend/app/models/event.py",
+      "source_location": "L45",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "id": "backend_app_models_event_eventrepository",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "eventrepository"
+    },
+    {
+      "label": "SyncRun",
+      "file_type": "code",
+      "source_file": "backend/app/models/event.py",
+      "source_location": "L68",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "id": "backend_app_models_event_syncrun",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "syncrun"
+    },
+    {
+      "label": "Base",
+      "file_type": "code",
+      "source_file": "backend/app/models/__init__.py",
+      "source_location": "L6",
+      "_callable": true,
+      "_callable_class": true,
+      "_origin": "ast",
+      "id": "backend_app_models_init_base",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "base"
     },
     {
       "label": "FixtureSource",
@@ -312,7 +377,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_pipeline_contract_fixturesource",
       "community": 48,
-      "community_name": "sync_events",
+      "community_name": "CurrentEvent",
       "norm_label": "fixturesource"
     },
     {
@@ -325,7 +390,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_pipeline_contract_testcurrentpipelinecontract",
       "community": 48,
-      "community_name": "sync_events",
+      "community_name": "CurrentEvent",
       "norm_label": "testcurrentpipelinecontract"
     },
     {
@@ -475,13 +540,13 @@
       "label": "WorkflowPolicyTests",
       "file_type": "code",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L19",
+      "source_location": "L20",
       "_callable": true,
       "_callable_class": true,
       "_origin": "ast",
       "id": "scripts_ci_tests_test_validate_workflows_workflowpolicytests",
       "community": 57,
-      "community_name": "validate_workflows",
+      "community_name": "WorkflowPolicyTests",
       "norm_label": "workflowpolicytests"
     },
     {
@@ -587,71 +652,6 @@
       "community": 73,
       "community_name": "load_fixture",
       "norm_label": "testidentity"
-    },
-    {
-      "label": "CurrentEvent",
-      "file_type": "code",
-      "source_file": "backend/app/models/event.py",
-      "source_location": "L58",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "id": "backend_app_models_event_currentevent",
-      "community": 8,
-      "community_name": "CurrentEvent",
-      "norm_label": "currentevent"
-    },
-    {
-      "label": "EventFields",
-      "file_type": "code",
-      "source_file": "backend/app/models/event.py",
-      "source_location": "L13",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "id": "backend_app_models_event_eventfields",
-      "community": 8,
-      "community_name": "CurrentEvent",
-      "norm_label": "eventfields"
-    },
-    {
-      "label": "EventRepository",
-      "file_type": "code",
-      "source_file": "backend/app/models/event.py",
-      "source_location": "L45",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "id": "backend_app_models_event_eventrepository",
-      "community": 8,
-      "community_name": "CurrentEvent",
-      "norm_label": "eventrepository"
-    },
-    {
-      "label": "SyncRun",
-      "file_type": "code",
-      "source_file": "backend/app/models/event.py",
-      "source_location": "L68",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "id": "backend_app_models_event_syncrun",
-      "community": 8,
-      "community_name": "CurrentEvent",
-      "norm_label": "syncrun"
-    },
-    {
-      "label": "Base",
-      "file_type": "code",
-      "source_file": "backend/app/models/__init__.py",
-      "source_location": "L6",
-      "_callable": true,
-      "_callable_class": true,
-      "_origin": "ast",
-      "id": "backend_app_models_init_base",
-      "community": 8,
-      "community_name": "CurrentEvent",
-      "norm_label": "base"
     },
     {
       "label": "BottomNav()",
@@ -1000,138 +1000,6 @@
       "community": 19,
       "community_name": "validate_contract.py",
       "norm_label": "walk_keys()"
-    },
-    {
-      "label": "_boolean_fact()",
-      "file_type": "code",
-      "source_file": "backend/app/routes/events.py",
-      "source_location": "L65",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_app_routes_events_boolean_fact",
-      "community": 26,
-      "community_name": "events.py",
-      "norm_label": "_boolean_fact()"
-    },
-    {
-      "label": "_date_fact()",
-      "file_type": "code",
-      "source_file": "backend/app/routes/events.py",
-      "source_location": "L47",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_app_routes_events_date_fact",
-      "community": 26,
-      "community_name": "events.py",
-      "norm_label": "_date_fact()"
-    },
-    {
-      "label": "_datetime_fact()",
-      "file_type": "code",
-      "source_file": "backend/app/routes/events.py",
-      "source_location": "L56",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_app_routes_events_datetime_fact",
-      "community": 26,
-      "community_name": "events.py",
-      "norm_label": "_datetime_fact()"
-    },
-    {
-      "label": "_event_to_contract()",
-      "file_type": "code",
-      "source_file": "backend/app/routes/events.py",
-      "source_location": "L86",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_app_routes_events_event_to_contract",
-      "community": 26,
-      "community_name": "events.py",
-      "norm_label": "_event_to_contract()"
-    },
-    {
-      "label": "get_event()",
-      "file_type": "code",
-      "source_file": "backend/app/routes/events.py",
-      "source_location": "L219",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_app_routes_events_get_event",
-      "community": 26,
-      "community_name": "events.py",
-      "norm_label": "get_event()"
-    },
-    {
-      "label": "get_freshness()",
-      "file_type": "code",
-      "source_file": "backend/app/routes/events.py",
-      "source_location": "L238",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_app_routes_events_get_freshness",
-      "community": 26,
-      "community_name": "events.py",
-      "norm_label": "get_freshness()"
-    },
-    {
-      "label": "get_ingestion_health()",
-      "file_type": "code",
-      "source_file": "backend/app/routes/events.py",
-      "source_location": "L287",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_app_routes_events_get_ingestion_health",
-      "community": 26,
-      "community_name": "events.py",
-      "norm_label": "get_ingestion_health()"
-    },
-    {
-      "label": "list_events()",
-      "file_type": "code",
-      "source_file": "backend/app/routes/events.py",
-      "source_location": "L185",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_app_routes_events_list_events",
-      "community": 26,
-      "community_name": "events.py",
-      "norm_label": "list_events()"
-    },
-    {
-      "label": "_registration_fact()",
-      "file_type": "code",
-      "source_file": "backend/app/routes/events.py",
-      "source_location": "L74",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_app_routes_events_registration_fact",
-      "community": 26,
-      "community_name": "events.py",
-      "norm_label": "_registration_fact()"
-    },
-    {
-      "label": "_text_fact()",
-      "file_type": "code",
-      "source_file": "backend/app/routes/events.py",
-      "source_location": "L19",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_app_routes_events_text_fact",
-      "community": 26,
-      "community_name": "events.py",
-      "norm_label": "_text_fact()"
-    },
-    {
-      "label": "_uri_fact()",
-      "file_type": "code",
-      "source_file": "backend/app/routes/events.py",
-      "source_location": "L34",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_app_routes_events_uri_fact",
-      "community": 26,
-      "community_name": "events.py",
-      "norm_label": "_uri_fact()"
     },
     {
       "label": ".test_health_all_fields_present()",
@@ -1910,7 +1778,7 @@
       "_origin": "ast",
       "id": "backend_app_config_get_settings",
       "community": 46,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "get_settings()"
     },
     {
@@ -1922,8 +1790,20 @@
       "_origin": "ast",
       "id": "backend_app_database_get_engine",
       "community": 46,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "get_engine()"
+    },
+    {
+      "label": "reset_engine()",
+      "file_type": "code",
+      "source_file": "backend/app/database.py",
+      "source_location": "L35",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_app_database_reset_engine",
+      "community": 46,
+      "community_name": "conftest.py",
+      "norm_label": "reset_engine()"
     },
     {
       "label": "deployment_revision()",
@@ -1934,7 +1814,7 @@
       "_origin": "ast",
       "id": "backend_app_main_deployment_revision",
       "community": 46,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "deployment_revision()"
     },
     {
@@ -1946,7 +1826,7 @@
       "_origin": "ast",
       "id": "backend_app_main_health_check",
       "community": 46,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "health_check()"
     },
     {
@@ -1958,8 +1838,44 @@
       "_origin": "ast",
       "id": "backend_app_main_lifespan",
       "community": 46,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "lifespan()"
+    },
+    {
+      "label": "_main()",
+      "file_type": "code",
+      "source_file": "backend/app/sync.py",
+      "source_location": "L23",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_app_sync_main",
+      "community": 46,
+      "community_name": "conftest.py",
+      "norm_label": "_main()"
+    },
+    {
+      "label": "run()",
+      "file_type": "code",
+      "source_file": "backend/app/sync.py",
+      "source_location": "L14",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_app_sync_run",
+      "community": 46,
+      "community_name": "conftest.py",
+      "norm_label": "run()"
+    },
+    {
+      "label": "_main()",
+      "file_type": "code",
+      "source_file": "backend/app/verify_snapshot.py",
+      "source_location": "L29",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_app_verify_snapshot_main",
+      "community": 46,
+      "community_name": "conftest.py",
+      "norm_label": "_main()"
     },
     {
       "label": "do_run_migrations()",
@@ -1970,7 +1886,7 @@
       "_origin": "ast",
       "id": "backend_migrations_env_do_run_migrations",
       "community": 46,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "do_run_migrations()"
     },
     {
@@ -1982,7 +1898,7 @@
       "_origin": "ast",
       "id": "backend_migrations_env_get_url",
       "community": 46,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "get_url()"
     },
     {
@@ -1994,7 +1910,7 @@
       "_origin": "ast",
       "id": "backend_migrations_env_run_async_migrations",
       "community": 46,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "run_async_migrations()"
     },
     {
@@ -2006,7 +1922,7 @@
       "_origin": "ast",
       "id": "backend_migrations_env_run_migrations_offline",
       "community": 46,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "run_migrations_offline()"
     },
     {
@@ -2018,8 +1934,68 @@
       "_origin": "ast",
       "id": "backend_migrations_env_run_migrations_online",
       "community": 46,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "run_migrations_online()"
+    },
+    {
+      "label": "_check_docker()",
+      "file_type": "code",
+      "source_file": "backend/tests/conftest.py",
+      "source_location": "L21",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_tests_conftest_check_docker",
+      "community": 46,
+      "community_name": "conftest.py",
+      "norm_label": "_check_docker()"
+    },
+    {
+      "label": "client()",
+      "file_type": "code",
+      "source_file": "backend/tests/conftest.py",
+      "source_location": "L115",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_tests_conftest_client",
+      "community": 46,
+      "community_name": "conftest.py",
+      "norm_label": "client()"
+    },
+    {
+      "label": "db_session()",
+      "file_type": "code",
+      "source_file": "backend/tests/conftest.py",
+      "source_location": "L136",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_tests_conftest_db_session",
+      "community": 46,
+      "community_name": "conftest.py",
+      "norm_label": "db_session()"
+    },
+    {
+      "label": "_maybe_start_postgres()",
+      "file_type": "code",
+      "source_file": "backend/tests/conftest.py",
+      "source_location": "L54",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_tests_conftest_maybe_start_postgres",
+      "community": 46,
+      "community_name": "conftest.py",
+      "norm_label": "_maybe_start_postgres()"
+    },
+    {
+      "label": "postgres_url()",
+      "file_type": "code",
+      "source_file": "backend/tests/conftest.py",
+      "source_location": "L107",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_tests_conftest_postgres_url",
+      "community": 46,
+      "community_name": "conftest.py",
+      "norm_label": "postgres_url()"
     },
     {
       "label": "_derive_borough()",
@@ -2222,7 +2198,7 @@
       "_origin": "ast",
       "id": "backend_app_concierge_tools_get_current_event",
       "community": 48,
-      "community_name": "sync_events",
+      "community_name": "CurrentEvent",
       "norm_label": "get_current_event()"
     },
     {
@@ -2234,8 +2210,152 @@
       "_origin": "ast",
       "id": "backend_app_concierge_tools_search_current_events",
       "community": 48,
-      "community_name": "sync_events",
+      "community_name": "CurrentEvent",
       "norm_label": "search_current_events()"
+    },
+    {
+      "label": "get_session_factory()",
+      "file_type": "code",
+      "source_file": "backend/app/database.py",
+      "source_location": "L25",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_app_database_get_session_factory",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "get_session_factory()"
+    },
+    {
+      "label": "_boolean_fact()",
+      "file_type": "code",
+      "source_file": "backend/app/routes/events.py",
+      "source_location": "L65",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_app_routes_events_boolean_fact",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "_boolean_fact()"
+    },
+    {
+      "label": "_date_fact()",
+      "file_type": "code",
+      "source_file": "backend/app/routes/events.py",
+      "source_location": "L47",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_app_routes_events_date_fact",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "_date_fact()"
+    },
+    {
+      "label": "_datetime_fact()",
+      "file_type": "code",
+      "source_file": "backend/app/routes/events.py",
+      "source_location": "L56",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_app_routes_events_datetime_fact",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "_datetime_fact()"
+    },
+    {
+      "label": "_event_to_contract()",
+      "file_type": "code",
+      "source_file": "backend/app/routes/events.py",
+      "source_location": "L86",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_app_routes_events_event_to_contract",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "_event_to_contract()"
+    },
+    {
+      "label": "get_event()",
+      "file_type": "code",
+      "source_file": "backend/app/routes/events.py",
+      "source_location": "L219",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_app_routes_events_get_event",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "get_event()"
+    },
+    {
+      "label": "get_freshness()",
+      "file_type": "code",
+      "source_file": "backend/app/routes/events.py",
+      "source_location": "L238",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_app_routes_events_get_freshness",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "get_freshness()"
+    },
+    {
+      "label": "get_ingestion_health()",
+      "file_type": "code",
+      "source_file": "backend/app/routes/events.py",
+      "source_location": "L287",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_app_routes_events_get_ingestion_health",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "get_ingestion_health()"
+    },
+    {
+      "label": "list_events()",
+      "file_type": "code",
+      "source_file": "backend/app/routes/events.py",
+      "source_location": "L185",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_app_routes_events_list_events",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "list_events()"
+    },
+    {
+      "label": "_registration_fact()",
+      "file_type": "code",
+      "source_file": "backend/app/routes/events.py",
+      "source_location": "L74",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_app_routes_events_registration_fact",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "_registration_fact()"
+    },
+    {
+      "label": "_text_fact()",
+      "file_type": "code",
+      "source_file": "backend/app/routes/events.py",
+      "source_location": "L19",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_app_routes_events_text_fact",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "_text_fact()"
+    },
+    {
+      "label": "_uri_fact()",
+      "file_type": "code",
+      "source_file": "backend/app/routes/events.py",
+      "source_location": "L34",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_app_routes_events_uri_fact",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "_uri_fact()"
     },
     {
       "label": "sync_events()",
@@ -2246,8 +2366,20 @@
       "_origin": "ast",
       "id": "backend_app_socrata_sync_events",
       "community": 48,
-      "community_name": "sync_events",
+      "community_name": "CurrentEvent",
       "norm_label": "sync_events()"
+    },
+    {
+      "label": "snapshot_evidence()",
+      "file_type": "code",
+      "source_file": "backend/app/verify_snapshot.py",
+      "source_location": "L16",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_app_verify_snapshot_snapshot_evidence",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "snapshot_evidence()"
     },
     {
       "label": ".fetch_all_events()",
@@ -2258,7 +2390,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_pipeline_contract_fixturesource_fetch_all_events",
       "community": 48,
-      "community_name": "sync_events",
+      "community_name": "CurrentEvent",
       "norm_label": ".fetch_all_events()"
     },
     {
@@ -2270,7 +2402,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_pipeline_contract_fixturesource_init",
       "community": 48,
-      "community_name": "sync_events",
+      "community_name": "CurrentEvent",
       "norm_label": ".__init__()"
     },
     {
@@ -2282,7 +2414,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_pipeline_contract_test_concierge_input_bounds_fail_closed",
       "community": 48,
-      "community_name": "sync_events",
+      "community_name": "CurrentEvent",
       "norm_label": "test_concierge_input_bounds_fail_closed()"
     },
     {
@@ -2294,7 +2426,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_pipeline_contract_testcurrentpipelinecontract_test_concierge_search_order_is_deterministic",
       "community": 48,
-      "community_name": "sync_events",
+      "community_name": "CurrentEvent",
       "norm_label": ".test_concierge_search_order_is_deterministic()"
     },
     {
@@ -2306,7 +2438,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_pipeline_contract_testcurrentpipelinecontract_test_concierge_tools_are_bounded_and_current_only",
       "community": 48,
-      "community_name": "sync_events",
+      "community_name": "CurrentEvent",
       "norm_label": ".test_concierge_tools_are_bounded_and_current_only()"
     },
     {
@@ -2318,7 +2450,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_pipeline_contract_testcurrentpipelinecontract_test_cors_allows_only_the_configured_frontend",
       "community": 48,
-      "community_name": "sync_events",
+      "community_name": "CurrentEvent",
       "norm_label": ".test_cors_allows_only_the_configured_frontend()"
     },
     {
@@ -2330,7 +2462,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_pipeline_contract_testcurrentpipelinecontract_test_database_contains_exactly_two_event_domain_tables",
       "community": 48,
-      "community_name": "sync_events",
+      "community_name": "CurrentEvent",
       "norm_label": ".test_database_contains_exactly_two_event_domain_tables()"
     },
     {
@@ -2342,7 +2474,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_pipeline_contract_testcurrentpipelinecontract_test_freshness_reports_success_count_and_stale_state",
       "community": 48,
-      "community_name": "sync_events",
+      "community_name": "CurrentEvent",
       "norm_label": ".test_freshness_reports_success_count_and_stale_state()"
     },
     {
@@ -2354,8 +2486,20 @@
       "_origin": "ast",
       "id": "backend_tests_test_pipeline_contract_testcurrentpipelinecontract_test_ingestion_health_exposes_failed_attempt_without_losing_snapshot",
       "community": 48,
-      "community_name": "sync_events",
+      "community_name": "CurrentEvent",
       "norm_label": ".test_ingestion_health_exposes_failed_attempt_without_losing_snapshot()"
+    },
+    {
+      "label": ".test_snapshot_evidence_fails_closed_when_current_is_empty()",
+      "file_type": "code",
+      "source_file": "backend/tests/test_pipeline_contract.py",
+      "source_location": "L135",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "backend_tests_test_pipeline_contract_testcurrentpipelinecontract_test_snapshot_evidence_fails_closed_when_current_is_empty",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": ".test_snapshot_evidence_fails_closed_when_current_is_empty()"
     },
     {
       "label": ".test_snapshot_evidence_matches_the_first_public_event()",
@@ -2366,7 +2510,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_pipeline_contract_testcurrentpipelinecontract_test_snapshot_evidence_matches_the_first_public_event",
       "community": 48,
-      "community_name": "sync_events",
+      "community_name": "CurrentEvent",
       "norm_label": ".test_snapshot_evidence_matches_the_first_public_event()"
     },
     {
@@ -2632,78 +2776,6 @@
       "community": 52,
       "community_name": "0003_current_repository_sync_runs.py",
       "norm_label": "upgrade()"
-    },
-    {
-      "label": "get_session_factory()",
-      "file_type": "code",
-      "source_file": "backend/app/database.py",
-      "source_location": "L25",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_app_database_get_session_factory",
-      "community": 55,
-      "community_name": "get_session_factory",
-      "norm_label": "get_session_factory()"
-    },
-    {
-      "label": "_main()",
-      "file_type": "code",
-      "source_file": "backend/app/sync.py",
-      "source_location": "L23",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_app_sync_main",
-      "community": 55,
-      "community_name": "get_session_factory",
-      "norm_label": "_main()"
-    },
-    {
-      "label": "run()",
-      "file_type": "code",
-      "source_file": "backend/app/sync.py",
-      "source_location": "L14",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_app_sync_run",
-      "community": 55,
-      "community_name": "get_session_factory",
-      "norm_label": "run()"
-    },
-    {
-      "label": "_main()",
-      "file_type": "code",
-      "source_file": "backend/app/verify_snapshot.py",
-      "source_location": "L29",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_app_verify_snapshot_main",
-      "community": 55,
-      "community_name": "get_session_factory",
-      "norm_label": "_main()"
-    },
-    {
-      "label": "snapshot_evidence()",
-      "file_type": "code",
-      "source_file": "backend/app/verify_snapshot.py",
-      "source_location": "L16",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_app_verify_snapshot_snapshot_evidence",
-      "community": 55,
-      "community_name": "get_session_factory",
-      "norm_label": "snapshot_evidence()"
-    },
-    {
-      "label": ".test_snapshot_evidence_fails_closed_when_current_is_empty()",
-      "file_type": "code",
-      "source_file": "backend/tests/test_pipeline_contract.py",
-      "source_location": "L135",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_tests_test_pipeline_contract_testcurrentpipelinecontract_test_snapshot_evidence_fails_closed_when_current_is_empty",
-      "community": 55,
-      "community_name": "get_session_factory",
-      "norm_label": ".test_snapshot_evidence_fails_closed_when_current_is_empty()"
     },
     {
       "label": "capture_revision()",
@@ -3153,228 +3225,240 @@
       "label": ".setUp()",
       "file_type": "code",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L20",
+      "source_location": "L21",
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_ci_tests_test_validate_workflows_workflowpolicytests_setup",
       "community": 57,
-      "community_name": "validate_workflows",
+      "community_name": "WorkflowPolicyTests",
       "norm_label": ".setup()"
     },
     {
       "label": ".test_account_level_project_discovery_is_rejected()",
       "file_type": "code",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L136",
+      "source_location": "L137",
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_ci_tests_test_validate_workflows_workflowpolicytests_test_account_level_project_discovery_is_rejected",
       "community": 57,
-      "community_name": "validate_workflows",
+      "community_name": "WorkflowPolicyTests",
       "norm_label": ".test_account_level_project_discovery_is_rejected()"
     },
     {
       "label": ".test_backend_deployment_requires_the_frontend_cors_origin()",
       "file_type": "code",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L91",
+      "source_location": "L92",
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_ci_tests_test_validate_workflows_workflowpolicytests_test_backend_deployment_requires_the_frontend_cors_origin",
       "community": 57,
-      "community_name": "validate_workflows",
+      "community_name": "WorkflowPolicyTests",
       "norm_label": ".test_backend_deployment_requires_the_frontend_cors_origin()"
+    },
+    {
+      "label": ".test_backend_remote_execution_pins_the_railway_host_key()",
+      "file_type": "code",
+      "source_file": "scripts/ci/tests/test_validate_workflows.py",
+      "source_location": "L173",
+      "_callable": true,
+      "_origin": "ast",
+      "id": "scripts_ci_tests_test_validate_workflows_workflowpolicytests_test_backend_remote_execution_pins_the_railway_host_key",
+      "community": 57,
+      "community_name": "WorkflowPolicyTests",
+      "norm_label": ".test_backend_remote_execution_pins_the_railway_host_key()"
     },
     {
       "label": ".test_backend_remote_execution_requires_noninteractive_ssh_identity()",
       "file_type": "code",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L160",
+      "source_location": "L161",
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_ci_tests_test_validate_workflows_workflowpolicytests_test_backend_remote_execution_requires_noninteractive_ssh_identity",
       "community": 57,
-      "community_name": "validate_workflows",
+      "community_name": "WorkflowPolicyTests",
       "norm_label": ".test_backend_remote_execution_requires_noninteractive_ssh_identity()"
     },
     {
       "label": ".test_deployment_requires_configured_project_id()",
       "file_type": "code",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L119",
+      "source_location": "L120",
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_ci_tests_test_validate_workflows_workflowpolicytests_test_deployment_requires_configured_project_id",
       "community": 57,
-      "community_name": "validate_workflows",
+      "community_name": "WorkflowPolicyTests",
       "norm_label": ".test_deployment_requires_configured_project_id()"
     },
     {
       "label": ".test_deployment_requires_project_scoped_railway_auth()",
       "file_type": "code",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L111",
+      "source_location": "L112",
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_ci_tests_test_validate_workflows_workflowpolicytests_test_deployment_requires_project_scoped_railway_auth",
       "community": 57,
-      "community_name": "validate_workflows",
+      "community_name": "WorkflowPolicyTests",
       "norm_label": ".test_deployment_requires_project_scoped_railway_auth()"
     },
     {
       "label": ".test_failure_evidence_is_initialized_before_checkout()",
       "file_type": "code",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L147",
+      "source_location": "L148",
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_ci_tests_test_validate_workflows_workflowpolicytests_test_failure_evidence_is_initialized_before_checkout",
       "community": 57,
-      "community_name": "validate_workflows",
+      "community_name": "WorkflowPolicyTests",
       "norm_label": ".test_failure_evidence_is_initialized_before_checkout()"
     },
     {
       "label": ".test_frontend_must_wait_for_backend_cutover()",
       "file_type": "code",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L73",
+      "source_location": "L74",
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_ci_tests_test_validate_workflows_workflowpolicytests_test_frontend_must_wait_for_backend_cutover",
       "community": 57,
-      "community_name": "validate_workflows",
+      "community_name": "WorkflowPolicyTests",
       "norm_label": ".test_frontend_must_wait_for_backend_cutover()"
     },
     {
       "label": ".test_human_and_machine_readable_evidence_is_required()",
       "file_type": "code",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L103",
+      "source_location": "L104",
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_ci_tests_test_validate_workflows_workflowpolicytests_test_human_and_machine_readable_evidence_is_required",
       "community": 57,
-      "community_name": "validate_workflows",
+      "community_name": "WorkflowPolicyTests",
       "norm_label": ".test_human_and_machine_readable_evidence_is_required()"
     },
     {
       "label": ".test_missing_backend_deployment_is_rejected()",
       "file_type": "code",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L61",
+      "source_location": "L62",
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_ci_tests_test_validate_workflows_workflowpolicytests_test_missing_backend_deployment_is_rejected",
       "community": 57,
-      "community_name": "validate_workflows",
+      "community_name": "WorkflowPolicyTests",
       "norm_label": ".test_missing_backend_deployment_is_rejected()"
     },
     {
       "label": ".test_missing_protected_context_is_rejected()",
       "file_type": "code",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L33",
+      "source_location": "L34",
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_ci_tests_test_validate_workflows_workflowpolicytests_test_missing_protected_context_is_rejected",
       "community": 57,
-      "community_name": "validate_workflows",
+      "community_name": "WorkflowPolicyTests",
       "norm_label": ".test_missing_protected_context_is_rejected()"
     },
     {
       "label": ".test_missing_scheduled_worker_deployment_is_rejected()",
       "file_type": "code",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L67",
+      "source_location": "L68",
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_ci_tests_test_validate_workflows_workflowpolicytests_test_missing_scheduled_worker_deployment_is_rejected",
       "community": 57,
-      "community_name": "validate_workflows",
+      "community_name": "WorkflowPolicyTests",
       "norm_label": ".test_missing_scheduled_worker_deployment_is_rejected()"
     },
     {
       "label": ".test_production_requires_database_to_api_trace_evidence()",
       "file_type": "code",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L81",
+      "source_location": "L82",
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_ci_tests_test_validate_workflows_workflowpolicytests_test_production_requires_database_to_api_trace_evidence",
       "community": 57,
-      "community_name": "validate_workflows",
+      "community_name": "WorkflowPolicyTests",
       "norm_label": ".test_production_requires_database_to_api_trace_evidence()"
     },
     {
       "label": ".test_pull_request_deployment_is_rejected()",
       "file_type": "code",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L27",
+      "source_location": "L28",
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_ci_tests_test_validate_workflows_workflowpolicytests_test_pull_request_deployment_is_rejected",
       "community": 57,
-      "community_name": "validate_workflows",
+      "community_name": "WorkflowPolicyTests",
       "norm_label": ".test_pull_request_deployment_is_rejected()"
     },
     {
       "label": ".test_repository_workflows_pass_policy()",
       "file_type": "code",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L24",
+      "source_location": "L25",
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_ci_tests_test_validate_workflows_workflowpolicytests_test_repository_workflows_pass_policy",
       "community": 57,
-      "community_name": "validate_workflows",
+      "community_name": "WorkflowPolicyTests",
       "norm_label": ".test_repository_workflows_pass_policy()"
     },
     {
       "label": ".test_rollbacks_wait_for_terminal_deployment_before_revision()",
       "file_type": "code",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L172",
+      "source_location": "L193",
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_ci_tests_test_validate_workflows_workflowpolicytests_test_rollbacks_wait_for_terminal_deployment_before_revision",
       "community": 57,
-      "community_name": "validate_workflows",
+      "community_name": "WorkflowPolicyTests",
       "norm_label": ".test_rollbacks_wait_for_terminal_deployment_before_revision()"
     },
     {
       "label": ".test_single_quoted_graphql_is_rejected()",
       "file_type": "code",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L125",
+      "source_location": "L126",
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_ci_tests_test_validate_workflows_workflowpolicytests_test_single_quoted_graphql_is_rejected",
       "community": 57,
-      "community_name": "validate_workflows",
+      "community_name": "WorkflowPolicyTests",
       "norm_label": ".test_single_quoted_graphql_is_rejected()"
     },
     {
       "label": ".test_unpinned_action_and_allow_failure_are_rejected()",
       "file_type": "code",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L39",
+      "source_location": "L40",
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_ci_tests_test_validate_workflows_workflowpolicytests_test_unpinned_action_and_allow_failure_are_rejected",
       "community": 57,
-      "community_name": "validate_workflows",
+      "community_name": "WorkflowPolicyTests",
       "norm_label": ".test_unpinned_action_and_allow_failure_are_rejected()"
     },
     {
       "label": ".test_unpinned_railway_cli_is_rejected()",
       "file_type": "code",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L47",
+      "source_location": "L48",
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_ci_tests_test_validate_workflows_workflowpolicytests_test_unpinned_railway_cli_is_rejected",
       "community": 57,
-      "community_name": "validate_workflows",
+      "community_name": "WorkflowPolicyTests",
       "norm_label": ".test_unpinned_railway_cli_is_rejected()"
     },
     {
@@ -3386,7 +3470,7 @@
       "_origin": "ast",
       "id": "scripts_ci_validate_workflows_event_names",
       "community": 57,
-      "community_name": "validate_workflows",
+      "community_name": "WorkflowPolicyTests",
       "norm_label": "event_names()"
     },
     {
@@ -3398,7 +3482,7 @@
       "_origin": "ast",
       "id": "scripts_ci_validate_workflows_iter_steps",
       "community": 57,
-      "community_name": "validate_workflows",
+      "community_name": "WorkflowPolicyTests",
       "norm_label": "iter_steps()"
     },
     {
@@ -3410,19 +3494,19 @@
       "_origin": "ast",
       "id": "scripts_ci_validate_workflows_load_workflow",
       "community": 57,
-      "community_name": "validate_workflows",
+      "community_name": "WorkflowPolicyTests",
       "norm_label": "load_workflow()"
     },
     {
       "label": "main()",
       "file_type": "code",
       "source_file": "scripts/ci/validate_workflows.py",
-      "source_location": "L191",
+      "source_location": "L202",
       "_callable": true,
       "_origin": "ast",
       "id": "scripts_ci_validate_workflows_main",
       "community": 57,
-      "community_name": "validate_workflows",
+      "community_name": "WorkflowPolicyTests",
       "norm_label": "main()"
     },
     {
@@ -3434,7 +3518,7 @@
       "_origin": "ast",
       "id": "scripts_ci_validate_workflows_validate_workflows",
       "community": 57,
-      "community_name": "validate_workflows",
+      "community_name": "WorkflowPolicyTests",
       "norm_label": "validate_workflows()"
     },
     {
@@ -3544,78 +3628,6 @@
       "community": 69,
       "community_name": "test_contract.py",
       "norm_label": ".test_events_response_validates_against_openapi_schema()"
-    },
-    {
-      "label": "reset_engine()",
-      "file_type": "code",
-      "source_file": "backend/app/database.py",
-      "source_location": "L35",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_app_database_reset_engine",
-      "community": 70,
-      "community_name": "conftest.py",
-      "norm_label": "reset_engine()"
-    },
-    {
-      "label": "_check_docker()",
-      "file_type": "code",
-      "source_file": "backend/tests/conftest.py",
-      "source_location": "L21",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_tests_conftest_check_docker",
-      "community": 70,
-      "community_name": "conftest.py",
-      "norm_label": "_check_docker()"
-    },
-    {
-      "label": "client()",
-      "file_type": "code",
-      "source_file": "backend/tests/conftest.py",
-      "source_location": "L115",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_tests_conftest_client",
-      "community": 70,
-      "community_name": "conftest.py",
-      "norm_label": "client()"
-    },
-    {
-      "label": "db_session()",
-      "file_type": "code",
-      "source_file": "backend/tests/conftest.py",
-      "source_location": "L136",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_tests_conftest_db_session",
-      "community": 70,
-      "community_name": "conftest.py",
-      "norm_label": "db_session()"
-    },
-    {
-      "label": "_maybe_start_postgres()",
-      "file_type": "code",
-      "source_file": "backend/tests/conftest.py",
-      "source_location": "L54",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_tests_conftest_maybe_start_postgres",
-      "community": 70,
-      "community_name": "conftest.py",
-      "norm_label": "_maybe_start_postgres()"
-    },
-    {
-      "label": "postgres_url()",
-      "file_type": "code",
-      "source_file": "backend/tests/conftest.py",
-      "source_location": "L107",
-      "_callable": true,
-      "_origin": "ast",
-      "id": "backend_tests_conftest_postgres_url",
-      "community": 70,
-      "community_name": "conftest.py",
-      "norm_label": "postgres_url()"
     },
     {
       "label": ".test_get_event_by_guid()",
@@ -5609,171 +5621,6 @@
       "norm_label": "vitest"
     },
     {
-      "label": "events.py",
-      "file_type": "code",
-      "source_file": "backend/app/routes/events.py",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "backend_app_routes_events",
-      "community": 26,
-      "community_name": "events.py",
-      "norm_label": "events.py"
-    },
-    {
-      "label": "Any",
-      "file_type": "code",
-      "source_file": "",
-      "source_location": "",
-      "_origin": "ast",
-      "id": "backend_app_routes_events_py_any",
-      "community": 26,
-      "community_name": "events.py",
-      "norm_label": "any"
-    },
-    {
-      "label": "get",
-      "file_type": "code",
-      "source_file": "",
-      "source_location": "",
-      "_origin": "ast",
-      "id": "backend_app_routes_events_py_get",
-      "community": 26,
-      "community_name": "events.py",
-      "norm_label": "get"
-    },
-    {
-      "label": "Events API router \u2014 GET /events and GET /events/{guid}.",
-      "file_type": "rationale",
-      "source_file": "backend/app/routes/events.py",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "backend_app_routes_events_rationale_1",
-      "community": 26,
-      "community_name": "events.py",
-      "norm_label": "events api router \u2014 get /events and get /events/{guid}."
-    },
-    {
-      "label": "Return a paginated list of events with optional filters.",
-      "file_type": "rationale",
-      "source_file": "backend/app/routes/events.py",
-      "source_location": "L189",
-      "_origin": "ast",
-      "id": "backend_app_routes_events_rationale_189",
-      "community": 26,
-      "community_name": "events.py",
-      "norm_label": "return a paginated list of events with optional filters."
-    },
-    {
-      "label": "Build a TextFact dict.",
-      "file_type": "rationale",
-      "source_file": "backend/app/routes/events.py",
-      "source_location": "L22",
-      "_origin": "ast",
-      "id": "backend_app_routes_events_rationale_22",
-      "community": 26,
-      "community_name": "events.py",
-      "norm_label": "build a textfact dict."
-    },
-    {
-      "label": "Return a single event by its source guid.",
-      "file_type": "rationale",
-      "source_file": "backend/app/routes/events.py",
-      "source_location": "L220",
-      "_origin": "ast",
-      "id": "backend_app_routes_events_rationale_220",
-      "community": 26,
-      "community_name": "events.py",
-      "norm_label": "return a single event by its source guid."
-    },
-    {
-      "label": "Report the latest successful Snapshot and failed-attempt evidence.",
-      "file_type": "rationale",
-      "source_file": "backend/app/routes/events.py",
-      "source_location": "L239",
-      "_origin": "ast",
-      "id": "backend_app_routes_events_rationale_239",
-      "community": 26,
-      "community_name": "events.py",
-      "norm_label": "report the latest successful snapshot and failed-attempt evidence."
-    },
-    {
-      "label": "Expose secret-free evidence for the latest attempted synchronization.",
-      "file_type": "rationale",
-      "source_file": "backend/app/routes/events.py",
-      "source_location": "L288",
-      "_origin": "ast",
-      "id": "backend_app_routes_events_rationale_288",
-      "community": 26,
-      "community_name": "events.py",
-      "norm_label": "expose secret-free evidence for the latest attempted synchronization."
-    },
-    {
-      "label": "Build a UriFact dict.",
-      "file_type": "rationale",
-      "source_file": "backend/app/routes/events.py",
-      "source_location": "L37",
-      "_origin": "ast",
-      "id": "backend_app_routes_events_rationale_37",
-      "community": 26,
-      "community_name": "events.py",
-      "norm_label": "build a urifact dict."
-    },
-    {
-      "label": "Build a DateFact dict.",
-      "file_type": "rationale",
-      "source_file": "backend/app/routes/events.py",
-      "source_location": "L50",
-      "_origin": "ast",
-      "id": "backend_app_routes_events_rationale_50",
-      "community": 26,
-      "community_name": "events.py",
-      "norm_label": "build a datefact dict."
-    },
-    {
-      "label": "Build a DateTimeFact dict.",
-      "file_type": "rationale",
-      "source_file": "backend/app/routes/events.py",
-      "source_location": "L59",
-      "_origin": "ast",
-      "id": "backend_app_routes_events_rationale_59",
-      "community": 26,
-      "community_name": "events.py",
-      "norm_label": "build a datetimefact dict."
-    },
-    {
-      "label": "Build a BooleanFact dict.",
-      "file_type": "rationale",
-      "source_file": "backend/app/routes/events.py",
-      "source_location": "L68",
-      "_origin": "ast",
-      "id": "backend_app_routes_events_rationale_68",
-      "community": 26,
-      "community_name": "events.py",
-      "norm_label": "build a booleanfact dict."
-    },
-    {
-      "label": "Build a RegistrationFact dict.",
-      "file_type": "rationale",
-      "source_file": "backend/app/routes/events.py",
-      "source_location": "L80",
-      "_origin": "ast",
-      "id": "backend_app_routes_events_rationale_80",
-      "community": 26,
-      "community_name": "events.py",
-      "norm_label": "build a registrationfact dict."
-    },
-    {
-      "label": "Convert an Event model instance to the contract Event shape.",
-      "file_type": "rationale",
-      "source_file": "backend/app/routes/events.py",
-      "source_location": "L87",
-      "_origin": "ast",
-      "id": "backend_app_routes_events_rationale_87",
-      "community": 26,
-      "community_name": "events.py",
-      "norm_label": "convert an event model instance to the contract event shape."
-    },
-    {
       "label": "test_health.py",
       "file_type": "code",
       "source_file": "backend/tests/test_health.py",
@@ -6679,6 +6526,17 @@
       "norm_label": "unsupported url values must fail closed instead of implying registration."
     },
     {
+      "label": "AsyncClient",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast",
+      "id": "asyncclient",
+      "community": 46,
+      "community_name": "conftest.py",
+      "norm_label": "asyncclient"
+    },
+    {
       "label": "AsyncEngine",
       "file_type": "code",
       "source_file": "",
@@ -6686,7 +6544,7 @@
       "_origin": "ast",
       "id": "asyncengine",
       "community": 46,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "asyncengine"
     },
     {
@@ -6697,8 +6555,19 @@
       "_origin": "ast",
       "id": "backend_app_config",
       "community": 46,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "config.py"
+    },
+    {
+      "label": "database.py",
+      "file_type": "code",
+      "source_file": "backend/app/database.py",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "backend_app_database",
+      "community": 46,
+      "community_name": "conftest.py",
+      "norm_label": "database.py"
     },
     {
       "label": "main.py",
@@ -6708,7 +6577,7 @@
       "_origin": "ast",
       "id": "backend_app_main",
       "community": 46,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "main.py"
     },
     {
@@ -6719,8 +6588,30 @@
       "_origin": "ast",
       "id": "backend_app_main_py_get",
       "community": 46,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "get"
+    },
+    {
+      "label": "sync.py",
+      "file_type": "code",
+      "source_file": "backend/app/sync.py",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "backend_app_sync",
+      "community": 46,
+      "community_name": "conftest.py",
+      "norm_label": "sync.py"
+    },
+    {
+      "label": "verify_snapshot.py",
+      "file_type": "code",
+      "source_file": "backend/app/verify_snapshot.py",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "backend_app_verify_snapshot",
+      "community": 46,
+      "community_name": "conftest.py",
+      "norm_label": "verify_snapshot.py"
     },
     {
       "label": "env.py",
@@ -6730,8 +6621,19 @@
       "_origin": "ast",
       "id": "backend_migrations_env",
       "community": 46,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "env.py"
+    },
+    {
+      "label": "conftest.py",
+      "file_type": "code",
+      "source_file": "backend/tests/conftest.py",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "backend_tests_conftest",
+      "community": 46,
+      "community_name": "conftest.py",
+      "norm_label": "conftest.py"
     },
     {
       "label": "BaseSettings",
@@ -6741,7 +6643,7 @@
       "_origin": "ast",
       "id": "basesettings",
       "community": 46,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "basesettings"
     },
     {
@@ -6752,8 +6654,19 @@
       "_origin": "ast",
       "id": "fastapi",
       "community": 46,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "fastapi"
+    },
+    {
+      "label": "fixture",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast",
+      "id": "fixture",
+      "community": 46,
+      "community_name": "conftest.py",
+      "norm_label": "fixture"
     },
     {
       "label": "JSONResponse",
@@ -6763,7 +6676,7 @@
       "_origin": "ast",
       "id": "jsonresponse",
       "community": 46,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "jsonresponse"
     },
     {
@@ -6774,7 +6687,7 @@
       "_origin": "ast",
       "id": "backend_app_config_rationale_1",
       "community": 46,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "application configuration via environment variables."
     },
     {
@@ -6785,7 +6698,7 @@
       "_origin": "ast",
       "id": "backend_app_config_rationale_32",
       "community": 46,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "return a cached settings instance."
     },
     {
@@ -6796,8 +6709,19 @@
       "_origin": "ast",
       "id": "backend_app_config_rationale_9",
       "community": 46,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "settings loaded from environment variables."
+    },
+    {
+      "label": "Async SQLAlchemy engine and session factory.",
+      "file_type": "rationale",
+      "source_file": "backend/app/database.py",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "backend_app_database_rationale_1",
+      "community": 46,
+      "community_name": "conftest.py",
+      "norm_label": "async sqlalchemy engine and session factory."
     },
     {
       "label": "Return a singleton async engine.",
@@ -6807,8 +6731,19 @@
       "_origin": "ast",
       "id": "backend_app_database_rationale_17",
       "community": 46,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "return a singleton async engine."
+    },
+    {
+      "label": "Dispose of the current engine. Use for testing or reconfiguration.",
+      "file_type": "rationale",
+      "source_file": "backend/app/database.py",
+      "source_location": "L36",
+      "_origin": "ast",
+      "id": "backend_app_database_rationale_36",
+      "community": 46,
+      "community_name": "conftest.py",
+      "norm_label": "dispose of the current engine. use for testing or reconfiguration."
     },
     {
       "label": "FastAPI application entry point.",
@@ -6818,7 +6753,7 @@
       "_origin": "ast",
       "id": "backend_app_main_rationale_1",
       "community": 46,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "fastapi application entry point."
     },
     {
@@ -6829,7 +6764,7 @@
       "_origin": "ast",
       "id": "backend_app_main_rationale_20",
       "community": 46,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "manage application startup and shutdown."
     },
     {
@@ -6840,7 +6775,7 @@
       "_origin": "ast",
       "id": "backend_app_main_rationale_38",
       "community": 46,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "return the immutable revision attached to the running deployment."
     },
     {
@@ -6851,8 +6786,41 @@
       "_origin": "ast",
       "id": "backend_app_main_rationale_51",
       "community": 46,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "check database and redis connectivity. returns 200 with all-healthy status when..."
+    },
+    {
+      "label": "Executable Socrata-to-Postgres synchronization command.",
+      "file_type": "rationale",
+      "source_file": "backend/app/sync.py",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "backend_app_sync_rationale_1",
+      "community": 46,
+      "community_name": "conftest.py",
+      "norm_label": "executable socrata-to-postgres synchronization command."
+    },
+    {
+      "label": "Fetch the complete Snapshot and atomically upsert its Events.",
+      "file_type": "rationale",
+      "source_file": "backend/app/sync.py",
+      "source_location": "L15",
+      "_origin": "ast",
+      "id": "backend_app_sync_rationale_15",
+      "community": 46,
+      "community_name": "conftest.py",
+      "norm_label": "fetch the complete snapshot and atomically upsert its events."
+    },
+    {
+      "label": "Emit secret-free evidence for the current production Event Snapshot.",
+      "file_type": "rationale",
+      "source_file": "backend/app/verify_snapshot.py",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "backend_app_verify_snapshot_rationale_1",
+      "community": 46,
+      "community_name": "conftest.py",
+      "norm_label": "emit secret-free evidence for the current production event snapshot."
     },
     {
       "label": "Alembic environment configuration for async SQLAlchemy.",
@@ -6862,7 +6830,7 @@
       "_origin": "ast",
       "id": "backend_migrations_env_rationale_1",
       "community": 46,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "alembic environment configuration for async sqlalchemy."
     },
     {
@@ -6873,7 +6841,7 @@
       "_origin": "ast",
       "id": "backend_migrations_env_rationale_22",
       "community": 46,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "return the database url from application settings."
     },
     {
@@ -6884,7 +6852,7 @@
       "_origin": "ast",
       "id": "backend_migrations_env_rationale_27",
       "community": 46,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "run migrations in offline mode (emit sql without connecting)."
     },
     {
@@ -6895,7 +6863,7 @@
       "_origin": "ast",
       "id": "backend_migrations_env_rationale_40",
       "community": 46,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "execute migrations against the provided connection."
     },
     {
@@ -6906,7 +6874,7 @@
       "_origin": "ast",
       "id": "backend_migrations_env_rationale_47",
       "community": 46,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "run migrations in online mode with an async engine."
     },
     {
@@ -6917,8 +6885,63 @@
       "_origin": "ast",
       "id": "backend_migrations_env_rationale_64",
       "community": 46,
-      "community_name": "get_settings",
+      "community_name": "conftest.py",
       "norm_label": "run migrations in online mode."
+    },
+    {
+      "label": "Test fixtures using Testcontainers for real Postgres.",
+      "file_type": "rationale",
+      "source_file": "backend/tests/conftest.py",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "backend_tests_conftest_rationale_1",
+      "community": 46,
+      "community_name": "conftest.py",
+      "norm_label": "test fixtures using testcontainers for real postgres."
+    },
+    {
+      "label": "Return the async Postgres URL (skips if Docker unavailable).",
+      "file_type": "rationale",
+      "source_file": "backend/tests/conftest.py",
+      "source_location": "L108",
+      "_origin": "ast",
+      "id": "backend_tests_conftest_rationale_108",
+      "community": 46,
+      "community_name": "conftest.py",
+      "norm_label": "return the async postgres url (skips if docker unavailable)."
+    },
+    {
+      "label": "Provide an async test client for the FastAPI app.",
+      "file_type": "rationale",
+      "source_file": "backend/tests/conftest.py",
+      "source_location": "L116",
+      "_origin": "ast",
+      "id": "backend_tests_conftest_rationale_116",
+      "community": 46,
+      "community_name": "conftest.py",
+      "norm_label": "provide an async test client for the fastapi app."
+    },
+    {
+      "label": "Provide an async SQLAlchemy session for direct DB operations.",
+      "file_type": "rationale",
+      "source_file": "backend/tests/conftest.py",
+      "source_location": "L137",
+      "_origin": "ast",
+      "id": "backend_tests_conftest_rationale_137",
+      "community": 46,
+      "community_name": "conftest.py",
+      "norm_label": "provide an async sqlalchemy session for direct db operations."
+    },
+    {
+      "label": "Start a PostgreSQL container if Docker is available. This fixture is autouse\u2026",
+      "file_type": "rationale",
+      "source_file": "backend/tests/conftest.py",
+      "source_location": "L55",
+      "_origin": "ast",
+      "id": "backend_tests_conftest_rationale_55",
+      "community": 46,
+      "community_name": "conftest.py",
+      "norm_label": "start a postgresql container if docker is available. this fixture is autouse..."
     },
     {
       "label": "socrata.py",
@@ -7185,6 +7208,17 @@
       "norm_label": "allow only the fixed nyc open data https query origin."
     },
     {
+      "label": "async_sessionmaker",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast",
+      "id": "async_sessionmaker",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "async_sessionmaker"
+    },
+    {
       "label": "concierge_tools.py",
       "file_type": "code",
       "source_file": "backend/app/concierge_tools.py",
@@ -7192,7 +7226,7 @@
       "_origin": "ast",
       "id": "backend_app_concierge_tools",
       "community": 48,
-      "community_name": "sync_events",
+      "community_name": "CurrentEvent",
       "norm_label": "concierge_tools.py"
     },
     {
@@ -7203,8 +7237,74 @@
       "_origin": "ast",
       "id": "backend_app_concierge_tools_py_any",
       "community": 48,
-      "community_name": "sync_events",
+      "community_name": "CurrentEvent",
       "norm_label": "any"
+    },
+    {
+      "label": "AsyncSession",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast",
+      "id": "backend_app_database_py_asyncsession",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "asyncsession"
+    },
+    {
+      "label": "event.py",
+      "file_type": "code",
+      "source_file": "backend/app/models/event.py",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "backend_app_models_event",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "event.py"
+    },
+    {
+      "label": "models/__init__.py",
+      "file_type": "code",
+      "source_file": "backend/app/models/__init__.py",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "backend_app_models_init",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "models/__init__.py"
+    },
+    {
+      "label": "events.py",
+      "file_type": "code",
+      "source_file": "backend/app/routes/events.py",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "backend_app_routes_events",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "events.py"
+    },
+    {
+      "label": "Any",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast",
+      "id": "backend_app_routes_events_py_any",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "any"
+    },
+    {
+      "label": "get",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast",
+      "id": "backend_app_routes_events_py_get",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "get"
     },
     {
       "label": "AsyncSession",
@@ -7214,7 +7314,29 @@
       "_origin": "ast",
       "id": "backend_app_socrata_py_asyncsession",
       "community": 48,
-      "community_name": "sync_events",
+      "community_name": "CurrentEvent",
+      "norm_label": "asyncsession"
+    },
+    {
+      "label": "Any",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast",
+      "id": "backend_app_verify_snapshot_py_any",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "any"
+    },
+    {
+      "label": "AsyncSession",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast",
+      "id": "backend_app_verify_snapshot_py_asyncsession",
+      "community": 48,
+      "community_name": "CurrentEvent",
       "norm_label": "asyncsession"
     },
     {
@@ -7225,7 +7347,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_pipeline_contract",
       "community": 48,
-      "community_name": "sync_events",
+      "community_name": "CurrentEvent",
       "norm_label": "test_pipeline_contract.py"
     },
     {
@@ -7236,7 +7358,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_pipeline_contract_py_requires_docker",
       "community": 48,
-      "community_name": "sync_events",
+      "community_name": "CurrentEvent",
       "norm_label": "requires_docker"
     },
     {
@@ -7247,8 +7369,19 @@
       "_origin": "ast",
       "id": "basemodel",
       "community": 48,
-      "community_name": "sync_events",
+      "community_name": "CurrentEvent",
       "norm_label": "basemodel"
+    },
+    {
+      "label": "DeclarativeBase",
+      "file_type": "code",
+      "source_file": "",
+      "source_location": "",
+      "_origin": "ast",
+      "id": "declarativebase",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "declarativebase"
     },
     {
       "label": "The two bounded, read-only Event data operations used by the concierge.",
@@ -7258,7 +7391,7 @@
       "_origin": "ast",
       "id": "backend_app_concierge_tools_rationale_1",
       "community": 48,
-      "community_name": "sync_events",
+      "community_name": "CurrentEvent",
       "norm_label": "the two bounded, read-only event data operations used by the concierge."
     },
     {
@@ -7269,7 +7402,7 @@
       "_origin": "ast",
       "id": "backend_app_concierge_tools_rationale_16",
       "community": 48,
-      "community_name": "sync_events",
+      "community_name": "CurrentEvent",
       "norm_label": "validated search inputs with a hard result bound."
     },
     {
@@ -7280,7 +7413,7 @@
       "_origin": "ast",
       "id": "backend_app_concierge_tools_rationale_25",
       "community": 48,
-      "community_name": "sync_events",
+      "community_name": "CurrentEvent",
       "norm_label": "search only the latest current snapshot in deterministic order."
     },
     {
@@ -7291,8 +7424,228 @@
       "_origin": "ast",
       "id": "backend_app_concierge_tools_rationale_49",
       "community": 48,
-      "community_name": "sync_events",
+      "community_name": "CurrentEvent",
       "norm_label": "retrieve one current event by source guid; archival rows stay hidden."
+    },
+    {
+      "label": "Return a singleton async session factory.",
+      "file_type": "rationale",
+      "source_file": "backend/app/database.py",
+      "source_location": "L26",
+      "_origin": "ast",
+      "id": "backend_app_database_rationale_26",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "return a singleton async session factory."
+    },
+    {
+      "label": "Current, archival, and synchronization persistence models.",
+      "file_type": "rationale",
+      "source_file": "backend/app/models/event.py",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "backend_app_models_event_rationale_1",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "current, archival, and synchronization persistence models."
+    },
+    {
+      "label": "Columns shared by the current Snapshot and archival repository.",
+      "file_type": "rationale",
+      "source_file": "backend/app/models/event.py",
+      "source_location": "L14",
+      "_origin": "ast",
+      "id": "backend_app_models_event_rationale_14",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "columns shared by the current snapshot and archival repository."
+    },
+    {
+      "label": "The union of all source Events observed in successful Sync Runs.",
+      "file_type": "rationale",
+      "source_file": "backend/app/models/event.py",
+      "source_location": "L46",
+      "_origin": "ast",
+      "id": "backend_app_models_event_rationale_46",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "the union of all source events observed in successful sync runs."
+    },
+    {
+      "label": "One Event in the latest complete successful source Snapshot.",
+      "file_type": "rationale",
+      "source_file": "backend/app/models/event.py",
+      "source_location": "L59",
+      "_origin": "ast",
+      "id": "backend_app_models_event_rationale_59",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "one event in the latest complete successful source snapshot."
+    },
+    {
+      "label": "Secret-free operational evidence for one attempted synchronization.",
+      "file_type": "rationale",
+      "source_file": "backend/app/models/event.py",
+      "source_location": "L69",
+      "_origin": "ast",
+      "id": "backend_app_models_event_rationale_69",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "secret-free operational evidence for one attempted synchronization."
+    },
+    {
+      "label": "SQLAlchemy model definitions.",
+      "file_type": "rationale",
+      "source_file": "backend/app/models/__init__.py",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "backend_app_models_init_rationale_1",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "sqlalchemy model definitions."
+    },
+    {
+      "label": "Base class for all SQLAlchemy models.",
+      "file_type": "rationale",
+      "source_file": "backend/app/models/__init__.py",
+      "source_location": "L7",
+      "_origin": "ast",
+      "id": "backend_app_models_init_rationale_7",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "base class for all sqlalchemy models."
+    },
+    {
+      "label": "Events API router \u2014 GET /events and GET /events/{guid}.",
+      "file_type": "rationale",
+      "source_file": "backend/app/routes/events.py",
+      "source_location": "L1",
+      "_origin": "ast",
+      "id": "backend_app_routes_events_rationale_1",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "events api router \u2014 get /events and get /events/{guid}."
+    },
+    {
+      "label": "Return a paginated list of events with optional filters.",
+      "file_type": "rationale",
+      "source_file": "backend/app/routes/events.py",
+      "source_location": "L189",
+      "_origin": "ast",
+      "id": "backend_app_routes_events_rationale_189",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "return a paginated list of events with optional filters."
+    },
+    {
+      "label": "Build a TextFact dict.",
+      "file_type": "rationale",
+      "source_file": "backend/app/routes/events.py",
+      "source_location": "L22",
+      "_origin": "ast",
+      "id": "backend_app_routes_events_rationale_22",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "build a textfact dict."
+    },
+    {
+      "label": "Return a single event by its source guid.",
+      "file_type": "rationale",
+      "source_file": "backend/app/routes/events.py",
+      "source_location": "L220",
+      "_origin": "ast",
+      "id": "backend_app_routes_events_rationale_220",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "return a single event by its source guid."
+    },
+    {
+      "label": "Report the latest successful Snapshot and failed-attempt evidence.",
+      "file_type": "rationale",
+      "source_file": "backend/app/routes/events.py",
+      "source_location": "L239",
+      "_origin": "ast",
+      "id": "backend_app_routes_events_rationale_239",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "report the latest successful snapshot and failed-attempt evidence."
+    },
+    {
+      "label": "Expose secret-free evidence for the latest attempted synchronization.",
+      "file_type": "rationale",
+      "source_file": "backend/app/routes/events.py",
+      "source_location": "L288",
+      "_origin": "ast",
+      "id": "backend_app_routes_events_rationale_288",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "expose secret-free evidence for the latest attempted synchronization."
+    },
+    {
+      "label": "Build a UriFact dict.",
+      "file_type": "rationale",
+      "source_file": "backend/app/routes/events.py",
+      "source_location": "L37",
+      "_origin": "ast",
+      "id": "backend_app_routes_events_rationale_37",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "build a urifact dict."
+    },
+    {
+      "label": "Build a DateFact dict.",
+      "file_type": "rationale",
+      "source_file": "backend/app/routes/events.py",
+      "source_location": "L50",
+      "_origin": "ast",
+      "id": "backend_app_routes_events_rationale_50",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "build a datefact dict."
+    },
+    {
+      "label": "Build a DateTimeFact dict.",
+      "file_type": "rationale",
+      "source_file": "backend/app/routes/events.py",
+      "source_location": "L59",
+      "_origin": "ast",
+      "id": "backend_app_routes_events_rationale_59",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "build a datetimefact dict."
+    },
+    {
+      "label": "Build a BooleanFact dict.",
+      "file_type": "rationale",
+      "source_file": "backend/app/routes/events.py",
+      "source_location": "L68",
+      "_origin": "ast",
+      "id": "backend_app_routes_events_rationale_68",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "build a booleanfact dict."
+    },
+    {
+      "label": "Build a RegistrationFact dict.",
+      "file_type": "rationale",
+      "source_file": "backend/app/routes/events.py",
+      "source_location": "L80",
+      "_origin": "ast",
+      "id": "backend_app_routes_events_rationale_80",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "build a registrationfact dict."
+    },
+    {
+      "label": "Convert an Event model instance to the contract Event shape.",
+      "file_type": "rationale",
+      "source_file": "backend/app/routes/events.py",
+      "source_location": "L87",
+      "_origin": "ast",
+      "id": "backend_app_routes_events_rationale_87",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "convert an event model instance to the contract event shape."
     },
     {
       "label": "Fetch and store one complete Snapshot with durable attempt evidence.",
@@ -7302,8 +7655,19 @@
       "_origin": "ast",
       "id": "backend_app_socrata_rationale_484",
       "community": 48,
-      "community_name": "sync_events",
+      "community_name": "CurrentEvent",
       "norm_label": "fetch and store one complete snapshot with durable attempt evidence."
+    },
+    {
+      "label": "Return the current row count and the API's deterministic first guid.",
+      "file_type": "rationale",
+      "source_file": "backend/app/verify_snapshot.py",
+      "source_location": "L17",
+      "_origin": "ast",
+      "id": "backend_app_verify_snapshot_rationale_17",
+      "community": 48,
+      "community_name": "CurrentEvent",
+      "norm_label": "return the current row count and the api's deterministic first guid."
     },
     {
       "label": "Issue #10 gates for freshness, CORS, and concierge current-only tools.",
@@ -7313,7 +7677,7 @@
       "_origin": "ast",
       "id": "backend_tests_test_pipeline_contract_rationale_1",
       "community": 48,
-      "community_name": "sync_events",
+      "community_name": "CurrentEvent",
       "norm_label": "issue #10 gates for freshness, cors, and concierge current-only tools."
     },
     {
@@ -7625,6 +7989,17 @@
       "norm_label": "consensus summary"
     },
     {
+      "label": "Defer",
+      "file_type": "document",
+      "source_file": "frontend/FRONTEND_CONCEPT.md",
+      "source_location": "L383",
+      "_origin": "ast",
+      "id": "frontend_frontend_concept_defer",
+      "community": 51,
+      "community_name": "EventMatch NYC \u2014 Initial Frontend Direction",
+      "norm_label": "defer"
+    },
+    {
       "label": "EventMatch NYC \u2014 Initial Frontend Direction",
       "file_type": "document",
       "source_file": "frontend/FRONTEND_CONCEPT.md",
@@ -7636,15 +8011,26 @@
       "norm_label": "eventmatch nyc \u2014 initial frontend direction"
     },
     {
-      "label": "Global freshness banner",
+      "label": "Include",
       "file_type": "document",
       "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L297",
+      "source_location": "L368",
       "_origin": "ast",
-      "id": "frontend_frontend_concept_global_freshness_banner",
+      "id": "frontend_frontend_concept_include",
       "community": 51,
       "community_name": "EventMatch NYC \u2014 Initial Frontend Direction",
-      "norm_label": "global freshness banner"
+      "norm_label": "include"
+    },
+    {
+      "label": "Initial MVP scope",
+      "file_type": "document",
+      "source_file": "frontend/FRONTEND_CONCEPT.md",
+      "source_location": "L366",
+      "_origin": "ast",
+      "id": "frontend_frontend_concept_initial_mvp_scope",
+      "community": 51,
+      "community_name": "EventMatch NYC \u2014 Initial Frontend Direction",
+      "norm_label": "initial mvp scope"
     },
     {
       "label": "Product definition",
@@ -7656,28 +8042,6 @@
       "community": 51,
       "community_name": "EventMatch NYC \u2014 Initial Frontend Direction",
       "norm_label": "product definition"
-    },
-    {
-      "label": "Required states",
-      "file_type": "document",
-      "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L311",
-      "_origin": "ast",
-      "id": "frontend_frontend_concept_required_states",
-      "community": 51,
-      "community_name": "EventMatch NYC \u2014 Initial Frontend Direction",
-      "norm_label": "required states"
-    },
-    {
-      "label": "Trust and system states",
-      "file_type": "document",
-      "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L293",
-      "_origin": "ast",
-      "id": "frontend_frontend_concept_trust_and_system_states",
-      "community": 51,
-      "community_name": "EventMatch NYC \u2014 Initial Frontend Direction",
-      "norm_label": "trust and system states"
     },
     {
       "label": "Visual direction",
@@ -7834,149 +8198,6 @@
       "norm_label": "social distribution"
     },
     {
-      "label": "async_sessionmaker",
-      "file_type": "code",
-      "source_file": "",
-      "source_location": "",
-      "_origin": "ast",
-      "id": "async_sessionmaker",
-      "community": 55,
-      "community_name": "get_session_factory",
-      "norm_label": "async_sessionmaker"
-    },
-    {
-      "label": "database.py",
-      "file_type": "code",
-      "source_file": "backend/app/database.py",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "backend_app_database",
-      "community": 55,
-      "community_name": "get_session_factory",
-      "norm_label": "database.py"
-    },
-    {
-      "label": "AsyncSession",
-      "file_type": "code",
-      "source_file": "",
-      "source_location": "",
-      "_origin": "ast",
-      "id": "backend_app_database_py_asyncsession",
-      "community": 55,
-      "community_name": "get_session_factory",
-      "norm_label": "asyncsession"
-    },
-    {
-      "label": "sync.py",
-      "file_type": "code",
-      "source_file": "backend/app/sync.py",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "backend_app_sync",
-      "community": 55,
-      "community_name": "get_session_factory",
-      "norm_label": "sync.py"
-    },
-    {
-      "label": "verify_snapshot.py",
-      "file_type": "code",
-      "source_file": "backend/app/verify_snapshot.py",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "backend_app_verify_snapshot",
-      "community": 55,
-      "community_name": "get_session_factory",
-      "norm_label": "verify_snapshot.py"
-    },
-    {
-      "label": "Any",
-      "file_type": "code",
-      "source_file": "",
-      "source_location": "",
-      "_origin": "ast",
-      "id": "backend_app_verify_snapshot_py_any",
-      "community": 55,
-      "community_name": "get_session_factory",
-      "norm_label": "any"
-    },
-    {
-      "label": "AsyncSession",
-      "file_type": "code",
-      "source_file": "",
-      "source_location": "",
-      "_origin": "ast",
-      "id": "backend_app_verify_snapshot_py_asyncsession",
-      "community": 55,
-      "community_name": "get_session_factory",
-      "norm_label": "asyncsession"
-    },
-    {
-      "label": "Async SQLAlchemy engine and session factory.",
-      "file_type": "rationale",
-      "source_file": "backend/app/database.py",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "backend_app_database_rationale_1",
-      "community": 55,
-      "community_name": "get_session_factory",
-      "norm_label": "async sqlalchemy engine and session factory."
-    },
-    {
-      "label": "Return a singleton async session factory.",
-      "file_type": "rationale",
-      "source_file": "backend/app/database.py",
-      "source_location": "L26",
-      "_origin": "ast",
-      "id": "backend_app_database_rationale_26",
-      "community": 55,
-      "community_name": "get_session_factory",
-      "norm_label": "return a singleton async session factory."
-    },
-    {
-      "label": "Executable Socrata-to-Postgres synchronization command.",
-      "file_type": "rationale",
-      "source_file": "backend/app/sync.py",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "backend_app_sync_rationale_1",
-      "community": 55,
-      "community_name": "get_session_factory",
-      "norm_label": "executable socrata-to-postgres synchronization command."
-    },
-    {
-      "label": "Fetch the complete Snapshot and atomically upsert its Events.",
-      "file_type": "rationale",
-      "source_file": "backend/app/sync.py",
-      "source_location": "L15",
-      "_origin": "ast",
-      "id": "backend_app_sync_rationale_15",
-      "community": 55,
-      "community_name": "get_session_factory",
-      "norm_label": "fetch the complete snapshot and atomically upsert its events."
-    },
-    {
-      "label": "Emit secret-free evidence for the current production Event Snapshot.",
-      "file_type": "rationale",
-      "source_file": "backend/app/verify_snapshot.py",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "backend_app_verify_snapshot_rationale_1",
-      "community": 55,
-      "community_name": "get_session_factory",
-      "norm_label": "emit secret-free evidence for the current production event snapshot."
-    },
-    {
-      "label": "Return the current row count and the API's deterministic first guid.",
-      "file_type": "rationale",
-      "source_file": "backend/app/verify_snapshot.py",
-      "source_location": "L17",
-      "_origin": "ast",
-      "id": "backend_app_verify_snapshot_rationale_17",
-      "community": 55,
-      "community_name": "get_session_factory",
-      "norm_label": "return the current row count and the api's deterministic first guid."
-    },
-    {
       "label": "ArgumentParser",
       "file_type": "code",
       "source_file": "",
@@ -8094,7 +8315,7 @@
       "_origin": "ast",
       "id": "scripts_ci_tests_test_validate_workflows",
       "community": 57,
-      "community_name": "validate_workflows",
+      "community_name": "WorkflowPolicyTests",
       "norm_label": "test_validate_workflows.py"
     },
     {
@@ -8105,7 +8326,7 @@
       "_origin": "ast",
       "id": "scripts_ci_validate_workflows",
       "community": 57,
-      "community_name": "validate_workflows",
+      "community_name": "WorkflowPolicyTests",
       "norm_label": "validate_workflows.py"
     },
     {
@@ -8116,7 +8337,7 @@
       "_origin": "ast",
       "id": "scripts_ci_validate_workflows_py_any",
       "community": 57,
-      "community_name": "validate_workflows",
+      "community_name": "WorkflowPolicyTests",
       "norm_label": "any"
     },
     {
@@ -8127,7 +8348,7 @@
       "_origin": "ast",
       "id": "scripts_ci_validate_workflows_py_path",
       "community": 57,
-      "community_name": "validate_workflows",
+      "community_name": "WorkflowPolicyTests",
       "norm_label": "path"
     },
     {
@@ -8550,39 +8771,6 @@
       "norm_label": "mobile"
     },
     {
-      "label": "Defer",
-      "file_type": "document",
-      "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L383",
-      "_origin": "ast",
-      "id": "frontend_frontend_concept_defer",
-      "community": 66,
-      "community_name": "Initial MVP scope",
-      "norm_label": "defer"
-    },
-    {
-      "label": "Include",
-      "file_type": "document",
-      "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L368",
-      "_origin": "ast",
-      "id": "frontend_frontend_concept_include",
-      "community": 66,
-      "community_name": "Initial MVP scope",
-      "norm_label": "include"
-    },
-    {
-      "label": "Initial MVP scope",
-      "file_type": "document",
-      "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L366",
-      "_origin": "ast",
-      "id": "frontend_frontend_concept_initial_mvp_scope",
-      "community": 66,
-      "community_name": "Initial MVP scope",
-      "norm_label": "initial mvp scope"
-    },
-    {
       "label": "start.sh",
       "file_type": "code",
       "source_file": "backend/start.sh",
@@ -8756,105 +8944,6 @@
       "norm_label": "graphify"
     },
     {
-      "label": "AsyncClient",
-      "file_type": "code",
-      "source_file": "",
-      "source_location": "",
-      "_origin": "ast",
-      "id": "asyncclient",
-      "community": 70,
-      "community_name": "conftest.py",
-      "norm_label": "asyncclient"
-    },
-    {
-      "label": "conftest.py",
-      "file_type": "code",
-      "source_file": "backend/tests/conftest.py",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "backend_tests_conftest",
-      "community": 70,
-      "community_name": "conftest.py",
-      "norm_label": "conftest.py"
-    },
-    {
-      "label": "fixture",
-      "file_type": "code",
-      "source_file": "",
-      "source_location": "",
-      "_origin": "ast",
-      "id": "fixture",
-      "community": 70,
-      "community_name": "conftest.py",
-      "norm_label": "fixture"
-    },
-    {
-      "label": "Dispose of the current engine. Use for testing or reconfiguration.",
-      "file_type": "rationale",
-      "source_file": "backend/app/database.py",
-      "source_location": "L36",
-      "_origin": "ast",
-      "id": "backend_app_database_rationale_36",
-      "community": 70,
-      "community_name": "conftest.py",
-      "norm_label": "dispose of the current engine. use for testing or reconfiguration."
-    },
-    {
-      "label": "Test fixtures using Testcontainers for real Postgres.",
-      "file_type": "rationale",
-      "source_file": "backend/tests/conftest.py",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "backend_tests_conftest_rationale_1",
-      "community": 70,
-      "community_name": "conftest.py",
-      "norm_label": "test fixtures using testcontainers for real postgres."
-    },
-    {
-      "label": "Return the async Postgres URL (skips if Docker unavailable).",
-      "file_type": "rationale",
-      "source_file": "backend/tests/conftest.py",
-      "source_location": "L108",
-      "_origin": "ast",
-      "id": "backend_tests_conftest_rationale_108",
-      "community": 70,
-      "community_name": "conftest.py",
-      "norm_label": "return the async postgres url (skips if docker unavailable)."
-    },
-    {
-      "label": "Provide an async test client for the FastAPI app.",
-      "file_type": "rationale",
-      "source_file": "backend/tests/conftest.py",
-      "source_location": "L116",
-      "_origin": "ast",
-      "id": "backend_tests_conftest_rationale_116",
-      "community": 70,
-      "community_name": "conftest.py",
-      "norm_label": "provide an async test client for the fastapi app."
-    },
-    {
-      "label": "Provide an async SQLAlchemy session for direct DB operations.",
-      "file_type": "rationale",
-      "source_file": "backend/tests/conftest.py",
-      "source_location": "L137",
-      "_origin": "ast",
-      "id": "backend_tests_conftest_rationale_137",
-      "community": 70,
-      "community_name": "conftest.py",
-      "norm_label": "provide an async sqlalchemy session for direct db operations."
-    },
-    {
-      "label": "Start a PostgreSQL container if Docker is available. This fixture is autouse\u2026",
-      "file_type": "rationale",
-      "source_file": "backend/tests/conftest.py",
-      "source_location": "L55",
-      "_origin": "ast",
-      "id": "backend_tests_conftest_rationale_55",
-      "community": 70,
-      "community_name": "conftest.py",
-      "norm_label": "start a postgresql container if docker is available. this fixture is autouse..."
-    },
-    {
       "label": "test_events.py",
       "file_type": "code",
       "source_file": "backend/tests/test_events.py",
@@ -9009,114 +9098,37 @@
       "norm_label": "verify event and location identity rules."
     },
     {
-      "label": "event.py",
-      "file_type": "code",
-      "source_file": "backend/app/models/event.py",
-      "source_location": "L1",
+      "label": "Global freshness banner",
+      "file_type": "document",
+      "source_file": "frontend/FRONTEND_CONCEPT.md",
+      "source_location": "L297",
       "_origin": "ast",
-      "id": "backend_app_models_event",
+      "id": "frontend_frontend_concept_global_freshness_banner",
       "community": 8,
-      "community_name": "CurrentEvent",
-      "norm_label": "event.py"
+      "community_name": "Trust and system states",
+      "norm_label": "global freshness banner"
     },
     {
-      "label": "models/__init__.py",
-      "file_type": "code",
-      "source_file": "backend/app/models/__init__.py",
-      "source_location": "L1",
+      "label": "Required states",
+      "file_type": "document",
+      "source_file": "frontend/FRONTEND_CONCEPT.md",
+      "source_location": "L311",
       "_origin": "ast",
-      "id": "backend_app_models_init",
+      "id": "frontend_frontend_concept_required_states",
       "community": 8,
-      "community_name": "CurrentEvent",
-      "norm_label": "models/__init__.py"
+      "community_name": "Trust and system states",
+      "norm_label": "required states"
     },
     {
-      "label": "DeclarativeBase",
-      "file_type": "code",
-      "source_file": "",
-      "source_location": "",
+      "label": "Trust and system states",
+      "file_type": "document",
+      "source_file": "frontend/FRONTEND_CONCEPT.md",
+      "source_location": "L293",
       "_origin": "ast",
-      "id": "declarativebase",
+      "id": "frontend_frontend_concept_trust_and_system_states",
       "community": 8,
-      "community_name": "CurrentEvent",
-      "norm_label": "declarativebase"
-    },
-    {
-      "label": "Current, archival, and synchronization persistence models.",
-      "file_type": "rationale",
-      "source_file": "backend/app/models/event.py",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "backend_app_models_event_rationale_1",
-      "community": 8,
-      "community_name": "CurrentEvent",
-      "norm_label": "current, archival, and synchronization persistence models."
-    },
-    {
-      "label": "Columns shared by the current Snapshot and archival repository.",
-      "file_type": "rationale",
-      "source_file": "backend/app/models/event.py",
-      "source_location": "L14",
-      "_origin": "ast",
-      "id": "backend_app_models_event_rationale_14",
-      "community": 8,
-      "community_name": "CurrentEvent",
-      "norm_label": "columns shared by the current snapshot and archival repository."
-    },
-    {
-      "label": "The union of all source Events observed in successful Sync Runs.",
-      "file_type": "rationale",
-      "source_file": "backend/app/models/event.py",
-      "source_location": "L46",
-      "_origin": "ast",
-      "id": "backend_app_models_event_rationale_46",
-      "community": 8,
-      "community_name": "CurrentEvent",
-      "norm_label": "the union of all source events observed in successful sync runs."
-    },
-    {
-      "label": "One Event in the latest complete successful source Snapshot.",
-      "file_type": "rationale",
-      "source_file": "backend/app/models/event.py",
-      "source_location": "L59",
-      "_origin": "ast",
-      "id": "backend_app_models_event_rationale_59",
-      "community": 8,
-      "community_name": "CurrentEvent",
-      "norm_label": "one event in the latest complete successful source snapshot."
-    },
-    {
-      "label": "Secret-free operational evidence for one attempted synchronization.",
-      "file_type": "rationale",
-      "source_file": "backend/app/models/event.py",
-      "source_location": "L69",
-      "_origin": "ast",
-      "id": "backend_app_models_event_rationale_69",
-      "community": 8,
-      "community_name": "CurrentEvent",
-      "norm_label": "secret-free operational evidence for one attempted synchronization."
-    },
-    {
-      "label": "SQLAlchemy model definitions.",
-      "file_type": "rationale",
-      "source_file": "backend/app/models/__init__.py",
-      "source_location": "L1",
-      "_origin": "ast",
-      "id": "backend_app_models_init_rationale_1",
-      "community": 8,
-      "community_name": "CurrentEvent",
-      "norm_label": "sqlalchemy model definitions."
-    },
-    {
-      "label": "Base class for all SQLAlchemy models.",
-      "file_type": "rationale",
-      "source_file": "backend/app/models/__init__.py",
-      "source_location": "L7",
-      "_origin": "ast",
-      "id": "backend_app_models_init_rationale_7",
-      "community": 8,
-      "community_name": "CurrentEvent",
-      "norm_label": "base class for all sqlalchemy models."
+      "community_name": "Trust and system states",
+      "norm_label": "trust and system states"
     },
     {
       "label": "pull_request_template.md",
@@ -11773,7 +11785,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L21",
+      "source_location": "L22",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_tests_test_validate_workflows_workflowpolicytests_setup",
@@ -11785,7 +11797,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L144",
+      "source_location": "L145",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_tests_test_validate_workflows_workflowpolicytests_test_account_level_project_discovery_is_rejected",
@@ -11797,7 +11809,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L100",
+      "source_location": "L101",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_tests_test_validate_workflows_workflowpolicytests_test_backend_deployment_requires_the_frontend_cors_origin",
@@ -11809,7 +11821,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L122",
+      "source_location": "L123",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_tests_test_validate_workflows_workflowpolicytests_test_deployment_requires_configured_project_id",
@@ -11821,7 +11833,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L116",
+      "source_location": "L117",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_tests_test_validate_workflows_workflowpolicytests_test_deployment_requires_project_scoped_railway_auth",
@@ -11833,7 +11845,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L76",
+      "source_location": "L77",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_tests_test_validate_workflows_workflowpolicytests_test_frontend_must_wait_for_backend_cutover",
@@ -11845,7 +11857,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L108",
+      "source_location": "L109",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_tests_test_validate_workflows_workflowpolicytests_test_human_and_machine_readable_evidence_is_required",
@@ -11857,7 +11869,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L64",
+      "source_location": "L65",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_tests_test_validate_workflows_workflowpolicytests_test_missing_backend_deployment_is_rejected",
@@ -11869,7 +11881,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L36",
+      "source_location": "L37",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_tests_test_validate_workflows_workflowpolicytests_test_missing_protected_context_is_rejected",
@@ -11881,7 +11893,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L70",
+      "source_location": "L71",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_tests_test_validate_workflows_workflowpolicytests_test_missing_scheduled_worker_deployment_is_rejected",
@@ -11893,7 +11905,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L88",
+      "source_location": "L89",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_tests_test_validate_workflows_workflowpolicytests_test_production_requires_database_to_api_trace_evidence",
@@ -11905,7 +11917,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L30",
+      "source_location": "L31",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_tests_test_validate_workflows_workflowpolicytests_test_pull_request_deployment_is_rejected",
@@ -11917,7 +11929,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L25",
+      "source_location": "L26",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_tests_test_validate_workflows_workflowpolicytests_test_repository_workflows_pass_policy",
@@ -11929,7 +11941,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L133",
+      "source_location": "L134",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_tests_test_validate_workflows_workflowpolicytests_test_single_quoted_graphql_is_rejected",
@@ -11941,7 +11953,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L43",
+      "source_location": "L44",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_tests_test_validate_workflows_workflowpolicytests_test_unpinned_action_and_allow_failure_are_rejected",
@@ -11953,7 +11965,7 @@
       "confidence": "EXTRACTED",
       "confidence_score": 1.0,
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L58",
+      "source_location": "L59",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_tests_test_validate_workflows_workflowpolicytests_test_unpinned_railway_cli_is_rejected",
@@ -11964,7 +11976,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "scripts/ci/validate_workflows.py",
-      "source_location": "L192",
+      "source_location": "L203",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_validate_workflows_main",
@@ -11976,7 +11988,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "scripts/ci/validate_workflows.py",
-      "source_location": "L192",
+      "source_location": "L203",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_validate_workflows_main",
@@ -11988,7 +12000,7 @@
       "context": "call",
       "confidence": "EXTRACTED",
       "source_file": "scripts/ci/validate_workflows.py",
-      "source_location": "L150",
+      "source_location": "L161",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_validate_workflows_validate_workflows",
@@ -14964,7 +14976,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L11",
+      "source_location": "L12",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_tests_test_validate_workflows",
@@ -14976,7 +14988,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L11",
+      "source_location": "L12",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_tests_test_validate_workflows",
@@ -15912,7 +15924,7 @@
       "context": "import",
       "confidence": "EXTRACTED",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L11",
+      "source_location": "L12",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_tests_test_validate_workflows",
@@ -20260,7 +20272,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L19",
+      "source_location": "L20",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_tests_test_validate_workflows",
@@ -20271,7 +20283,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "scripts/ci/validate_workflows.py",
-      "source_location": "L191",
+      "source_location": "L202",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_validate_workflows",
@@ -21635,7 +21647,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L103",
+      "source_location": "L104",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_tests_test_validate_workflows_workflowpolicytests",
@@ -21646,7 +21658,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L111",
+      "source_location": "L112",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_tests_test_validate_workflows_workflowpolicytests",
@@ -21657,7 +21669,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L119",
+      "source_location": "L120",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_tests_test_validate_workflows_workflowpolicytests",
@@ -21668,7 +21680,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L125",
+      "source_location": "L126",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_tests_test_validate_workflows_workflowpolicytests",
@@ -21679,7 +21691,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L136",
+      "source_location": "L137",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_tests_test_validate_workflows_workflowpolicytests",
@@ -21690,7 +21702,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L147",
+      "source_location": "L148",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_tests_test_validate_workflows_workflowpolicytests",
@@ -21701,7 +21713,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L160",
+      "source_location": "L161",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_tests_test_validate_workflows_workflowpolicytests",
@@ -21712,7 +21724,18 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L172",
+      "source_location": "L173",
+      "weight": 1.0,
+      "_origin": "ast",
+      "source": "scripts_ci_tests_test_validate_workflows_workflowpolicytests",
+      "target": "scripts_ci_tests_test_validate_workflows_workflowpolicytests_test_backend_remote_execution_pins_the_railway_host_key",
+      "confidence_score": 1.0
+    },
+    {
+      "relation": "method",
+      "confidence": "EXTRACTED",
+      "source_file": "scripts/ci/tests/test_validate_workflows.py",
+      "source_location": "L193",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_tests_test_validate_workflows_workflowpolicytests",
@@ -21723,7 +21746,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L20",
+      "source_location": "L21",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_tests_test_validate_workflows_workflowpolicytests",
@@ -21734,7 +21757,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L24",
+      "source_location": "L25",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_tests_test_validate_workflows_workflowpolicytests",
@@ -21745,7 +21768,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L27",
+      "source_location": "L28",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_tests_test_validate_workflows_workflowpolicytests",
@@ -21756,7 +21779,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L33",
+      "source_location": "L34",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_tests_test_validate_workflows_workflowpolicytests",
@@ -21767,7 +21790,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L39",
+      "source_location": "L40",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_tests_test_validate_workflows_workflowpolicytests",
@@ -21778,7 +21801,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L47",
+      "source_location": "L48",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_tests_test_validate_workflows_workflowpolicytests",
@@ -21789,7 +21812,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L61",
+      "source_location": "L62",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_tests_test_validate_workflows_workflowpolicytests",
@@ -21800,7 +21823,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L67",
+      "source_location": "L68",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_tests_test_validate_workflows_workflowpolicytests",
@@ -21811,7 +21834,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L73",
+      "source_location": "L74",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_tests_test_validate_workflows_workflowpolicytests",
@@ -21822,7 +21845,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L81",
+      "source_location": "L82",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_tests_test_validate_workflows_workflowpolicytests",
@@ -21833,7 +21856,7 @@
       "relation": "method",
       "confidence": "EXTRACTED",
       "source_file": "scripts/ci/tests/test_validate_workflows.py",
-      "source_location": "L91",
+      "source_location": "L92",
       "weight": 1.0,
       "_origin": "ast",
       "source": "scripts_ci_tests_test_validate_workflows_workflowpolicytests",
@@ -24117,5 +24140,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "8b77e229287b39343eff93af622c951b13c165c2"
+  "built_at_commit": "df6a2daa1ffd79535ad4d7d54d7a7be7e3ab7010"
 }
