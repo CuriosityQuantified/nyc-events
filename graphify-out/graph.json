@@ -10200,17 +10200,6 @@
       "norm_label": "consensus summary"
     },
     {
-      "label": "Defer",
-      "file_type": "document",
-      "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L383",
-      "_origin": "ast",
-      "id": "frontend_frontend_concept_defer",
-      "community": 51,
-      "community_name": "EventMatch NYC \u2014 Initial Frontend Direction",
-      "norm_label": "defer"
-    },
-    {
       "label": "EventMatch NYC \u2014 Initial Frontend Direction",
       "file_type": "document",
       "source_file": "frontend/FRONTEND_CONCEPT.md",
@@ -10222,26 +10211,15 @@
       "norm_label": "eventmatch nyc \u2014 initial frontend direction"
     },
     {
-      "label": "Include",
+      "label": "Global freshness banner",
       "file_type": "document",
       "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L368",
+      "source_location": "L297",
       "_origin": "ast",
-      "id": "frontend_frontend_concept_include",
+      "id": "frontend_frontend_concept_global_freshness_banner",
       "community": 51,
       "community_name": "EventMatch NYC \u2014 Initial Frontend Direction",
-      "norm_label": "include"
-    },
-    {
-      "label": "Initial MVP scope",
-      "file_type": "document",
-      "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L366",
-      "_origin": "ast",
-      "id": "frontend_frontend_concept_initial_mvp_scope",
-      "community": 51,
-      "community_name": "EventMatch NYC \u2014 Initial Frontend Direction",
-      "norm_label": "initial mvp scope"
+      "norm_label": "global freshness banner"
     },
     {
       "label": "Product definition",
@@ -10253,6 +10231,28 @@
       "community": 51,
       "community_name": "EventMatch NYC \u2014 Initial Frontend Direction",
       "norm_label": "product definition"
+    },
+    {
+      "label": "Required states",
+      "file_type": "document",
+      "source_file": "frontend/FRONTEND_CONCEPT.md",
+      "source_location": "L311",
+      "_origin": "ast",
+      "id": "frontend_frontend_concept_required_states",
+      "community": 51,
+      "community_name": "EventMatch NYC \u2014 Initial Frontend Direction",
+      "norm_label": "required states"
+    },
+    {
+      "label": "Trust and system states",
+      "file_type": "document",
+      "source_file": "frontend/FRONTEND_CONCEPT.md",
+      "source_location": "L293",
+      "_origin": "ast",
+      "id": "frontend_frontend_concept_trust_and_system_states",
+      "community": 51,
+      "community_name": "EventMatch NYC \u2014 Initial Frontend Direction",
+      "norm_label": "trust and system states"
     },
     {
       "label": "Visual direction",
@@ -12940,7 +12940,7 @@
       "label": "Blocker",
       "file_type": "document",
       "source_file": "frontend/HANDOFF-issue-26.md",
-      "source_location": "L65",
+      "source_location": "L70",
       "_origin": "ast",
       "id": "frontend_handoff_issue_26_blocker",
       "community": 84,
@@ -12951,7 +12951,7 @@
       "label": "CI/CD delta",
       "file_type": "document",
       "source_file": "frontend/HANDOFF-issue-26.md",
-      "source_location": "L44",
+      "source_location": "L45",
       "_origin": "ast",
       "id": "frontend_handoff_issue_26_ci_cd_delta",
       "community": 84,
@@ -12962,7 +12962,7 @@
       "label": "Commands and results",
       "file_type": "document",
       "source_file": "frontend/HANDOFF-issue-26.md",
-      "source_location": "L31",
+      "source_location": "L32",
       "_origin": "ast",
       "id": "frontend_handoff_issue_26_commands_and_results",
       "community": 84,
@@ -12973,7 +12973,7 @@
       "label": "Completed acceptance areas",
       "file_type": "document",
       "source_file": "frontend/HANDOFF-issue-26.md",
-      "source_location": "L18",
+      "source_location": "L19",
       "_origin": "ast",
       "id": "frontend_handoff_issue_26_completed_acceptance_areas",
       "community": 84,
@@ -13006,7 +13006,7 @@
       "label": "Remaining ordered actions",
       "file_type": "document",
       "source_file": "frontend/HANDOFF-issue-26.md",
-      "source_location": "L54",
+      "source_location": "L58",
       "_origin": "ast",
       "id": "frontend_handoff_issue_26_remaining_ordered_actions",
       "community": 84,
@@ -13017,7 +13017,7 @@
       "label": "State",
       "file_type": "document",
       "source_file": "frontend/HANDOFF-issue-26.md",
-      "source_location": "L12",
+      "source_location": "L13",
       "_origin": "ast",
       "id": "frontend_handoff_issue_26_state",
       "community": 84,
@@ -13080,37 +13080,37 @@
       "norm_label": "verify that get /events/{guid} uses the source guid."
     },
     {
-      "label": "Global freshness banner",
+      "label": "Defer",
       "file_type": "document",
       "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L297",
+      "source_location": "L383",
       "_origin": "ast",
-      "id": "frontend_frontend_concept_global_freshness_banner",
+      "id": "frontend_frontend_concept_defer",
       "community": 86,
-      "community_name": "Trust and system states",
-      "norm_label": "global freshness banner"
+      "community_name": "Initial MVP scope",
+      "norm_label": "defer"
     },
     {
-      "label": "Required states",
+      "label": "Include",
       "file_type": "document",
       "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L311",
+      "source_location": "L368",
       "_origin": "ast",
-      "id": "frontend_frontend_concept_required_states",
+      "id": "frontend_frontend_concept_include",
       "community": 86,
-      "community_name": "Trust and system states",
-      "norm_label": "required states"
+      "community_name": "Initial MVP scope",
+      "norm_label": "include"
     },
     {
-      "label": "Trust and system states",
+      "label": "Initial MVP scope",
       "file_type": "document",
       "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L293",
+      "source_location": "L366",
       "_origin": "ast",
-      "id": "frontend_frontend_concept_trust_and_system_states",
+      "id": "frontend_frontend_concept_initial_mvp_scope",
       "community": 86,
-      "community_name": "Trust and system states",
-      "norm_label": "trust and system states"
+      "community_name": "Initial MVP scope",
+      "norm_label": "initial mvp scope"
     },
     {
       "label": "thumbnail/route.ts",
@@ -33200,7 +33200,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/HANDOFF-issue-26.md",
-      "source_location": "L12",
+      "source_location": "L13",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_handoff_issue_26_issue_26_frontend_handoff",
@@ -33211,7 +33211,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/HANDOFF-issue-26.md",
-      "source_location": "L18",
+      "source_location": "L19",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_handoff_issue_26_issue_26_frontend_handoff",
@@ -33233,7 +33233,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/HANDOFF-issue-26.md",
-      "source_location": "L31",
+      "source_location": "L32",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_handoff_issue_26_issue_26_frontend_handoff",
@@ -33244,7 +33244,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/HANDOFF-issue-26.md",
-      "source_location": "L44",
+      "source_location": "L45",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_handoff_issue_26_issue_26_frontend_handoff",
@@ -33255,7 +33255,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/HANDOFF-issue-26.md",
-      "source_location": "L54",
+      "source_location": "L58",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_handoff_issue_26_issue_26_frontend_handoff",
@@ -33266,7 +33266,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/HANDOFF-issue-26.md",
-      "source_location": "L65",
+      "source_location": "L70",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_handoff_issue_26_issue_26_frontend_handoff",
@@ -39852,5 +39852,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "bbc5d7848ee8aad684f7f3389bae4d721f436e76"
+  "built_at_commit": "d6fd2451d7792fcdad3a838a11278e0d52db7d68"
 }

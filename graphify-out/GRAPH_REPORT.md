@@ -1,7 +1,7 @@
 # Graph Report - nyc-events-frontend  (2026-08-16)
 
 ## Corpus Check
-- 144 files · ~100,240 words
+- 144 files · ~100,386 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `bbc5d784`
+- Built from commit: `d6fd2451`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -87,7 +87,7 @@
 - apiToUiEvent
 - Issue #26 frontend handoff
 - test_events.py
-- Trust and system states
+- Initial MVP scope
 - EventMap.tsx
 - Issue #19 backend handoff
 - Issue #21 backend handoff
@@ -221,7 +221,7 @@ Nodes (21): CurrentEventSearch, get_current_event(), Any, BaseModel, The two bou
 
 ### Community 51 - "EventMatch NYC — Initial Frontend Direction"
 Cohesion: 0.18
-Nodes (9): Accessibility baseline, Consensus basis, Consensus summary, Defer, EventMatch NYC — Initial Frontend Direction, Include, Initial MVP scope, Product definition (+1 more)
+Nodes (9): Accessibility baseline, Consensus basis, Consensus summary, EventMatch NYC — Initial Frontend Direction, Global freshness banner, Product definition, Required states, Trust and system states (+1 more)
 
 ### Community 52 - "0003_current_repository_sync_runs.py"
 Cohesion: 0.50
@@ -339,9 +339,9 @@ Nodes (8): Blocker, CI/CD delta, Commands and results, Completed acceptance area
 Cohesion: 0.29
 Nodes (6): requires_docker, Tests for the events API endpoints., Verify that GET /events returns stored Events in contract shape., Verify that GET /events/{guid} uses the source guid., TestGetEvent, TestListEvents
 
-### Community 86 - "Trust and system states"
+### Community 86 - "Initial MVP scope"
 Cohesion: 0.67
-Nodes (3): Global freshness banner, Required states, Trust and system states
+Nodes (3): Defer, Include, Initial MVP scope
 
 ### Community 87 - "EventMap.tsx"
 Cohesion: 0.09
