@@ -15,7 +15,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_session_factory
 from app.models.event import CurrentEvent, EventRepository
 from app.models.profile import Profile, SavedEvent
-from app.routes.events import _event_to_contract
+from app.routes.events import _event_date_expression, _event_to_contract
 
 router = APIRouter(prefix="/profile")
 
@@ -102,6 +102,7 @@ async def list_saved_events(
                     .join(SavedEvent, SavedEvent.event_guid == EventRepository.guid)
                     .where(profile_filter)
                     .order_by(
+                        _event_date_expression(EventRepository).asc().nullslast(),
                         EventRepository.start_datetime.asc().nullslast(),
                         SavedEvent.saved_at,
                         EventRepository.guid,

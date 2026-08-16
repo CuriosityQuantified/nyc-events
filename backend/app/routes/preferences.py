@@ -14,7 +14,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from app.database import get_session_factory
 from app.models.event import EventRepository
 from app.models.profile import Interest, MatchedEvent, SavedEvent
-from app.routes.events import _event_to_contract
+from app.routes.events import _event_date_expression, _event_to_contract
 from app.routes.profiles import (
     DeviceToken,
     _database_unavailable,
@@ -149,6 +149,7 @@ async def list_matches(
                     )
                     .where(*match_filter)
                     .order_by(
+                        _event_date_expression(EventRepository).asc().nullslast(),
                         EventRepository.start_datetime.asc().nullslast(),
                         MatchedEvent.matched_at,
                         EventRepository.guid,

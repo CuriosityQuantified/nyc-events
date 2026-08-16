@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import UTC, date, datetime
 from typing import Any, Literal
+from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, HTTPException, Path, Query
 from sqlalchemy import Date as SQLDate
@@ -16,6 +17,7 @@ from app.models.event import CurrentEvent, EventRepository, SyncRun
 from app.provenance import accessibility_evidence, explicit_free_evidence
 
 router = APIRouter()
+_NEW_YORK = ZoneInfo("America/New_York")
 
 LifecycleClassification = Literal[
     "new", "changed", "unchanged", "cancelled", "expired", "removed"
@@ -57,6 +59,40 @@ def _date_fact(
     if value is None:
         return {"value": None, "provenance": "Not listed", "raw": None}
     return {"value": value, "provenance": provenance, "raw": raw}
+
+
+def _calendar_date_fact(
+    explicit_date: date | None,
+    event_datetime: datetime | None,
+    *,
+    explicit_raw: str | None,
+    datetime_raw: str | None,
+) -> dict[str, Any]:
+    """Use an explicit date, or derive its New York date from the datetime."""
+    if explicit_date is not None:
+        return _date_fact(explicit_date.isoformat(), raw=explicit_raw)
+    if event_datetime is None:
+        return _date_fact(None)
+
+    # PostgreSQL returns aware values for TIMESTAMP WITH TIME ZONE. Treat a
+    # direct model value without tzinfo as UTC so behavior never depends on
+    # the host timezone.
+    aware_datetime = (
+        event_datetime
+        if event_datetime.tzinfo is not None
+        else event_datetime.replace(tzinfo=UTC)
+    )
+    evidence = datetime_raw or event_datetime.isoformat()
+    local_date = aware_datetime.astimezone(_NEW_YORK).date().isoformat()
+    return _date_fact(local_date, provenance="Derived", raw=evidence)
+
+
+def _event_date_expression(model: Any) -> Any:
+    """Return the canonical New York calendar date SQL expression."""
+    return func.coalesce(
+        model.start_date,
+        cast(func.timezone("America/New_York", model.start_datetime), SQLDate),
+    )
 
 
 def _datetime_fact(
@@ -152,10 +188,21 @@ def _event_to_contract(event: CurrentEvent | EventRepository) -> dict[str, Any]:
     start_dt_raw = raw.get("starttime")
     end_dt_raw = raw.get("endtime")
 
-    start_date_val = event.start_date.isoformat() if event.start_date else None
-    end_date_val = event.end_date.isoformat() if event.end_date else None
     start_dt_val = event.start_datetime.isoformat() if event.start_datetime else None
     end_dt_val = event.end_datetime.isoformat() if event.end_datetime else None
+
+    start_date_fact = _calendar_date_fact(
+        event.start_date,
+        event.start_datetime,
+        explicit_raw=start_date_raw,
+        datetime_raw=start_dt_raw,
+    )
+    end_date_fact = _calendar_date_fact(
+        event.end_date,
+        event.end_datetime,
+        explicit_raw=end_date_raw,
+        datetime_raw=end_dt_raw,
+    )
 
     # Borough
     borough_raw = raw.get("parkids")
@@ -170,8 +217,8 @@ def _event_to_contract(event: CurrentEvent | EventRepository) -> dict[str, Any]:
         ),
         "location_id": _text_fact(event.location_id, raw=raw.get("parkids")),
         "location_name": _text_fact(event.location_name, raw=raw.get("location")),
-        "start_date": _date_fact(start_date_val, raw=start_date_raw),
-        "end_date": _date_fact(end_date_val, raw=end_date_raw),
+        "start_date": start_date_fact,
+        "end_date": end_date_fact,
         "start_datetime": _datetime_fact(start_dt_val, raw=start_dt_raw),
         "end_datetime": _datetime_fact(end_dt_val, raw=end_dt_raw),
         "categories": {
@@ -219,10 +266,7 @@ async def list_events(
 
     applied_facets: dict[str, list[str]] = {}
     filters = []
-    event_date = func.coalesce(
-        CurrentEvent.start_date,
-        cast(func.timezone("America/New_York", CurrentEvent.start_datetime), SQLDate),
-    )
+    event_date = _event_date_expression(CurrentEvent)
     if borough is not None:
         applied_facets["borough"] = [borough]
         filters.append(func.lower(CurrentEvent.borough) == borough.casefold())
@@ -259,7 +303,9 @@ async def list_events(
             total = total_result.scalar() or 0
             offset = (page - 1) * page_size
             query = query.order_by(
-                CurrentEvent.start_datetime.asc().nullslast(), CurrentEvent.guid
+                event_date.asc().nullslast(),
+                CurrentEvent.start_datetime.asc().nullslast(),
+                CurrentEvent.guid,
             )
             query = query.offset(offset).limit(page_size)
             result = await session.execute(query)
