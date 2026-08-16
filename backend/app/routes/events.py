@@ -13,6 +13,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from app.config import get_settings
 from app.database import get_session_factory
 from app.models.event import CurrentEvent, SyncRun
+from app.provenance import accessibility_evidence, explicit_free_evidence
 
 router = APIRouter()
 
@@ -63,13 +64,13 @@ def _datetime_fact(
     return {"value": value, "provenance": provenance, "raw": raw}
 
 
-def _boolean_fact(
-    value: bool | None, *, provenance: str = "Not listed", raw: str | None = None
+def _derived_boolean_fact(
+    value: bool | None, *, raw: str | None = None
 ) -> dict[str, Any]:
-    """Build a BooleanFact dict."""
-    if provenance == "Not listed":
+    """Build a derived BooleanFact without turning missing data into false."""
+    if value is None:
         return {"value": None, "provenance": "Not listed", "raw": None}
-    return {"value": value, "provenance": provenance, "raw": raw}
+    return {"value": value, "provenance": "Derived", "raw": raw}
 
 
 def _registration_fact(
@@ -84,9 +85,18 @@ def _registration_fact(
     return {"value": value, "provenance": provenance, "raw": raw}
 
 
+def _source_url_text(value: Any) -> str | None:
+    """Return the source URL string from either supported Socrata shape."""
+    if isinstance(value, dict):
+        value = value.get("url")
+    return value if isinstance(value, str) and value else None
+
+
 def _event_to_contract(event: CurrentEvent) -> dict[str, Any]:
     """Convert an Event model instance to the contract Event shape."""
     raw = event.raw_data or {}
+    free_raw = explicit_free_evidence(raw)
+    accessibility_raw = accessibility_evidence(raw)
 
     # Coordinates
     coords_raw = raw.get("coordinates", "")
@@ -151,7 +161,9 @@ def _event_to_contract(event: CurrentEvent) -> dict[str, Any]:
         "guid": event.guid,
         "title": _text_fact(event.title, raw=raw.get("title")),
         "description": _text_fact(event.description, raw=raw.get("description")),
-        "official_event_url": _uri_fact(event.official_event_url, raw=raw.get("link")),
+        "official_event_url": _uri_fact(
+            event.official_event_url, raw=_source_url_text(raw.get("link"))
+        ),
         "location_id": _text_fact(event.location_id, raw=raw.get("parkids")),
         "location_name": _text_fact(event.location_name, raw=raw.get("location")),
         "start_date": _date_fact(start_date_val, raw=start_date_raw),
@@ -177,8 +189,10 @@ def _event_to_contract(event: CurrentEvent) -> dict[str, Any]:
             provenance=reg_desc_provenance,
             raw=raw.get("registration_description") or None,
         ),
-        "is_free_explicit": _boolean_fact(event.is_free_explicit),
-        "accessibility_mentioned": _boolean_fact(event.accessibility_mentioned),
+        "is_free_explicit": _derived_boolean_fact(event.is_free_explicit, raw=free_raw),
+        "accessibility_mentioned": _derived_boolean_fact(
+            event.accessibility_mentioned, raw=accessibility_raw
+        ),
     }
 
 
