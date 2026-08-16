@@ -179,6 +179,7 @@ restartPolicyType = "NEVER"
                 self.assertEqual(configure_sync_worker(args), 0)
 
         operations = [call.args[1] for call in run.call_args_list]
+        self.assertNotIn("sync-project-link", operations)
         self.assertEqual(operations.count("sync-service-create"), 1)
         self.assertEqual(operations.count("sync-service-configure"), 1)
 

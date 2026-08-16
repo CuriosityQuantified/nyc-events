@@ -1,7 +1,7 @@
 # Graph Report - nyc-events-fullstack-51  (2026-08-16)
 
 ## Corpus Check
-- 103 files · ~51,235 words
+- 102 files · ~51,225 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `df6a2daa`
+- Built from commit: `ba4a6cc9`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
