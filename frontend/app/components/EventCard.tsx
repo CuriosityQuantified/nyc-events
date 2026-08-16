@@ -16,18 +16,19 @@ function costLabel(event: ParkEvent): string {
     case "Paid":
       return "Paid";
     case "Not listed":
-      return "Cost not listed";
+      // Product decision (2026-08-16): NYC Parks events are free unless the
+      // listing states a cost, so a silent source renders as Free.
+      return "Free";
   }
 }
 
 function costBadgeClass(costType: ParkEvent["costType"]): string {
   switch (costType) {
-    case "Free":
-      return styles.badgeFree;
     case "Paid":
       return styles.badgePaid;
+    case "Free":
     case "Not listed":
-      return styles.badgeRsvp;
+      return styles.badgeFree;
   }
 }
 
@@ -50,31 +51,31 @@ export default function EventCard({ event, returnQuery = "" }: EventCardProps) {
         </div>
         <p className={styles.category}>{event.category}</p>
         <h2 className={styles.title}>{event.title}</h2>
+        <p className={styles.when}>
+          <span className={styles.metaIcon} aria-hidden="true">
+            🕐
+          </span>
+          <span>
+            {event.date} · {event.time}
+          </span>
+        </p>
+        <p className={styles.where} data-location-fact="venue">
+          <span className={styles.metaIcon} aria-hidden="true">
+            📍
+          </span>
+          <span>Venue or park: {event.location}</span>
+        </p>
         <div className={styles.meta}>
-          <p className={styles.metaItem} data-location-fact="venue">
-            <span className={styles.metaIcon} aria-hidden="true">
-              📍
-            </span>
-            <span>Venue or park: {event.location}</span>
-          </p>
-          <p className={styles.metaItem} data-location-fact="neighborhood">
-            Neighborhood: Not listed
-          </p>
           <p className={styles.metaItem} data-location-fact="borough">
             Borough: {event.borough}
+          </p>
+          <p className={styles.metaItem}>{event.registration}</p>
+          <p className={styles.metaItem} data-location-fact="neighborhood">
+            Neighborhood: Not listed
           </p>
           <p className={styles.metaItem} data-location-fact="address">
             Address: Not listed
           </p>
-          <p className={styles.metaItem}>
-            <span className={styles.metaIcon} aria-hidden="true">
-              🕐
-            </span>
-            <span>
-              {event.date} · {event.time}
-            </span>
-          </p>
-          <p className={styles.metaItem}>{event.registration}</p>
           <p className={styles.metaItem}>{event.accessibility}</p>
         </div>
       </div>
