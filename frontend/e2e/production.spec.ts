@@ -55,9 +55,20 @@ test("live Snapshot reaches the API proxy and rendered list", async ({
     if (message.type() === "error") consoleErrors.push(message.text());
   });
   page.on("pageerror", (error) => consoleErrors.push(error.message));
-  page.on("requestfailed", (failed) =>
-    failedRequests.push(`${failed.method()} ${failed.url()}`),
-  );
+  page.on("requestfailed", (failed) => {
+    // Next.js cancels in-flight same-origin RSC prefetches when the view
+    // changes (List → Map); those aborts are not transport failures. Real
+    // HTTP errors on the same URLs are still caught by the >=400 response
+    // listener below.
+    const errorText = failed.failure()?.errorText ?? "unknown";
+    const url = new URL(failed.url());
+    const isCancelledSameOriginPrefetch =
+      errorText === "net::ERR_ABORTED" &&
+      url.origin === new URL(baseURL).origin &&
+      url.searchParams.has("_rsc");
+    if (isCancelledSameOriginPrefetch) return;
+    failedRequests.push(`${failed.method()} ${failed.url()} (${errorText})`);
+  });
   page.on("response", (response) => {
     if (response.status() >= 400) {
       failedRequests.push(`${response.status()} ${response.url()}`);
