@@ -96,7 +96,11 @@ class TestEventFacetFilters:
         assert response.status_code == 200
         body = response.json()
         assert [event["guid"] for event in body["events"]] == [rows[0]["guid"]]
-        assert body["events"][0]["start_date"]["provenance"] == "Not listed"
+        assert body["events"][0]["start_date"] == {
+            "value": "2026-11-01",
+            "provenance": "Derived",
+            "raw": "2026-11-01 23:30:00",
+        }
         assert body["applied_facets"] == {
             "date_from": ["2026-11-01"],
             "date_to": ["2026-11-01"],
