@@ -14,6 +14,7 @@ from sqlalchemy import func, select
 
 from app.concierge import (
     ConciergeContext,
+    _compact_concierge_event,
     create_concierge_agent,
     create_default_concierge_agent,
     save_event_tool,
@@ -77,6 +78,31 @@ def _agent(model: ScriptedToolModel) -> Any:
         checkpointer=InMemorySaver(),
         profile_key=f"openai:{model.model_name}",
     )
+
+
+def test_model_search_payload_keeps_event_id_and_drops_raw_duplicates() -> None:
+    compact = _compact_concierge_event(
+        {
+            "event_id": "event-1",
+            "title": {
+                "value": "Family Day",
+                "provenance": "Stated",
+                "raw": "Family Day",
+            },
+            "description": {
+                "value": "x" * 900,
+                "provenance": "Stated",
+                "raw": "x" * 900,
+            },
+            "raw_data": {"description": "x" * 900},
+        }
+    )
+
+    assert compact["event_id"] == "event-1"
+    assert compact["title"] == {"value": "Family Day", "provenance": "Stated"}
+    assert len(compact["description"]["value"]) == 801
+    assert "raw" not in compact["description"]
+    assert "raw_data" not in compact
 
 
 def _sse_events(body: str) -> list[tuple[str, dict[str, Any]]]:

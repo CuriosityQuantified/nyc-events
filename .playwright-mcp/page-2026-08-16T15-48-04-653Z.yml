@@ -1,0 +1,109 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - link "Skip to event results" [ref=e3] [cursor=pointer]:
+      - /url: "#main-content"
+    - complementary "Desktop navigation" [ref=e4]:
+      - generic [ref=e5]:
+        - generic [ref=e6]: PM
+        - generic [ref=e7]: ParkMatch
+      - navigation "Sidebar navigation" [ref=e8]:
+        - list [ref=e9]:
+          - listitem [ref=e10]:
+            - button "Explore" [ref=e11] [cursor=pointer]:
+              - generic [ref=e12]: 🔍
+          - listitem [ref=e14]:
+            - button "Saved Events" [ref=e15] [cursor=pointer]:
+              - generic [ref=e16]: ♥
+          - listitem [ref=e18]:
+            - button "Calendar" [ref=e19] [cursor=pointer]:
+              - generic [ref=e20]: 📅
+          - listitem [ref=e22]:
+            - button "Profile" [ref=e23] [cursor=pointer]:
+              - generic [ref=e24]: 👤
+          - listitem [ref=e26]:
+            - button "Settings" [ref=e27] [cursor=pointer]:
+              - generic [ref=e28]: ⚙️
+    - generic [ref=e30]:
+      - banner [ref=e31]:
+        - generic [ref=e32]:
+          - generic [ref=e33]: EM
+          - heading "EventMatch NYC" [level=1] [ref=e34]
+        - generic [ref=e35]:
+          - generic [ref=e36]: Select borough
+          - combobox "Select borough" [ref=e37] [cursor=pointer]:
+            - option "All Boroughs" [selected]
+            - option "Manhattan"
+            - option "Brooklyn"
+            - option "Queens"
+            - option "Bronx"
+            - option "Staten Island"
+      - status "Data freshness" [ref=e38]:
+        - generic [ref=e39]: …
+        - generic [ref=e40]:
+          - strong [ref=e41]: Checking official data freshness…
+          - generic [ref=e42]: Upcoming events currently present in NYC Parks’ rolling 14-day feed
+      - main [ref=e43]:
+        - searchbox "Search parks and events" [ref=e45]
+        - generic [ref=e46]:
+          - region [ref=e47]:
+            - heading "Filters" [level=2] [ref=e49]
+            - generic [ref=e50]:
+              - group "Borough" [ref=e51]:
+                - list [ref=e53]:
+                  - listitem [ref=e54]:
+                    - 'button "Add Borough: Manhattan" [ref=e55] [cursor=pointer]': Manhattan
+                  - listitem [ref=e56]:
+                    - 'button "Add Borough: Brooklyn" [ref=e57] [cursor=pointer]': Brooklyn
+                  - listitem [ref=e58]:
+                    - 'button "Add Borough: Queens" [ref=e59] [cursor=pointer]': Queens
+                  - listitem [ref=e60]:
+                    - 'button "Add Borough: Bronx" [ref=e61] [cursor=pointer]': Bronx
+                  - listitem [ref=e62]:
+                    - 'button "Add Borough: Staten Island" [ref=e63] [cursor=pointer]': Staten Island
+              - group "Category" [ref=e64]:
+                - list [ref=e66]:
+                  - listitem [ref=e67]:
+                    - 'button "Add Category: Fitness" [ref=e68] [cursor=pointer]': Fitness
+                  - listitem [ref=e69]:
+                    - 'button "Add Category: Nature" [ref=e70] [cursor=pointer]': Nature
+                  - listitem [ref=e71]:
+                    - 'button "Add Category: Family" [ref=e72] [cursor=pointer]': Family
+                  - listitem [ref=e73]:
+                    - 'button "Add Category: Sports" [ref=e74] [cursor=pointer]': Sports
+                  - listitem [ref=e75]:
+                    - 'button "Add Category: Music" [ref=e76] [cursor=pointer]': Music
+                  - listitem [ref=e77]:
+                    - 'button "Add Category: Theater" [ref=e78] [cursor=pointer]': Theater
+                  - listitem [ref=e79]:
+                    - 'button "Add Category: Art" [ref=e80] [cursor=pointer]': Art
+              - group "Date range" [ref=e81]:
+                - list [ref=e83]:
+                  - listitem [ref=e84]:
+                    - 'button "Add Date range: Today" [ref=e85] [cursor=pointer]': Today
+                  - listitem [ref=e86]:
+                    - 'button "Add Date range: Tomorrow" [ref=e87] [cursor=pointer]': Tomorrow
+                  - listitem [ref=e88]:
+                    - 'button "Add Date range: This weekend" [ref=e89] [cursor=pointer]': This weekend
+                  - listitem [ref=e90]:
+                    - 'button "Add Date range: Next 14 days" [ref=e91] [cursor=pointer]': Next 14 days
+              - group "Registration" [ref=e92]:
+                - list [ref=e94]:
+                  - listitem [ref=e95]:
+                    - 'button "Add Registration: Required" [ref=e96] [cursor=pointer]': Required
+                  - listitem [ref=e97]:
+                    - 'button "Add Registration: Not required" [ref=e98] [cursor=pointer]': Not required
+                  - listitem [ref=e99]:
+                    - 'button "Add Registration: Closed" [ref=e100] [cursor=pointer]': Closed
+                  - listitem [ref=e101]:
+                    - 'button "Add Registration: Not listed" [ref=e102] [cursor=pointer]': Not listed
+          - region "Filtered events" [ref=e103]:
+            - generic [ref=e104]:
+              - heading "Events" [level=2] [ref=e106]
+              - group "View mode" [ref=e107]:
+                - generic [ref=e108]:
+                  - button "List" [ref=e109] [cursor=pointer]
+                  - button "Map" [pressed] [ref=e110] [cursor=pointer]
+            - status [ref=e111]:
+              - heading "Loading Current Events…" [level=2] [ref=e112]
+              - paragraph [ref=e113]: Getting the latest NYC Parks event snapshot.
+  - alert [ref=e114]

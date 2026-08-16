@@ -36,6 +36,8 @@ describe("filtered events route", () => {
         category: "Nature",
         date: "weekend",
         registration: "required",
+        query: "",
+        freeOnly: false,
         dateFrom: null,
         dateTo: null,
       },
@@ -84,11 +86,37 @@ describe("filtered events route", () => {
         category: null,
         date: null,
         registration: null,
+        query: "",
+        freeOnly: false,
         dateFrom: null,
         dateTo: null,
       },
       1,
       100,
+    );
+  });
+
+  it("accepts one shareable search and free-only filter", async () => {
+    const response = await GET(
+      new NextRequest(
+        "http://localhost/api/events?page=1&query=Prospect+Park&free=true",
+      ),
+    );
+
+    expect(response.status).toBe(200);
+    expect(getFilteredEvents).toHaveBeenCalledWith(
+      {
+        borough: null,
+        category: null,
+        date: null,
+        registration: null,
+        query: "Prospect Park",
+        freeOnly: true,
+        dateFrom: null,
+        dateTo: null,
+      },
+      1,
+      12,
     );
   });
 

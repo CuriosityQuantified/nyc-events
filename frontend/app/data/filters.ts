@@ -35,6 +35,10 @@ export type FilterKey = keyof typeof FILTER_OPTIONS;
 export type FilterState = {
   [K in FilterKey]: (typeof FILTER_OPTIONS)[K][number][0] | null;
 } & {
+  /** A case-insensitive match across event and park details. */
+  query: string;
+  /** Events presented to visitors as free, including listings without a cost. */
+  freeOnly: boolean;
   /** Exact New York calendar dates, inclusive, as YYYY-MM-DD. */
   dateFrom: string | null;
   dateTo: string | null;
@@ -45,11 +49,24 @@ export const EMPTY_FILTERS: FilterState = {
   category: null,
   date: null,
   registration: null,
+  query: "",
+  freeOnly: false,
   dateFrom: null,
   dateTo: null,
 };
 
 const EXACT_DATE_PARAMS = { dateFrom: "date_from", dateTo: "date_to" } as const;
+const QUERY_PARAM = "query";
+const FREE_PARAM = "free";
+const MAX_QUERY_LENGTH = 200;
+
+function normalizeQuery(value: string): string {
+  return value.trim().replace(/\s+/g, " ").slice(0, MAX_QUERY_LENGTH);
+}
+
+function isValidQuery(value: string): boolean {
+  return value.length <= MAX_QUERY_LENGTH && normalizeQuery(value).length > 0;
+}
 
 export function isValidIsoDate(value: string): boolean {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
@@ -90,6 +107,8 @@ export function parseFilterSearchParams(params: URLSearchParams): FilterState {
     return params.getAll(param).find(isValidIsoDate) ?? null;
   }
 
+  const query = normalizeQuery(params.get(QUERY_PARAM) ?? "");
+
   let dateFrom = dateFor(EXACT_DATE_PARAMS.dateFrom);
   let dateTo = dateFor(EXACT_DATE_PARAMS.dateTo);
   if (dateFrom && dateTo && dateFrom > dateTo) {
@@ -102,6 +121,8 @@ export function parseFilterSearchParams(params: URLSearchParams): FilterState {
     category: valueFor("category"),
     date: valueFor("date"),
     registration: valueFor("registration"),
+    query,
+    freeOnly: params.getAll(FREE_PARAM).includes("true"),
     dateFrom,
     dateTo,
   };
@@ -118,6 +139,20 @@ export function parseStrictFilterSearchParams(
     ) {
       throw new TypeError(`Invalid ${key} filter`);
     }
+  }
+  const queries = params.getAll(QUERY_PARAM);
+  if (
+    queries.length > 1 ||
+    (queries.length === 1 && !isValidQuery(queries[0]))
+  ) {
+    throw new TypeError(`Invalid ${QUERY_PARAM} filter`);
+  }
+  const freeValues = params.getAll(FREE_PARAM);
+  if (
+    freeValues.length > 1 ||
+    (freeValues.length === 1 && freeValues[0] !== "true")
+  ) {
+    throw new TypeError(`Invalid ${FREE_PARAM} filter`);
   }
   for (const param of Object.values(EXACT_DATE_PARAMS)) {
     const values = params.getAll(param);
@@ -151,12 +186,19 @@ export function writeFilterSearchParams(
     const value = filters[stateKey as "dateFrom" | "dateTo"];
     if (value) next.set(param, value);
   }
+  next.delete(QUERY_PARAM);
+  const query = normalizeQuery(filters.query);
+  if (query) next.set(QUERY_PARAM, query);
+  next.delete(FREE_PARAM);
+  if (filters.freeOnly) next.set(FREE_PARAM, "true");
   return next;
 }
 
 export function hasActiveFilters(filters: FilterState): boolean {
   return (
     FILTER_KEYS.some((key) => filters[key] !== null) ||
+    normalizeQuery(filters.query).length > 0 ||
+    filters.freeOnly ||
     filters.dateFrom !== null ||
     filters.dateTo !== null
   );
@@ -173,6 +215,9 @@ export function describeFilters(filters: FilterState): string[] {
     const value = filters[key];
     return value ? [`${groupLabels[key]}: ${filterLabel(key, value)}`] : [];
   });
+  const query = normalizeQuery(filters.query);
+  if (query) described.unshift(`Search: ${query}`);
+  if (filters.freeOnly) described.push("Cost: Free events");
   if (filters.dateFrom && filters.dateTo) {
     described.push(`Dates: ${filters.dateFrom} to ${filters.dateTo}`);
   } else if (filters.dateFrom) {
@@ -227,6 +272,21 @@ export function applyEventFilters(
 ): ParkEvent[] {
   const range = filters.date ? dateRange(filters.date, now) : null;
   return events.filter((event) => {
+    const query = normalizeQuery(filters.query);
+    if (query) {
+      const haystack = [
+        event.title,
+        event.location,
+        event.borough,
+        event.category,
+        ...event.categories,
+      ]
+        .join(" ")
+        .toLocaleLowerCase();
+      const queryTerms = query.toLocaleLowerCase().split(" ");
+      if (!queryTerms.every((term) => haystack.includes(term))) return false;
+    }
+    if (filters.freeOnly && event.costType === "Paid") return false;
     if (filters.borough && event.borough !== filters.borough) return false;
     if (filters.category && !event.categories.includes(filters.category)) {
       return false;

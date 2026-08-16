@@ -76,6 +76,10 @@ export default function FilterChips({ filters, onChange }: FilterChipsProps) {
     });
   }
 
+  function toggleFreeOnly() {
+    onChange({ ...filters, freeOnly: !filters.freeOnly });
+  }
+
   return (
     <section
       ref={wrapperRef}
@@ -126,6 +130,27 @@ export default function FilterChips({ filters, onChange }: FilterChipsProps) {
           </fieldset>
         ))}
         <fieldset className={styles.group}>
+          <legend>Cost</legend>
+          <ul className={styles.list}>
+            <li>
+              <button
+                className={`${styles.chip} ${filters.freeOnly ? styles.chipActive : ""}`}
+                onClick={toggleFreeOnly}
+                aria-label={`${filters.freeOnly ? "Remove" : "Add"} Cost: Free events`}
+                aria-pressed={filters.freeOnly}
+                type="button"
+              >
+                Free events
+                {filters.freeOnly ? (
+                  <span className={styles.remove} aria-hidden="true">
+                    ×
+                  </span>
+                ) : null}
+              </button>
+            </li>
+          </ul>
+        </fieldset>
+        <fieldset className={styles.group}>
           <legend>Exact dates</legend>
           <div className={styles.dateInputs} data-testid="exact-date-filter">
             <label className={styles.dateLabel}>
@@ -133,6 +158,7 @@ export default function FilterChips({ filters, onChange }: FilterChipsProps) {
               <input
                 type="date"
                 className={styles.dateInput}
+                autoComplete="off"
                 value={filters.dateFrom ?? ""}
                 max={filters.dateTo ?? undefined}
                 onChange={(changeEvent) =>
@@ -145,6 +171,7 @@ export default function FilterChips({ filters, onChange }: FilterChipsProps) {
               <input
                 type="date"
                 className={styles.dateInput}
+                autoComplete="off"
                 value={filters.dateTo ?? ""}
                 min={filters.dateFrom ?? undefined}
                 onChange={(changeEvent) =>

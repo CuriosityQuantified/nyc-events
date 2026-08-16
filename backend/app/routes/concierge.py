@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from collections.abc import AsyncIterator
 from typing import Any, Literal
 from uuid import UUID, uuid4
@@ -10,7 +11,7 @@ from uuid import UUID, uuid4
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import StreamingResponse
-from langchain_core.messages import AIMessage, AIMessageChunk
+from langchain_core.messages import AIMessage, AIMessageChunk, ToolMessage
 from langgraph.types import Command
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -20,6 +21,7 @@ from app.database import get_session_factory
 from app.routes.profiles import DeviceToken, _get_or_create_profile
 
 router = APIRouter(prefix="/concierge")
+logger = logging.getLogger(__name__)
 
 
 class ConciergeMessageRequest(BaseModel):
@@ -139,6 +141,51 @@ def _streamed_text(part: Any) -> str | None:
     return text or None
 
 
+def _streamed_message(part: Any) -> Any | None:
+    """Extract the LangChain message from a v2 messages stream part."""
+    data: Any = None
+    if isinstance(part, dict) and part.get("type") == "messages":
+        data = part.get("data")
+    elif isinstance(part, tuple) and len(part) == 2 and part[0] == "messages":
+        data = part[1]
+    if isinstance(data, tuple) and data:
+        return data[0]
+    return None
+
+
+def _streamed_tool_events(
+    part: Any, started_tool_calls: set[str]
+) -> list[dict[str, Any]]:
+    """Expose tool activity without forwarding tool arguments or results."""
+    message = _streamed_message(part)
+    if isinstance(message, (AIMessage, AIMessageChunk)):
+        events: list[dict[str, Any]] = []
+        for index, call in enumerate(getattr(message, "tool_call_chunks", ())):
+            name = call.get("name") if isinstance(call, dict) else None
+            if not isinstance(name, str) or not name:
+                continue
+            call_id = call.get("id") if isinstance(call, dict) else None
+            key = str(call_id or f"{name}:{index}")
+            if key in started_tool_calls:
+                continue
+            started_tool_calls.add(key)
+            events.append({"id": key, "name": name, "status": "started"})
+        return events
+
+    if isinstance(message, ToolMessage):
+        call_id = str(message.tool_call_id)
+        name = message.name or "tool"
+        started_tool_calls.add(call_id)
+        return [
+            {
+                "id": call_id,
+                "name": name,
+                "status": "error" if message.status == "error" else "completed",
+            }
+        ]
+    return []
+
+
 async def _stream_turn(
     *,
     agent: Any,
@@ -149,6 +196,7 @@ async def _stream_turn(
 ) -> AsyncIterator[str]:
     """Stream model tokens, then emit the authoritative checkpoint state."""
     yield _sse("conversation", {"conversation_id": str(conversation_id)})
+    started_tool_calls: set[str] = set()
     try:
         async for part in agent.astream(
             input_value,
@@ -157,6 +205,8 @@ async def _stream_turn(
             stream_mode=["messages", "updates"],
             version="v2",
         ):
+            for tool_event in _streamed_tool_events(part, started_tool_calls):
+                yield _sse("tool", tool_event)
             text = _streamed_text(part)
             if text:
                 yield _sse("token", {"text": text})
@@ -170,6 +220,10 @@ async def _stream_turn(
     except Exception:
         # Streaming responses have already sent their HTTP status. Keep provider,
         # database, and orchestration details out of the browser-visible event.
+        logger.exception(
+            "Concierge stream failed",
+            extra={"conversation_id": str(conversation_id)},
+        )
         yield _sse("error", {"error": "The concierge is unavailable right now."})
 
 

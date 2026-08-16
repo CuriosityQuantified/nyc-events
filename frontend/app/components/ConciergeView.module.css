@@ -105,8 +105,65 @@
   font-weight: 800;
 }
 
-.message p {
+.userMessage p {
   white-space: pre-wrap;
+}
+
+.markdown {
+  overflow-wrap: anywhere;
+}
+
+.markdown > * + * {
+  margin-top: var(--space-2);
+}
+
+.markdown h1,
+.markdown h2,
+.markdown h3,
+.markdown h4 {
+  font-size: var(--text-lg);
+  line-height: 1.25;
+}
+
+.markdown ul,
+.markdown ol {
+  padding-left: var(--space-5);
+}
+
+.markdown ul {
+  list-style: disc;
+}
+
+.markdown ol {
+  list-style: decimal;
+}
+
+.markdown li + li {
+  margin-top: var(--space-1);
+}
+
+.markdown a {
+  color: var(--color-accent);
+  text-decoration: underline;
+}
+
+.markdown code {
+  padding: 0.1em 0.3em;
+  border-radius: var(--radius-sm);
+  background: var(--color-background);
+  font-size: 0.9em;
+}
+
+.markdown pre {
+  overflow-x: auto;
+  padding: var(--space-2);
+  border-radius: var(--radius-sm);
+  background: var(--color-background);
+}
+
+.markdown pre code {
+  padding: 0;
+  background: transparent;
 }
 
 .userMessage {
@@ -125,6 +182,40 @@
 .thinking {
   color: var(--color-muted);
   font-size: var(--text-sm);
+}
+
+.toolCalls {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.toolCall {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-foreground-secondary);
+  font-size: var(--text-sm);
+}
+
+.toolCallLabel,
+.toolCallStatus {
+  color: var(--color-muted);
+  font-size: var(--text-xs);
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.toolCallStatus {
+  margin-left: auto;
+}
+
+.toolCall[data-status="error"] .toolCallStatus {
+  color: var(--color-paid);
 }
 
 .approval {
