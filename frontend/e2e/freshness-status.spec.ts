@@ -131,9 +131,16 @@ test.describe("Issue #17 freshness and Event lifecycle states", () => {
     const notice = page.getByTestId("event-lifecycle-notice");
     await expect(notice).toContainText("Officially cancelled");
     await expect(notice).toContainText("NYC Parks marked this Event");
-    await expect(page.getByTestId("freshness-banner")).toContainText(
-      COVERAGE_LABEL,
-    );
+    const detailBanner = page.getByTestId("freshness-banner");
+    await expect(detailBanner).toContainText(COVERAGE_LABEL);
+    await expectInsideViewport(detailBanner);
+    await notice.scrollIntoViewIfNeeded();
+    await expectInsideViewport(notice);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth,
+      ),
+    ).toBe(true);
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
     await testInfo.attach(`${testInfo.project.name}-issue-17-detail`, {
       body: await page.screenshot(),

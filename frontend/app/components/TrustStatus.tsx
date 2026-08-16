@@ -45,7 +45,10 @@ export function FreshnessBanner({
   } else if (freshness.isStale) {
     state = "stale";
     icon = "!";
-    title = `Data may be stale — last successful sync was ${formatSyncTime(freshness.lastSuccessfulSync)}`;
+    title =
+      syncTime === "not available"
+        ? "Data may be stale — last successful sync time is unavailable"
+        : `Data may be stale — last successful sync was ${syncTime}`;
   }
 
   return (
@@ -55,6 +58,8 @@ export function FreshnessBanner({
       data-testid="freshness-banner"
       role="status"
       aria-live="polite"
+      aria-atomic="true"
+      aria-busy={loading}
       aria-label="Data freshness"
     >
       <span className={styles.statusIcon} aria-hidden="true">

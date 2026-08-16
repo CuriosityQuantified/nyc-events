@@ -33,9 +33,30 @@ describe("FreshnessBanner", () => {
     expect(screen.getByText(COVERAGE_LABEL)).toBeTruthy();
   });
 
+  it("keeps stale data explicit when the sync time is missing", () => {
+    render(
+      <FreshnessBanner
+        freshness={{ ...current, lastSuccessfulSync: null, isStale: true }}
+      />,
+    );
+
+    expect(
+      screen.getByText(
+        "Data may be stale — last successful sync time is unavailable",
+      ),
+    ).toBeTruthy();
+    expect(screen.queryByText(/^Official data/)).toBeNull();
+  });
+
   it("keeps loading and unavailable states explicit", () => {
     const { rerender } = render(<FreshnessBanner freshness={null} loading />);
     expect(screen.getByText("Checking official data freshness…")).toBeTruthy();
+    expect(
+      screen.getByTestId("freshness-banner").getAttribute("aria-busy"),
+    ).toBe("true");
+    expect(
+      screen.getByTestId("freshness-banner").getAttribute("aria-atomic"),
+    ).toBe("true");
 
     rerender(<FreshnessBanner freshness={null} unavailable />);
     expect(screen.getByText(/freshness could not be checked/)).toBeTruthy();
@@ -44,9 +65,7 @@ describe("FreshnessBanner", () => {
 
   it("does not invent a successful sync time", () => {
     render(
-      <FreshnessBanner
-        freshness={{ ...current, lastSuccessfulSync: null }}
-      />,
+      <FreshnessBanner freshness={{ ...current, lastSuccessfulSync: null }} />,
     );
     expect(screen.getByText(/sync time is unavailable/)).toBeTruthy();
     expect(screen.queryByText(/Official data updated/)).toBeNull();
