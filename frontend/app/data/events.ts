@@ -21,7 +21,17 @@ export type ParkEvent = {
   accessibility: string;
   imageAlt: string;
   officialUrl: string | null;
+  lifecycleStatus?: EventLifecycleStatus | null;
 };
+
+export type EventLifecycleStatus =
+  | "current"
+  | "new"
+  | "changed"
+  | "unchanged"
+  | "cancelled"
+  | "expired"
+  | "removed";
 
 export type EventPage = {
   events: ParkEvent[];
@@ -63,6 +73,8 @@ export type ApiEvent = {
   registration_description: ApiFact<string>;
   is_free_explicit: ApiFact<boolean>;
   accessibility_mentioned: ApiFact<boolean>;
+  lifecycle_status?: ApiFact<string>;
+  status?: ApiFact<string>;
 };
 
 type ApiEventsResponse = {
@@ -165,7 +177,32 @@ export function parseEventResponse(value: unknown): ApiEvent {
       throw new TypeError(`Event field ${field} is not a contract Fact`);
     }
   }
+  for (const field of ["lifecycle_status", "status"] as const) {
+    if (field in value && !isFact(value[field])) {
+      throw new TypeError(`Event field ${field} is not a contract Fact`);
+    }
+  }
   return value as ApiEvent;
+}
+
+const EVENT_LIFECYCLE_STATUSES = new Set<EventLifecycleStatus>([
+  "current",
+  "new",
+  "changed",
+  "unchanged",
+  "cancelled",
+  "expired",
+  "removed",
+]);
+
+export function eventLifecycleStatus(
+  event: ApiEvent,
+): EventLifecycleStatus | null {
+  const value = event.lifecycle_status?.value ?? event.status?.value;
+  return typeof value === "string" &&
+    EVENT_LIFECYCLE_STATUSES.has(value as EventLifecycleStatus)
+    ? (value as EventLifecycleStatus)
+    : null;
 }
 
 export function parseEventsResponse(value: unknown): ApiEventsResponse {
@@ -253,6 +290,7 @@ export function apiToUiEvent(event: ApiEvent): ParkEvent {
     accessibility,
     imageAlt: `${category} event at ${location}`,
     officialUrl: safeOfficialUrl(event.official_event_url.value),
+    lifecycleStatus: eventLifecycleStatus(event),
   };
 }
 

@@ -10,6 +10,7 @@ import EventCard from "@/app/components/EventCard";
 import MapPlaceholder from "@/app/components/MapPlaceholder";
 import BottomNav from "@/app/components/BottomNav";
 import DesktopSidebar from "@/app/components/DesktopSidebar";
+import { FreshnessBanner } from "@/app/components/TrustStatus";
 import type { EventPage, Freshness, ParkEvent } from "@/app/data/events";
 import {
   EMPTY_FILTERS,
@@ -25,16 +26,6 @@ function mergeWithoutDuplicates(current: ParkEvent[], incoming: ParkEvent[]) {
   const merged = new Map(current.map((event) => [event.guid, event]));
   for (const event of incoming) merged.set(event.guid, event);
   return [...merged.values()];
-}
-
-function formatSyncTime(value: string): string {
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "time not listed";
-  return new Intl.DateTimeFormat("en-US", {
-    dateStyle: "medium",
-    timeStyle: "short",
-    timeZone: "America/New_York",
-  }).format(date);
 }
 
 function eventsPath(filters: FilterState, page: number): string {
@@ -188,6 +179,11 @@ export default function EventExplorer({ initialFilters }: EventExplorerProps) {
       <DesktopSidebar />
       <div className={styles.mainArea}>
         <Header />
+        <FreshnessBanner
+          freshness={freshness}
+          loading={state === "loading"}
+          unavailable={freshnessUnavailable}
+        />
         <main
           id="main-content"
           className={styles.mainContent}
@@ -212,46 +208,6 @@ export default function EventExplorer({ initialFilters }: EventExplorerProps) {
                 </div>
                 <ListMapToggle activeView={view} onViewChange={setView} />
               </div>
-              {freshnessUnavailable && state === "ready" ? (
-                <p
-                  className={styles.freshnessStatus}
-                  role="status"
-                  data-testid="freshness-unavailable"
-                >
-                  Event freshness is unavailable. Showing the latest event data
-                  received.
-                </p>
-              ) : freshness?.isStale && state === "ready" ? (
-                <p
-                  className={styles.staleBanner}
-                  role="status"
-                  data-testid="stale-banner"
-                >
-                  Event data may be old. Last successful update:{" "}
-                  {freshness.lastSuccessfulSync ? (
-                    <time dateTime={freshness.lastSuccessfulSync}>
-                      {formatSyncTime(freshness.lastSuccessfulSync)}
-                    </time>
-                  ) : (
-                    "not available"
-                  )}
-                  .
-                </p>
-              ) : freshness && state === "ready" ? (
-                <p className={styles.freshnessStatus} role="status">
-                  Event data is current
-                  {freshness.lastSuccessfulSync ? (
-                    <>
-                      {" "}
-                      as of{" "}
-                      <time dateTime={freshness.lastSuccessfulSync}>
-                        {formatSyncTime(freshness.lastSuccessfulSync)}
-                      </time>
-                    </>
-                  ) : null}
-                  .
-                </p>
-              ) : null}
               {state === "loading" ? (
                 <section
                   className={styles.dataState}

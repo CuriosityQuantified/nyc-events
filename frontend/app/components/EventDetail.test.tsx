@@ -7,15 +7,10 @@ import { parseEventResponse } from "@/app/data/events";
 afterEach(cleanup);
 
 const event = parseEventResponse(eventDetail);
-const freshness = {
-  lastSuccessfulSync: "2026-08-16T12:00:00Z",
-  snapshotRowCount: 1,
-  isStale: false,
-};
 
 describe("EventDetailContent", () => {
   it("shows the complete source description and visibly labels provenance", () => {
-    render(<EventDetailContent event={event} freshness={freshness} />);
+    render(<EventDetailContent event={event} />);
 
     expect(
       screen.getByRole("heading", {
@@ -30,7 +25,7 @@ describe("EventDetailContent", () => {
   });
 
   it("keeps missing accessibility and cost honest", () => {
-    render(<EventDetailContent event={event} freshness={freshness} />);
+    render(<EventDetailContent event={event} />);
 
     expect(
       screen.getByText("Accessibility details are not provided"),
@@ -41,9 +36,7 @@ describe("EventDetailContent", () => {
   });
 
   it("links to the source record without exposing an unsafe URL", () => {
-    const { rerender } = render(
-      <EventDetailContent event={event} freshness={freshness} />,
-    );
+    const { rerender } = render(<EventDetailContent event={event} />);
     expect(
       screen
         .getByRole("link", { name: /Open official NYC Parks listing/ })
@@ -60,7 +53,6 @@ describe("EventDetailContent", () => {
             raw: "javascript:alert(1)",
           },
         }}
-        freshness={freshness}
       />,
     );
     expect(screen.queryByRole("link", { name: /Open official/ })).toBeNull();
@@ -83,7 +75,6 @@ describe("EventDetailContent", () => {
             raw: "required",
           },
         }}
-        freshness={freshness}
       />,
     );
 
@@ -106,7 +97,6 @@ describe("EventDetailContent", () => {
           location_name: { value: null, provenance: "Stated", raw: null },
           start_date: { value: null, provenance: "Derived", raw: null },
         }}
-        freshness={freshness}
       />,
     );
 
@@ -116,5 +106,36 @@ describe("EventDetailContent", () => {
         "Not listed",
       );
     }
+  });
+
+  it("shows cancellation only from an explicit lifecycle Fact", () => {
+    const { rerender } = render(
+      <EventDetailContent
+        event={{
+          ...event,
+          lifecycle_status: {
+            value: "cancelled",
+            provenance: "Stated",
+            raw: "Cancelled",
+          },
+        }}
+      />,
+    );
+    expect(screen.getByText("Officially cancelled")).toBeTruthy();
+
+    rerender(
+      <EventDetailContent
+        event={{
+          ...event,
+          lifecycle_status: {
+            value: "removed",
+            provenance: "Derived",
+            raw: "absent",
+          },
+        }}
+      />,
+    );
+    expect(screen.getByText("Not in latest feed")).toBeTruthy();
+    expect(screen.queryByText("Officially cancelled")).toBeNull();
   });
 });

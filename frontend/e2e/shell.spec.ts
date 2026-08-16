@@ -221,7 +221,10 @@ test.describe("EventMatch NYC Walking Skeleton", () => {
     await page.reload();
 
     await expect(page.getByTestId("event-card")).toHaveCount(2);
-    await expect(page.getByTestId("freshness-unavailable")).toBeVisible();
+    await expect(page.getByTestId("freshness-banner")).toHaveAttribute(
+      "data-state",
+      "unavailable",
+    );
     const auditedPage = page as unknown as AuditedPage;
     auditedPage.__consoleErrors = (auditedPage.__consoleErrors ?? []).filter(
       (error) => !error.includes("503 (Service Unavailable)"),
@@ -265,7 +268,10 @@ test.describe("EventMatch NYC Walking Skeleton", () => {
       }),
     );
     await page.reload();
-    await expect(page.getByTestId("stale-banner")).toBeVisible();
+    await expect(page.getByTestId("freshness-banner")).toHaveAttribute(
+      "data-state",
+      "stale",
+    );
 
     await page.unroute("**/api/events?*");
     await page.route("**/api/events?*", (route) =>

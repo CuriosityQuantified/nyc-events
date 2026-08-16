@@ -1,0 +1,116 @@
+.freshnessBanner {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr);
+  gap: var(--space-3);
+  align-items: start;
+  padding: var(--space-3) var(--space-4);
+  border-block: 1px solid var(--color-border);
+  background: var(--color-accent-subtle);
+  color: var(--color-foreground);
+}
+
+.freshnessBanner[data-state="stale"],
+.freshnessBanner[data-state="unavailable"] {
+  background: color-mix(
+    in oklch,
+    var(--color-registration) 13%,
+    var(--color-surface)
+  );
+}
+
+.freshnessBanner[data-state="loading"] {
+  background: var(--color-surface);
+  color: var(--color-muted);
+}
+
+.statusIcon {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border: 2px solid currentColor;
+  border-radius: 50%;
+  font-family: ui-monospace, "SFMono-Regular", Consolas, monospace;
+  font-size: var(--text-xs);
+  font-weight: 800;
+  line-height: 1;
+}
+
+.freshnessCopy {
+  min-width: 0;
+  display: grid;
+  gap: 2px;
+  overflow-wrap: anywhere;
+}
+
+.freshnessCopy strong {
+  font-size: var(--text-sm);
+}
+
+.freshnessCopy span {
+  color: var(--color-foreground-secondary);
+  font-size: var(--text-xs);
+}
+
+.lifecycleBadge {
+  width: fit-content;
+  max-width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin: 0 0 var(--space-2);
+  padding: 4px 8px;
+  border: 1px solid currentColor;
+  border-radius: var(--radius-full);
+  color: var(--color-foreground-secondary);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.lifecycleBadge[data-lifecycle-status="cancelled"] {
+  background: color-mix(in oklch, var(--color-paid) 12%, var(--color-surface));
+  color: color-mix(in oklch, var(--color-paid) 65%, var(--color-foreground));
+}
+
+.lifecycleBadge[data-lifecycle-status="removed"] {
+  border-style: dashed;
+}
+
+.lifecycleNotice {
+  margin: var(--space-5) 0;
+  padding: var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-raised);
+}
+
+.lifecycleNotice[data-lifecycle-status="cancelled"] {
+  border-color: var(--color-paid);
+  background: color-mix(
+    in oklch,
+    var(--color-paid) 10%,
+    var(--color-surface-raised)
+  );
+}
+
+.lifecycleNotice[data-lifecycle-status="removed"] {
+  border-style: dashed;
+}
+
+.lifecycleNotice strong {
+  display: block;
+}
+
+.lifecycleNotice p {
+  margin-top: var(--space-1);
+  color: var(--color-foreground-secondary);
+  font-size: var(--text-sm);
+}
+
+@media (min-width: 1024px) {
+  .freshnessBanner {
+    padding-inline: var(--space-6);
+  }
+}
