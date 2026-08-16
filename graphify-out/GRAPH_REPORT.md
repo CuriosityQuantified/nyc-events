@@ -1,16 +1,16 @@
 # Graph Report - nyc-events-frontend  (2026-08-16)
 
 ## Corpus Check
-- 106 files · ~53,696 words
+- 106 files · ~53,904 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
-- 839 nodes · 1390 edges · 81 communities (61 shown, 20 thin omitted)
+- 839 nodes · 1395 edges · 87 communities (67 shown, 20 thin omitted)
 - Extraction: 96% EXTRACTED · 4% INFERRED · 0% AMBIGUOUS · INFERRED: 61 edges (avg confidence: 0.54)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `94be5c8c`
+- Built from commit: `8b45e665`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -81,7 +81,13 @@
 - TestResponseValidation
 - DateStrip.tsx
 - concierge_tools.py
-- Initial MVP scope
+- filters.ts
+- EventExplorer
+- events/route.ts
+- filter-state.spec.ts
+- EventCard.tsx
+- shell.spec.ts
+- Trust and system states
 
 ## God Nodes (most connected - your core abstractions)
 1. `load_fixture()` - 43 edges
@@ -110,15 +116,15 @@
 ## Import Cycles
 - None detected.
 
-## Communities (81 total, 20 thin omitted)
+## Communities (87 total, 20 thin omitted)
 
 ### Community 0 - "Development pipeline — nyc-events"
 Cohesion: 0.14
 Nodes (13): CI, Claiming work, Code graph, Conflict hazards, Current state, Development pipeline — nyc-events, Gate commands, Identity (+5 more)
 
 ### Community 1 - "EventExplorer.tsx"
-Cohesion: 0.05
-Nodes (54): dynamic, GET(), emptyPage, { getFilteredEvents }, BottomNav(), event, DesktopSidebar(), costBadgeClass() (+46 more)
+Cohesion: 0.14
+Nodes (13): BottomNav(), DesktopSidebar(), EventExplorerProps, boroughs, Header(), ListMapToggle(), ListMapToggleProps, View (+5 more)
 
 ### Community 2 - "Core screens"
 Cohesion: 0.20
@@ -181,8 +187,8 @@ Cohesion: 0.50
 Nodes (3): Deploy on Vercel, Getting Started, Learn More
 
 ### Community 34 - "events.ts"
-Cohesion: 0.09
-Nodes (27): dynamic, GET(), apiBaseUrl(), ApiEvent, ApiEventsResponse, ApiFact, apiFetch(), ApiFreshness (+19 more)
+Cohesion: 0.15
+Nodes (22): dynamic, GET(), apiBaseUrl(), ApiEvent, ApiEventsResponse, ApiFact, apiFetch(), ApiFreshness (+14 more)
 
 ### Community 38 - "ingest_rows"
 Cohesion: 0.16
@@ -206,7 +212,7 @@ Nodes (14): CurrentEventSearch, Any, Validated search inputs with a hard result 
 
 ### Community 51 - "EventMatch NYC — Initial Frontend Direction"
 Cohesion: 0.18
-Nodes (9): Accessibility baseline, Consensus basis, Consensus summary, EventMatch NYC — Initial Frontend Direction, Global freshness banner, Product definition, Required states, Trust and system states (+1 more)
+Nodes (9): Accessibility baseline, Consensus basis, Consensus summary, Defer, EventMatch NYC — Initial Frontend Direction, Include, Initial MVP scope, Product definition (+1 more)
 
 ### Community 52 - "0003_current_repository_sync_runs.py"
 Cohesion: 0.50
@@ -296,9 +302,33 @@ Nodes (6): DateStrip(), DAY_NAMES, DayInfo, getNext7Days(), getUpcomingDates(), 
 Cohesion: 0.40
 Nodes (5): get_current_event(), The two bounded, read-only Event data operations used by the concierge., Retrieve one current Event by source guid; archival rows stay hidden., get_freshness(), Report the latest successful Snapshot and failed-attempt evidence.
 
-### Community 80 - "Initial MVP scope"
+### Community 80 - "filters.ts"
+Cohesion: 0.19
+Nodes (14): event, FilterChips(), FilterChipsProps, GROUPS, applyEventFilters(), dateRange(), EMPTY_FILTERS, FILTER_KEYS (+6 more)
+
+### Community 81 - "EventExplorer"
+Cohesion: 0.15
+Nodes (13): EventExplorer(), changeFilters(), restoreFilters(), eventsPath(), formatSyncTime(), mergeWithoutDuplicates(), describeFilters(), filterLabel() (+5 more)
+
+### Community 82 - "events/route.ts"
+Cohesion: 0.27
+Nodes (8): dynamic, GET(), emptyPage, { getFilteredEvents }, getFilteredEvents(), isAllowedValue(), valueFor(), parseStrictFilterSearchParams()
+
+### Community 83 - "filter-state.spec.ts"
+Cohesion: 0.25
+Nodes (3): AuditedPage, FilterKey, fixtureEvent
+
+### Community 84 - "EventCard.tsx"
+Cohesion: 0.53
+Nodes (5): costBadgeClass(), costLabel(), EventCard(), EventCardProps, ParkEvent
+
+### Community 85 - "shell.spec.ts"
+Cohesion: 0.40
+Nodes (3): AuditedPage, firstPage, nextEvent
+
+### Community 86 - "Trust and system states"
 Cohesion: 0.67
-Nodes (3): Defer, Include, Initial MVP scope
+Nodes (3): Global freshness banner, Required states, Trust and system states
 
 ## Knowledge Gaps
 - **188 isolated node(s):** `nyc-events-backend`, `start.sh script`, `{ getFilteredEvents }`, `emptyPage`, `dynamic` (+183 more)

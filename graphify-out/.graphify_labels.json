@@ -79,5 +79,11 @@
   "77": "TestResponseValidation",
   "78": "DateStrip.tsx",
   "79": "concierge_tools.py",
-  "80": "Initial MVP scope"
+  "80": "filters.ts",
+  "81": "EventExplorer",
+  "82": "events/route.ts",
+  "83": "filter-state.spec.ts",
+  "84": "EventCard.tsx",
+  "85": "shell.spec.ts",
+  "86": "Trust and system states"
 }

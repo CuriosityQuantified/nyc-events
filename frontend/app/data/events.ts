@@ -1,4 +1,8 @@
-import { applyEventFilters, type FilterState } from "./filters";
+import {
+  applyEventFilters,
+  hasActiveFilters,
+  type FilterState,
+} from "./filters";
 
 export type ParkEvent = {
   id: string;
@@ -276,8 +280,11 @@ export async function getFilteredEvents(
   pageSize = 12,
   now = new Date(),
 ): Promise<EventPage> {
+  if (!hasActiveFilters(filters)) return getEvents(page, pageSize);
+
   const sourcePageSize = 100;
-  const maximumSourcePages = 10;
+  const maximumSourceEvents = 10_000;
+  const maximumSourcePages = maximumSourceEvents / sourcePageSize;
   const first = await getEvents(1, sourcePageSize);
   if (first.totalPages > maximumSourcePages) {
     throw new Error("Event result set exceeds the bounded filter window");

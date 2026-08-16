@@ -1,11 +1,15 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import eventList from "../../../contracts/golden/events-list.json";
 import freshness from "../../../contracts/golden/freshness.json";
 import {
   apiToUiEvent,
+  getFilteredEvents,
   parseEventsResponse,
   parseFreshnessResponse,
 } from "./events";
+import { EMPTY_FILTERS } from "./filters";
+
+afterEach(() => vi.unstubAllGlobals());
 
 describe("live Event API mapping", () => {
   it("maps the flat shared contract without losing user-visible facts", () => {
@@ -36,5 +40,66 @@ describe("live Event API mapping", () => {
     expect(() =>
       parseFreshnessResponse({ ...freshness, is_stale: null }),
     ).toThrow(/Freshness response/);
+  });
+
+  it("filters the complete source when the current snapshot exceeds 1,000 Events", async () => {
+    const sourceTotal = 1_001;
+    const sourcePageSize = 100;
+    const fetchMock = vi.fn(async (input: string | URL | Request) => {
+      const url = new URL(input.toString());
+      const page = Number(url.searchParams.get("page"));
+      const pageStart = (page - 1) * sourcePageSize;
+      const pageLength = Math.min(sourcePageSize, sourceTotal - pageStart);
+      return Response.json({
+        events: Array.from({ length: pageLength }, (_, index) => ({
+          ...eventList.events[0],
+          guid: `event-${pageStart + index}`,
+        })),
+        page,
+        page_size: sourcePageSize,
+        total: sourceTotal,
+        applied_facets: {},
+      });
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await getFilteredEvents({
+      ...EMPTY_FILTERS,
+      borough: "Manhattan",
+    });
+
+    expect(result.total).toBe(sourceTotal);
+    expect(result.events).toHaveLength(12);
+    expect(fetchMock).toHaveBeenCalledTimes(11);
+  });
+
+  it("fails closed before unbounded source pagination", async () => {
+    const fetchMock = vi.fn(async () =>
+      Response.json({
+        ...eventList,
+        page: 1,
+        page_size: 100,
+        total: 10_001,
+        applied_facets: {},
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(
+      getFilteredEvents({ ...EMPTY_FILTERS, category: "Fitness" }),
+    ).rejects.toThrow("Event result set exceeds the bounded filter window");
+    expect(fetchMock).toHaveBeenCalledOnce();
+  });
+
+  it("keeps unfiltered pagination to one bounded backend request", async () => {
+    const fetchMock = vi.fn<
+      (input: string | URL | Request) => Promise<Response>
+    >(async () => Response.json(eventList));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await getFilteredEvents(EMPTY_FILTERS, 1, 12);
+
+    expect(fetchMock).toHaveBeenCalledOnce();
+    expect(fetchMock.mock.calls[0][0]).toContain("/events?page=1&page_size=12");
   });
 });
