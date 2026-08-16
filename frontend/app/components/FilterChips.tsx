@@ -76,6 +76,10 @@ export default function FilterChips({ filters, onChange }: FilterChipsProps) {
     });
   }
 
+  function toggleFreeOnly() {
+    onChange({ ...filters, freeOnly: !filters.freeOnly });
+  }
+
   return (
     <section
       ref={wrapperRef}
@@ -125,6 +129,27 @@ export default function FilterChips({ filters, onChange }: FilterChipsProps) {
             </ul>
           </fieldset>
         ))}
+        <fieldset className={styles.group}>
+          <legend>Cost</legend>
+          <ul className={styles.list}>
+            <li>
+              <button
+                className={`${styles.chip} ${filters.freeOnly ? styles.chipActive : ""}`}
+                onClick={toggleFreeOnly}
+                aria-label={`${filters.freeOnly ? "Remove" : "Add"} Cost: Free events`}
+                aria-pressed={filters.freeOnly}
+                type="button"
+              >
+                Free events
+                {filters.freeOnly ? (
+                  <span className={styles.remove} aria-hidden="true">
+                    ×
+                  </span>
+                ) : null}
+              </button>
+            </li>
+          </ul>
+        </fieldset>
         <fieldset className={styles.group}>
           <legend>Exact dates</legend>
           <div className={styles.dateInputs} data-testid="exact-date-filter">

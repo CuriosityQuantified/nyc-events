@@ -168,8 +168,7 @@ test.describe("Issue #26 maps", () => {
       name: "Events at selected location",
     });
     const distinctMarker = markers.nth(1);
-    await distinctMarker.focus();
-    await page.keyboard.press("Space");
+    await distinctMarker.click();
     await expect(panel).toContainText(source[1].title);
     await expect(panel).toContainText(multiple.title);
     await expect(panel).toContainText(invalid.title);
@@ -186,6 +185,8 @@ test.describe("Issue #26 maps", () => {
     await expect(
       page.getByText("1 events are available in the list only"),
     ).toBeVisible();
+    await expect(page.getByRole("button", { name: "Zoom in" })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Zoom out" })).toBeVisible();
 
     const params = new URL(page.url()).searchParams;
     expect(params.get("view")).toBe("map");

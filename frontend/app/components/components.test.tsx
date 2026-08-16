@@ -41,7 +41,7 @@ const event: ParkEvent = {
 };
 
 describe("FilterChips", () => {
-  it("exposes all four filter groups and reports a removable selection", () => {
+  it("exposes the filter groups, including free events, and reports a removable selection", () => {
     const onChange = vi.fn();
     render(<FilterChips filters={EMPTY_FILTERS} onChange={onChange} />);
 
@@ -49,6 +49,7 @@ describe("FilterChips", () => {
     expect(screen.getByRole("group", { name: "Category" })).toBeTruthy();
     expect(screen.getByRole("group", { name: "Date range" })).toBeTruthy();
     expect(screen.getByRole("group", { name: "Registration" })).toBeTruthy();
+    expect(screen.getByRole("group", { name: "Cost" })).toBeTruthy();
 
     fireEvent.click(
       screen.getByRole("button", { name: "Add Borough: Queens" }),
@@ -56,6 +57,19 @@ describe("FilterChips", () => {
     expect(onChange).toHaveBeenCalledWith({
       ...EMPTY_FILTERS,
       borough: "Queens",
+    });
+  });
+
+  it("toggles the free events filter", () => {
+    const onChange = vi.fn();
+    render(<FilterChips filters={EMPTY_FILTERS} onChange={onChange} />);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Add Cost: Free events" }),
+    );
+    expect(onChange).toHaveBeenCalledWith({
+      ...EMPTY_FILTERS,
+      freeOnly: true,
     });
   });
 
@@ -115,10 +129,8 @@ describe("EventCard", () => {
         .getAttribute("href"),
     ).toBe("/events/test-event?borough=Brooklyn");
     expect(
-      screen.getByRole("link", {
-        name: "Official event details (opens in a new tab)",
-      }),
-    ).toBeTruthy();
+      screen.queryByRole("link", { name: /Official event details/ }),
+    ).toBeNull();
   });
 
   it("labels facts and links that the source did not provide", () => {
@@ -137,10 +149,7 @@ describe("EventCard", () => {
     expect(
       screen.getByText("Accessibility information not listed"),
     ).toBeTruthy();
-    expect(screen.getByText("Official event link not listed")).toBeTruthy();
-    expect(
-      screen.queryByRole("link", { name: /Official event details/ }),
-    ).toBeNull();
+    expect(screen.queryByText("Official event link not listed")).toBeNull();
     expect(screen.getByRole("link", { name: /View details/ })).toBeTruthy();
   });
 

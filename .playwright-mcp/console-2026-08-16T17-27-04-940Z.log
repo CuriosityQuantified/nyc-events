@@ -1,0 +1,5 @@
+[     378ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3311/api/profile/saved?page=1&page_size=100:0
+[     378ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3311/api/events?page=1&page_size=12:0
+[     379ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3311/api/freshness:0
+[     383ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3311/api/events?page=1&page_size=12:0
+[     385ms] [ERROR] Failed to load resource: the server responded with a status of 503 (Service Unavailable) @ http://localhost:3311/api/freshness:0

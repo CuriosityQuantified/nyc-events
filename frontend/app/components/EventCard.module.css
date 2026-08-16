@@ -3,11 +3,19 @@
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
   overflow: hidden;
-  transition: box-shadow 0.15s ease;
+  box-shadow: var(--shadow-sm);
+  transition:
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .card:hover {
-  box-shadow: var(--shadow-md);
+  border-color: color-mix(
+    in srgb,
+    var(--color-accent) 36%,
+    var(--color-border)
+  );
+  box-shadow: var(--shadow-lg);
 }
 
 .statusRow {
@@ -125,7 +133,6 @@
   display: inline-flex;
   align-items: center;
   margin-top: var(--space-3);
-  margin-right: var(--space-4);
   color: var(--color-accent);
   font-weight: 700;
   text-decoration: underline;
