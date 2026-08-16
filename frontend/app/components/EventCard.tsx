@@ -70,9 +70,6 @@ export default function EventCard({ event, returnQuery = "" }: EventCardProps) {
             Borough: {event.borough}
           </p>
           <p className={styles.metaItem}>{event.registration}</p>
-          <p className={styles.metaItem} data-location-fact="neighborhood">
-            Neighborhood: Not listed
-          </p>
           <p className={styles.metaItem} data-location-fact="address">
             Address: Not listed
           </p>
