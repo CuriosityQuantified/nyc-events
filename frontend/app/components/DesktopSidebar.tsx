@@ -16,11 +16,12 @@ export default function DesktopSidebar() {
     >
       <div className={styles.brand}>
         <div className={styles.brandLogo} aria-hidden="true">
-          PM
+          EM
         </div>
-        <span className={styles.brandName}>
-          Park<span className={styles.brandAccent}>Match</span>
-        </span>
+        <h1 className={styles.brandName}>
+          Event<span className={styles.brandAccent}>Match</span>{" "}
+          <span>NYC</span>
+        </h1>
       </div>
       <nav aria-label="Sidebar navigation">
         <ul className={styles.navList}>

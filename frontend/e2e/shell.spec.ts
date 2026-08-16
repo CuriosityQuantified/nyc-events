@@ -111,9 +111,25 @@ test.describe("EventMatch NYC Walking Skeleton", () => {
   }) => {
     const header = page.getByTestId("header");
     await expect(header).toBeVisible();
-    await expect(header.getByRole("heading", { level: 1 })).toHaveText(
-      "EventMatch NYC",
-    );
+
+    // The brand renders exactly once per viewport: the sidebar owns it on
+    // desktop, the header owns it on phone. Hidden elements expose no
+    // accessible role, so each viewport reads only its own brand.
+    const isDesktop = (page.viewportSize()?.width ?? 0) >= 1024;
+    if (isDesktop) {
+      const sidebar = page.getByTestId("desktop-sidebar");
+      await expect(sidebar).toBeVisible();
+      await expect(sidebar.getByRole("heading", { level: 1 })).toHaveText(
+        "EventMatch NYC",
+      );
+      await expect(page.getByTestId("header-brand")).toBeHidden();
+    } else {
+      await expect(header.getByRole("heading", { level: 1 })).toHaveText(
+        "EventMatch NYC",
+      );
+      await expect(page.getByTestId("desktop-sidebar")).toBeHidden();
+    }
+
     await expect(page).toHaveTitle("EventMatch NYC");
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
       "href",
@@ -426,6 +442,14 @@ test.describe("Mobile viewport (390x844)", () => {
     await expect(bottomNav).toBeVisible();
   });
 
+  test("the header carries the only brand on phone", async ({ page }) => {
+    await page.goto("/");
+    await expect(
+      page.getByTestId("header").getByRole("heading", { level: 1 }),
+    ).toHaveText("EventMatch NYC");
+    await expect(page.getByTestId("desktop-sidebar")).toBeHidden();
+  });
+
   test("bottom nav buttons have at least 44px touch targets", async ({
     page,
   }) => {
@@ -458,5 +482,13 @@ test.describe("Desktop viewport (1440x900)", () => {
     await page.goto("/");
     const sidebar = page.getByTestId("desktop-sidebar");
     await expect(sidebar).toBeVisible();
+  });
+
+  test("the sidebar carries the only brand on desktop", async ({ page }) => {
+    await page.goto("/");
+    await expect(
+      page.getByTestId("desktop-sidebar").getByRole("heading", { level: 1 }),
+    ).toHaveText("EventMatch NYC");
+    await expect(page.getByTestId("header-brand")).toBeHidden();
   });
 });
