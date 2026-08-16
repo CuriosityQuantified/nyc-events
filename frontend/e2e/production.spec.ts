@@ -46,6 +46,7 @@ test("live Snapshot reaches the API proxy and rendered list", async ({
   const consoleErrors: string[] = [];
   const failedRequests: string[] = [];
   const thumbnailRequests: string[] = [];
+  const loadedStreetTiles: string[] = [];
   page.on("request", (request) => {
     if (new URL(request.url()).pathname === "/api/maps/thumbnail") {
       thumbnailRequests.push(request.url());
@@ -57,19 +58,34 @@ test("live Snapshot reaches the API proxy and rendered list", async ({
   page.on("pageerror", (error) => consoleErrors.push(error.message));
   page.on("requestfailed", (failed) => {
     // Next.js cancels in-flight same-origin RSC prefetches when the view
-    // changes (List → Map); those aborts are not transport failures. Real
-    // HTTP errors on the same URLs are still caught by the >=400 response
-    // listener below.
+    // changes (List → Map); those aborts are not transport failures. Leaflet
+    // likewise cancels obsolete OpenStreetMap image requests when fitBounds
+    // replaces its initial zoom-11 tile set. Real HTTP errors on both origins
+    // are still caught by the >=400 response listener below, and the test
+    // separately requires at least one successfully loaded street tile.
     const errorText = failed.failure()?.errorText ?? "unknown";
     const url = new URL(failed.url());
     const isCancelledSameOriginPrefetch =
       errorText === "net::ERR_ABORTED" &&
       url.origin === new URL(baseURL).origin &&
       url.searchParams.has("_rsc");
-    if (isCancelledSameOriginPrefetch) return;
+    const isObsoleteStreetTile =
+      errorText === "net::ERR_ABORTED" &&
+      failed.method() === "GET" &&
+      failed.resourceType() === "image" &&
+      url.hostname === "tile.openstreetmap.org";
+    if (isCancelledSameOriginPrefetch || isObsoleteStreetTile) return;
     failedRequests.push(`${failed.method()} ${failed.url()} (${errorText})`);
   });
   page.on("response", (response) => {
+    const url = new URL(response.url());
+    if (
+      url.hostname === "tile.openstreetmap.org" &&
+      response.status() >= 200 &&
+      response.status() < 300
+    ) {
+      loadedStreetTiles.push(response.url());
+    }
     if (response.status() >= 400) {
       failedRequests.push(`${response.status()} ${response.url()}`);
     }
@@ -111,6 +127,12 @@ test("live Snapshot reaches the API proxy and rendered list", async ({
   await expect(map).toHaveAttribute("data-map-status", "ready", {
     timeout: 20_000,
   });
+  await expect
+    .poll(() => loadedStreetTiles.length, {
+      message: "the live street map must load an OpenStreetMap tile",
+      timeout: 20_000,
+    })
+    .toBeGreaterThan(0);
   expect(new URL(page.url()).searchParams.get("view")).toBe("map");
   expect(thumbnailRequests, "map view must not request thumbnails").toEqual([]);
 
