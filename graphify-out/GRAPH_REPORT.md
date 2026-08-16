@@ -1,7 +1,7 @@
 # Graph Report - nyc-events-frontend  (2026-08-16)
 
 ## Corpus Check
-- 113 files · ~81,890 words
+- 113 files · ~81,894 words
 - Verdict: corpus is large enough that graph structure adds value.
 
 ## Summary
@@ -10,7 +10,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `af0714c9`
+- Built from commit: `9210dd6c`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -77,7 +77,7 @@
 - env.py
 - Any
 - CurrentEvent
-- Initial MVP scope
+- Application shell
 - [guid]/route.ts
 - DateStrip.tsx
 - event-detail.spec.ts
@@ -210,7 +210,7 @@ Nodes (17): CurrentEventSearch, get_current_event(), Any, The two bounded, read-
 
 ### Community 51 - "EventMatch NYC — Initial Frontend Direction"
 Cohesion: 0.18
-Nodes (9): Accessibility baseline, Application shell, Consensus basis, Consensus summary, Desktop, EventMatch NYC — Initial Frontend Direction, Mobile, Product definition (+1 more)
+Nodes (9): Accessibility baseline, Consensus basis, Consensus summary, Defer, EventMatch NYC — Initial Frontend Direction, Include, Initial MVP scope, Product definition (+1 more)
 
 ### Community 52 - "0003_current_repository_sync_runs.py"
 Cohesion: 0.50
@@ -288,9 +288,9 @@ Nodes (8): EventSource, Any, Response, POST to the Socrata endpoint with exponen
 Cohesion: 0.13
 Nodes (25): CurrentEvent, EventFields, EventRepository, Current, archival, and synchronization persistence models., Columns shared by the current Snapshot and archival repository., The union of all source Events observed in successful Sync Runs., One Event in the latest complete successful source Snapshot., Secret-free operational evidence for one attempted synchronization. (+17 more)
 
-### Community 76 - "Initial MVP scope"
+### Community 76 - "Application shell"
 Cohesion: 0.67
-Nodes (3): Defer, Include, Initial MVP scope
+Nodes (3): Application shell, Desktop, Mobile
 
 ### Community 77 - "[guid]/route.ts"
 Cohesion: 0.32

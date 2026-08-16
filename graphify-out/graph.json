@@ -4308,7 +4308,7 @@
       "label": "expectTargetInViewport()",
       "file_type": "code",
       "source_file": "frontend/e2e/event-detail.spec.ts",
-      "source_location": "L37",
+      "source_location": "L38",
       "_callable": true,
       "_origin": "ast",
       "id": "frontend_e2e_event_detail_spec_expecttargetinviewport",
@@ -4320,7 +4320,7 @@
       "label": "installRoutes()",
       "file_type": "code",
       "source_file": "frontend/e2e/event-detail.spec.ts",
-      "source_location": "L11",
+      "source_location": "L12",
       "_callable": true,
       "_origin": "ast",
       "id": "frontend_e2e_event_detail_spec_installroutes",
@@ -8183,17 +8183,6 @@
       "norm_label": "accessibility baseline"
     },
     {
-      "label": "Application shell",
-      "file_type": "document",
-      "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L29",
-      "_origin": "ast",
-      "id": "frontend_frontend_concept_application_shell",
-      "community": 51,
-      "community_name": "EventMatch NYC \u2014 Initial Frontend Direction",
-      "norm_label": "application shell"
-    },
-    {
       "label": "Consensus basis",
       "file_type": "document",
       "source_file": "frontend/FRONTEND_CONCEPT.md",
@@ -8216,15 +8205,15 @@
       "norm_label": "consensus summary"
     },
     {
-      "label": "Desktop",
+      "label": "Defer",
       "file_type": "document",
       "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L31",
+      "source_location": "L383",
       "_origin": "ast",
-      "id": "frontend_frontend_concept_desktop",
+      "id": "frontend_frontend_concept_defer",
       "community": 51,
       "community_name": "EventMatch NYC \u2014 Initial Frontend Direction",
-      "norm_label": "desktop"
+      "norm_label": "defer"
     },
     {
       "label": "EventMatch NYC \u2014 Initial Frontend Direction",
@@ -8238,15 +8227,26 @@
       "norm_label": "eventmatch nyc \u2014 initial frontend direction"
     },
     {
-      "label": "Mobile",
+      "label": "Include",
       "file_type": "document",
       "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L41",
+      "source_location": "L368",
       "_origin": "ast",
-      "id": "frontend_frontend_concept_mobile",
+      "id": "frontend_frontend_concept_include",
       "community": 51,
       "community_name": "EventMatch NYC \u2014 Initial Frontend Direction",
-      "norm_label": "mobile"
+      "norm_label": "include"
+    },
+    {
+      "label": "Initial MVP scope",
+      "file_type": "document",
+      "source_file": "frontend/FRONTEND_CONCEPT.md",
+      "source_location": "L366",
+      "_origin": "ast",
+      "id": "frontend_frontend_concept_initial_mvp_scope",
+      "community": 51,
+      "community_name": "EventMatch NYC \u2014 Initial Frontend Direction",
+      "norm_label": "initial mvp scope"
     },
     {
       "label": "Product definition",
@@ -9985,37 +9985,37 @@
       "norm_label": "tests for event ingestion \u2014 snapshot deltas, guid identity, network isolation."
     },
     {
-      "label": "Defer",
+      "label": "Application shell",
       "file_type": "document",
       "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L383",
+      "source_location": "L29",
       "_origin": "ast",
-      "id": "frontend_frontend_concept_defer",
+      "id": "frontend_frontend_concept_application_shell",
       "community": 76,
-      "community_name": "Initial MVP scope",
-      "norm_label": "defer"
+      "community_name": "Application shell",
+      "norm_label": "application shell"
     },
     {
-      "label": "Include",
+      "label": "Desktop",
       "file_type": "document",
       "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L368",
+      "source_location": "L31",
       "_origin": "ast",
-      "id": "frontend_frontend_concept_include",
+      "id": "frontend_frontend_concept_desktop",
       "community": 76,
-      "community_name": "Initial MVP scope",
-      "norm_label": "include"
+      "community_name": "Application shell",
+      "norm_label": "desktop"
     },
     {
-      "label": "Initial MVP scope",
+      "label": "Mobile",
       "file_type": "document",
       "source_file": "frontend/FRONTEND_CONCEPT.md",
-      "source_location": "L366",
+      "source_location": "L41",
       "_origin": "ast",
-      "id": "frontend_frontend_concept_initial_mvp_scope",
+      "id": "frontend_frontend_concept_mobile",
       "community": 76,
-      "community_name": "Initial MVP scope",
-      "norm_label": "initial mvp scope"
+      "community_name": "Application shell",
+      "norm_label": "mobile"
     },
     {
       "label": "[guid]/route.ts",
@@ -22176,7 +22176,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/e2e/event-detail.spec.ts",
-      "source_location": "L11",
+      "source_location": "L12",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_e2e_event_detail_spec",
@@ -22187,7 +22187,7 @@
       "relation": "contains",
       "confidence": "EXTRACTED",
       "source_file": "frontend/e2e/event-detail.spec.ts",
-      "source_location": "L37",
+      "source_location": "L38",
       "weight": 1.0,
       "_origin": "ast",
       "source": "frontend_e2e_event_detail_spec",
@@ -27707,5 +27707,5 @@
     }
   ],
   "hyperedges": [],
-  "built_at_commit": "af0714c99b52ee11aa2d58808540d2a6639427bc"
+  "built_at_commit": "9210dd6cc0c9381a17a246184c51365c27da4b95"
 }

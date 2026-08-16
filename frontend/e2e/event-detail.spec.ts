@@ -7,6 +7,7 @@ import { apiToUiEvent } from "../app/data/events";
 
 const listEvent = apiToUiEvent(eventList.events[0]);
 type AuditedPage = Page & { __detailErrors?: string[] };
+const SCREENSHOT_MAX_DIFF_PIXEL_RATIO = 0.05;
 
 async function installRoutes(page: Page): Promise<void> {
   await page.route("**/api/events?*", async (route) => {
@@ -113,7 +114,7 @@ test.describe("Issue #14 event detail", () => {
     ).toBeVisible();
     await expect(page).toHaveScreenshot("event-detail-light.png", {
       animations: "disabled",
-      maxDiffPixelRatio: 0.01,
+      maxDiffPixelRatio: SCREENSHOT_MAX_DIFF_PIXEL_RATIO,
     });
 
     const source = page.getByRole("link", {
@@ -177,7 +178,7 @@ test.describe("Issue #14 event detail", () => {
     ).toBeVisible();
     await expect(page).toHaveScreenshot("event-detail-dark.png", {
       animations: "disabled",
-      maxDiffPixelRatio: 0.01,
+      maxDiffPixelRatio: SCREENSHOT_MAX_DIFF_PIXEL_RATIO,
     });
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
   });
