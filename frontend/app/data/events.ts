@@ -1,3 +1,5 @@
+import { applyEventFilters, type FilterState } from "./filters";
+
 export type ParkEvent = {
   id: string;
   guid: string;
@@ -5,10 +7,13 @@ export type ParkEvent = {
   location: string;
   borough: string;
   category: string;
+  categories: string[];
+  startDate: string | null;
   date: string;
   time: string;
   costType: "Free" | "Paid" | "Not listed";
   registration: string;
+  registrationStatus: "required" | "not_required" | "closed" | "not_listed";
   accessibility: string;
   imageAlt: string;
   officialUrl: string | null;
@@ -193,7 +198,8 @@ export function parseFreshnessResponse(value: unknown): ApiFreshness {
 }
 
 export function apiToUiEvent(event: ApiEvent): ParkEvent {
-  const category = event.categories.value?.[0] ?? "Category not listed";
+  const categories = event.categories.value ?? [];
+  const category = categories[0] ?? "Category not listed";
   const location = event.location_name.value ?? "Location not listed";
   const borough = event.borough.value ?? "Borough not listed";
   const explicitFree = event.is_free_explicit.value;
@@ -221,6 +227,8 @@ export function apiToUiEvent(event: ApiEvent): ParkEvent {
     location,
     borough,
     category,
+    categories,
+    startDate: event.start_date.value?.slice(0, 10) ?? null,
     date: formatDate(event.start_date.value),
     time: formatTime(event.start_datetime.value),
     costType:
@@ -230,6 +238,12 @@ export function apiToUiEvent(event: ApiEvent): ParkEvent {
           ? "Paid"
           : "Not listed",
     registration,
+    registrationStatus:
+      registrationStatus === "required" ||
+      registrationStatus === "not_required" ||
+      registrationStatus === "closed"
+        ? registrationStatus
+        : "not_listed",
     accessibility,
     imageAlt: `${category} event at ${location}`,
     officialUrl: safeOfficialUrl(event.official_event_url.value),
@@ -253,6 +267,38 @@ export async function getEvents(page = 1, pageSize = 12): Promise<EventPage> {
     pageSize: data.page_size,
     total: data.total,
     totalPages: Math.ceil(data.total / data.page_size),
+  };
+}
+
+export async function getFilteredEvents(
+  filters: FilterState,
+  page = 1,
+  pageSize = 12,
+  now = new Date(),
+): Promise<EventPage> {
+  const sourcePageSize = 100;
+  const maximumSourcePages = 10;
+  const first = await getEvents(1, sourcePageSize);
+  if (first.totalPages > maximumSourcePages) {
+    throw new Error("Event result set exceeds the bounded filter window");
+  }
+
+  const remaining: EventPage[] = [];
+  for (let sourcePage = 2; sourcePage <= first.totalPages; sourcePage += 1) {
+    remaining.push(await getEvents(sourcePage, sourcePageSize));
+  }
+  const filtered = applyEventFilters(
+    [first, ...remaining].flatMap((result) => result.events),
+    filters,
+    now,
+  );
+  const start = (page - 1) * pageSize;
+  return {
+    events: filtered.slice(start, start + pageSize),
+    page,
+    pageSize,
+    total: filtered.length,
+    totalPages: Math.ceil(filtered.length / pageSize),
   };
 }
 
