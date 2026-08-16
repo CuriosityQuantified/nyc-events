@@ -96,7 +96,7 @@ def _source_url_text(value: Any) -> str | None:
     return value if isinstance(value, str) and value else None
 
 
-def _event_to_contract(event: CurrentEvent) -> dict[str, Any]:
+def _event_to_contract(event: CurrentEvent | EventRepository) -> dict[str, Any]:
     """Convert an Event model instance to the contract Event shape."""
     raw = event.raw_data or {}
     free_raw = explicit_free_evidence(raw)

@@ -13,6 +13,7 @@ from sqlalchemy import text
 from app.config import get_settings
 from app.database import get_engine, reset_engine
 from app.routes.events import router as events_router
+from app.routes.profiles import router as profiles_router
 
 
 @asynccontextmanager
@@ -27,10 +28,11 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[get_settings().frontend_origin],
     allow_credentials=False,
-    allow_methods=["GET"],
-    allow_headers=["Accept", "Content-Type"],
+    allow_methods=["GET", "PUT", "DELETE"],
+    allow_headers=["Accept", "Content-Type", "X-Device-Token"],
 )
 app.include_router(events_router)
+app.include_router(profiles_router)
 
 
 @app.get("/api/revision")
