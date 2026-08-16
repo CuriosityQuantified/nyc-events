@@ -26,6 +26,7 @@ from scripts.deploy.railway_release import (  # noqa: E402
     main,
     parser,
     public_deployment,
+    verify_sync_worker_variables,
 )
 
 
@@ -144,12 +145,63 @@ restartPolicyType = "NEVER"
         self.assertIn("deploy.cronSchedule", config_command)
         self.assertIn("0 */2 * * *", config_command)
         self.assertIn("DATABASE_URL=${{backend.DATABASE_URL}}", variables_command)
+        self.assertIn("REDIS_URL=${{backend.REDIS_URL}}", variables_command)
         self.assertIn(
             "SOCRATA_API_KEY_SECRET=${{backend.SOCRATA_API_KEY_SECRET}}",
             variables_command,
         )
         self.assertIn("SOCRATA_APP_TOKEN=${{backend.SOCRATA_APP_TOKEN}}", variables_command)
         self.assertNotIn("secret-value", json.dumps(run.call_args_list))
+
+    def test_worker_variable_evidence_requires_backend_redis_reference(self) -> None:
+        required = {
+            name: "${{backend." + name + "}}"
+            for name in (
+                "DATABASE_URL",
+                "REDIS_URL",
+                "SOCRATA_API_KEY_ID",
+                "SOCRATA_API_KEY_SECRET",
+                "SOCRATA_APP_TOKEN",
+            )
+        }
+        required["DEPLOY_REVISION"] = "revision-1"
+        with tempfile.TemporaryDirectory() as directory:
+            output = Path(directory) / "variables.json"
+            args = Namespace(
+                project_id="project-1",
+                environment="production",
+                service="sync-1",
+                backend_service="backend",
+                expected_revision="revision-1",
+                output=str(output),
+            )
+            with patch("scripts.deploy.railway_release.run_json", return_value=required):
+                self.assertEqual(verify_sync_worker_variables(args), 0)
+            evidence = json.loads(output.read_text())
+        self.assertIn("REDIS_URL", evidence["requiredVariableNames"])
+        self.assertEqual(evidence["configuredServiceReference"], "backend")
+        self.assertNotIn("values", evidence)
+
+    def test_worker_variable_evidence_rejects_missing_redis_reference(self) -> None:
+        variables = {
+            "DATABASE_URL": "${{backend.DATABASE_URL}}",
+            "SOCRATA_API_KEY_ID": "${{backend.SOCRATA_API_KEY_ID}}",
+            "SOCRATA_API_KEY_SECRET": "${{backend.SOCRATA_API_KEY_SECRET}}",
+            "SOCRATA_APP_TOKEN": "${{backend.SOCRATA_APP_TOKEN}}",
+            "DEPLOY_REVISION": "revision-1",
+        }
+        args = Namespace(
+            project_id="project-1",
+            environment="production",
+            service="sync-1",
+            backend_service="backend",
+            expected_revision="revision-1",
+            output="unused.json",
+        )
+        with patch("scripts.deploy.railway_release.run_json", return_value=variables):
+            with self.assertRaisesRegex(ValueError, "REDIS_URL"):
+                verify_sync_worker_variables(args)
+
 
     def test_sync_worker_is_created_once_when_missing(self) -> None:
         with tempfile.TemporaryDirectory() as directory:

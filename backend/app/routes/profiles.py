@@ -13,9 +13,10 @@ from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_session_factory
-from app.models.event import CurrentEvent, EventRepository
+from app.models.event import EventRepository
 from app.models.profile import Profile, SavedEvent
 from app.routes.events import _event_date_expression, _event_to_contract
+from app.services.saved_events import EventNotCurrentError, save_current_event
 
 router = APIRouter(prefix="/profile")
 
@@ -133,19 +134,11 @@ async def save_event(
     async with session_factory() as session:
         try:
             profile = await _get_or_create_profile(session, x_device_token)
-            event_exists = await session.scalar(
-                select(CurrentEvent.guid).where(CurrentEvent.guid == guid)
-            )
-            if event_exists is None:
+            try:
+                await save_current_event(session, profile_id=profile.id, event_id=guid)
+            except EventNotCurrentError:
                 await session.rollback()
-                raise HTTPException(status_code=404, detail="Event not found")
-            await session.execute(
-                insert(SavedEvent)
-                .values(profile_id=profile.id, event_guid=guid)
-                .on_conflict_do_nothing(
-                    index_elements=[SavedEvent.profile_id, SavedEvent.event_guid]
-                )
-            )
+                raise HTTPException(status_code=404, detail="Event not found") from None
             await session.commit()
         except SQLAlchemyError as error:
             await _database_unavailable(session, error)
