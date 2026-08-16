@@ -85,6 +85,11 @@ def validate_workflows(ci: dict[str, Any], deploy: dict[str, Any]) -> list[str]:
             errors.append(f"deployment job {job_name} must use the production environment")
 
     for job_name in DEPLOY_JOBS & set(deploy_jobs):
+        env = deploy_jobs[job_name].get("env", {})
+        if env.get("RAILWAY_TOKEN") != "${{ secrets.RAILWAY_TOKEN }}" or "RAILWAY_API_TOKEN" in env:
+            errors.append(f"deployment job {job_name} must use the project-scoped RAILWAY_TOKEN secret")
+        if env.get("CONFIGURED_RAILWAY_PROJECT_ID") != "${{ vars.RAILWAY_PROJECT_ID }}":
+            errors.append(f"deployment job {job_name} must use the configured RAILWAY_PROJECT_ID variable")
         job_text = str(deploy_jobs[job_name])
         for required in (
             "railway-v5.41.2-amd64.deb",
@@ -92,6 +97,15 @@ def validate_workflows(ci: dict[str, Any], deploy: dict[str, Any]) -> list[str]:
         ):
             if required not in job_text:
                 errors.append(f"deployment job {job_name} is missing {required}")
+        for required in (
+            '--project-id "$CONFIGURED_RAILWAY_PROJECT_ID"',
+            "--evidence-output",
+        ):
+            if required not in job_text:
+                errors.append(f"deployment job {job_name} is missing {required}")
+        for step in deploy_jobs[job_name].get("steps", []):
+            if "railway api '" in step.get("run", ""):
+                errors.append(f"deployment job {job_name} contains single-quoted GraphQL")
 
     for workflow_name, workflow in (("CI", ci), ("deployment", deploy)):
         for job_name, step in iter_steps(workflow):

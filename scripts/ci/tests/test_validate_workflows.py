@@ -74,6 +74,27 @@ class WorkflowPolicyTests(unittest.TestCase):
         errors = validate_workflows(broken, self.deploy)
         self.assertTrue(any("backend has no human-readable summary" in error for error in errors))
 
+    def test_deployment_requires_project_scoped_railway_auth(self) -> None:
+        broken = copy.deepcopy(self.deploy)
+        backend = broken["jobs"]["deploy-backend"]
+        backend["env"].pop("RAILWAY_TOKEN", None)
+        backend["env"]["RAILWAY_API_TOKEN"] = "${{ secrets.RAILWAY_API_TOKEN }}"
+        errors = validate_workflows(self.ci, broken)
+        self.assertTrue(any("project-scoped RAILWAY_TOKEN" in error for error in errors))
+
+    def test_deployment_requires_configured_project_id(self) -> None:
+        broken = copy.deepcopy(self.deploy)
+        broken["jobs"]["deploy-backend"]["env"].pop("CONFIGURED_RAILWAY_PROJECT_ID", None)
+        errors = validate_workflows(self.ci, broken)
+        self.assertTrue(any("RAILWAY_PROJECT_ID" in error for error in errors))
+
+    def test_single_quoted_graphql_is_rejected(self) -> None:
+        broken = copy.deepcopy(self.deploy)
+        step = broken["jobs"]["deploy-backend"]["steps"][11]
+        step["run"] += "\nrailway api 'mutation($id: String!) { deploymentRollback(id: $id) }'"
+        errors = validate_workflows(self.ci, broken)
+        self.assertTrue(any("single-quoted GraphQL" in error for error in errors))
+
 
 if __name__ == "__main__":
     unittest.main()
