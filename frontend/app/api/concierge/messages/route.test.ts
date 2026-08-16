@@ -76,6 +76,12 @@ describe("concierge message proxy", () => {
         interruptId: "interrupt-1",
         eventId: "event-guid-1",
         description: "Save this exact event.",
+        events: [
+          {
+            eventId: "event-guid-1",
+            description: "Save this exact event.",
+          },
+        ],
       },
     });
   });

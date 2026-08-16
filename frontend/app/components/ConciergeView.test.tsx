@@ -112,6 +112,12 @@ describe("ConciergeView", () => {
       interruptId: "interrupt-1",
       eventId: "event-guid-1",
       description: "Save this exact event to your Saved Events.",
+      events: [
+        {
+          eventId: "event-guid-1",
+          description: "Save this exact event to your Saved Events.",
+        },
+      ],
     };
     streamConciergeMessage.mockImplementation(
       async (_message, _conversationId, handlers) => {

@@ -273,9 +273,26 @@ export default function ConciergeView() {
                   <span className={styles.approvalLabel}>
                     Approval required
                   </span>
-                  <h3 id="save-approval-title">Save this event?</h3>
-                  <p>{approval.description}</p>
-                  <code>{approval.eventId}</code>
+                  <h3 id="save-approval-title">
+                    {approval.events.length === 1
+                      ? "Save this event?"
+                      : `Save these ${approval.events.length} events?`}
+                  </h3>
+                  {approval.events.length === 1 ? (
+                    <>
+                      <p>{approval.description}</p>
+                      <code>{approval.eventId}</code>
+                    </>
+                  ) : (
+                    <ul className={styles.approvalEvents}>
+                      {approval.events.map((event) => (
+                        <li key={event.eventId}>
+                          <span>{event.description}</span>
+                          <code>{event.eventId}</code>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
                 <div className={styles.approvalActions}>
                   <button
