@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import SavedProvider from "@/app/components/SavedProvider";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -14,7 +15,9 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <SavedProvider>{children}</SavedProvider>
+      </body>
     </html>
   );
 }

@@ -59,6 +59,11 @@ test.describe("EventMatch NYC Walking Skeleton", () => {
         },
       });
     });
+    await page.route("**/api/profile/saved**", (route) =>
+      route.fulfill({
+        json: { events: [], page: 1, pageSize: 100, total: 0 },
+      }),
+    );
     await page.route("**/api/freshness", (route) =>
       route.fulfill({
         json: {

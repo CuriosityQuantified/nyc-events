@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ParkEvent } from "@/app/data/events";
 import { EventLifecycleStatus } from "./TrustStatus";
+import SaveHeart from "./SaveHeart";
 import styles from "./EventCard.module.css";
 
 interface EventCardProps {
@@ -45,6 +46,7 @@ export default function EventCard({ event, returnQuery = "" }: EventCardProps) {
           <span className={`${styles.badge} ${costBadgeClass(event.costType)}`}>
             {costLabel(event)}
           </span>
+          <SaveHeart event={event} />
         </div>
         <p className={styles.category}>{event.category}</p>
         <h2 className={styles.title}>{event.title}</h2>

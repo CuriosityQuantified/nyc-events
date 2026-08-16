@@ -25,6 +25,10 @@ export type ParkEvent = {
   imageAlt: string;
   officialUrl: string | null;
   lifecycleStatus?: EventLifecycleStatus | null;
+  description?: string | null;
+  startDateTime?: string | null;
+  endDateTime?: string | null;
+  endDate?: string | null;
 };
 
 export type EventLifecycleStatus =
@@ -94,7 +98,7 @@ type ApiFreshness = {
   is_stale: ApiFact<boolean>;
 };
 
-function apiBaseUrl(): string {
+export function apiBaseUrl(): string {
   const configured = process.env.API_BASE_URL?.replace(/\/$/, "");
   if (!configured) {
     if (process.env.NODE_ENV === "production") {
@@ -304,6 +308,10 @@ export function apiToUiEvent(event: ApiEvent): ParkEvent {
     imageAlt: `${category} event at ${location}`,
     officialUrl: safeOfficialUrl(event.official_event_url.value),
     lifecycleStatus: eventLifecycleStatus(event),
+    description: event.description.value,
+    startDateTime: event.start_datetime.value,
+    endDateTime: event.end_datetime.value,
+    endDate: event.end_date.value?.slice(0, 10) ?? null,
   };
 }
 
