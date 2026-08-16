@@ -26,7 +26,7 @@ def test_events_migration_upgrade_and_idempotency(postgres_url):
         _alembic("upgrade", "head")
         _alembic("upgrade", "head")
         current = _alembic("current")
-        assert "0005 (head)" in current.stdout
+        assert "0006 (head)" in current.stdout
     finally:
         _alembic("upgrade", "head")
 
