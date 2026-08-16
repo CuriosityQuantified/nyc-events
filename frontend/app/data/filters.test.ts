@@ -55,6 +55,12 @@ const events: ParkEvent[] = [
 ];
 
 describe("filter URL state", () => {
+  it("keeps exact dates empty when the URL does not explicitly provide them", () => {
+    expect(parseFilterSearchParams(new URLSearchParams())).toEqual(
+      EMPTY_FILTERS,
+    );
+  });
+
   it("parses one canonical value per filter and rejects unsupported values", () => {
     const parsed = parseFilterSearchParams(
       new URLSearchParams(
