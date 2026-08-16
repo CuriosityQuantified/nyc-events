@@ -6,7 +6,8 @@ from datetime import UTC, date, datetime
 from typing import Any, Literal
 
 from fastapi import APIRouter, HTTPException, Path, Query
-from sqlalchemy import func, select
+from sqlalchemy import Date as SQLDate
+from sqlalchemy import cast, func, select
 from sqlalchemy.exc import SQLAlchemyError
 
 from app.config import get_settings
@@ -200,6 +201,10 @@ async def list_events(
 
     applied_facets: dict[str, list[str]] = {}
     filters = []
+    event_date = func.coalesce(
+        CurrentEvent.start_date,
+        cast(func.timezone("America/New_York", CurrentEvent.start_datetime), SQLDate),
+    )
     if borough is not None:
         applied_facets["borough"] = [borough]
         filters.append(func.lower(CurrentEvent.borough) == borough.casefold())
@@ -216,10 +221,10 @@ async def list_events(
         )
     if date_from is not None:
         applied_facets["date_from"] = [date_from.isoformat()]
-        filters.append(CurrentEvent.start_date >= date_from)
+        filters.append(event_date >= date_from)
     if date_to is not None:
         applied_facets["date_to"] = [date_to.isoformat()]
-        filters.append(CurrentEvent.start_date <= date_to)
+        filters.append(event_date <= date_to)
     if registration is not None:
         applied_facets["registration"] = [registration]
         if registration == "not_listed":

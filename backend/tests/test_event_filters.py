@@ -68,6 +68,40 @@ class TestEventFacetFilters:
         }
         assert body["applied_facets"] == {"registration": ["not_listed"]}
 
+    async def test_date_filter_falls_back_to_new_york_local_datetime(
+        self, client, db_session
+    ):
+        rows = load_fixture("snapshot_a.json")
+        late_night = dict(
+            rows[0],
+            startdate="",
+            enddate="",
+            starttime="2026-11-01 23:30:00",
+            endtime="2026-11-01 23:45:00",
+        )
+        next_day = dict(
+            rows[1],
+            startdate="",
+            enddate="",
+            starttime="2026-11-02 00:30:00",
+            endtime="2026-11-02 00:45:00",
+        )
+        await ingest_rows(db_session, [late_night, next_day])
+
+        response = await client.get(
+            "/events",
+            params={"date_from": "2026-11-01", "date_to": "2026-11-01"},
+        )
+
+        assert response.status_code == 200
+        body = response.json()
+        assert [event["guid"] for event in body["events"]] == [rows[0]["guid"]]
+        assert body["events"][0]["start_date"]["provenance"] == "Not listed"
+        assert body["applied_facets"] == {
+            "date_from": ["2026-11-01"],
+            "date_to": ["2026-11-01"],
+        }
+
     async def test_facets_compose_before_counting_and_pagination(
         self, client, db_session
     ):
