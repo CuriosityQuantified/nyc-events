@@ -266,17 +266,6 @@ def configure_sync_worker(args: argparse.Namespace) -> int:
         raise ValueError(f"multiple Railway services named {args.service_name!r}")
     if not matches:
         run_command(
-            [
-                "railway",
-                "link",
-                "--project",
-                args.project_id,
-                "--environment",
-                args.environment,
-            ],
-            "sync-project-link",
-        )
-        run_command(
             ["railway", "add", "--service", args.service_name, "--json"],
             "sync-service-create",
         )
