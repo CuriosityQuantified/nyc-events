@@ -16,6 +16,19 @@ bun dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Google Maps configuration
+
+Configure each environment with separate restricted keys. Never commit values.
+
+| Variable | Visibility | Restriction |
+| --- | --- | --- |
+| `NEXT_PUBLIC_GOOGLE_MAPS_BROWSER_API_KEY` | Browser | Approved HTTP referrers and Maps JavaScript API only |
+| `NEXT_PUBLIC_GOOGLE_MAPS_MAP_ID` | Browser | Map ID for `AdvancedMarkerElement` |
+| `GOOGLE_MAPS_STATIC_API_KEY` | Server only | Maps Static API only |
+
+Use distinct local, preview, and production credentials where practical. The
+server key must never use the `NEXT_PUBLIC_` prefix.
+
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.

@@ -33,13 +33,17 @@ export function normalizeCoordinate(coordinate: Coordinate): string {
   return `${coordinate.latitude.toFixed(6)},${coordinate.longitude.toFixed(6)}`;
 }
 
-export function validEventCoordinates(event: ParkEvent): Coordinate[] {
+export function validCoordinates(values: readonly unknown[]): Coordinate[] {
   const unique = new Map<string, Coordinate>();
-  for (const coordinate of event.coordinates) {
+  for (const coordinate of values) {
     if (!isValidCoordinate(coordinate)) continue;
     unique.set(normalizeCoordinate(coordinate), coordinate);
   }
   return [...unique.values()];
+}
+
+export function validEventCoordinates(event: ParkEvent): Coordinate[] {
+  return validCoordinates(event.coordinates);
 }
 
 export function locationKey(

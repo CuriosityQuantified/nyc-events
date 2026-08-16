@@ -13,10 +13,15 @@ import styles from "./EventMap.module.css";
 type MapListener = { remove(): void };
 type MapInstance = {
   setCenter(position: { lat: number; lng: number }): void;
+  fitBounds(bounds: MapBounds, padding: number): void;
   addListener(event: string, callback: () => void): MapListener;
+};
+type MapBounds = {
+  extend(position: { lat: number; lng: number }): void;
 };
 type MarkerInstance = { map: MapInstance | null };
 type GoogleMapsApi = {
+  LatLngBounds: new () => MapBounds;
   Map: new (
     element: HTMLElement,
     options: Record<string, unknown>,
@@ -90,13 +95,12 @@ type EventMapProps = {
 
 export default function EventMap({ events, returnQuery = "" }: EventMapProps) {
   const groups = useMemo(() => groupEventsByLocation(events), [events]);
-  const unlocated = useMemo(
-    () =>
-      events.filter(
-        (event) => !groups.some((group) => group.events.includes(event)),
-      ),
-    [events, groups],
-  );
+  const unlocated = useMemo(() => {
+    const locatedGuids = new Set(
+      groups.flatMap((group) => group.events.map((event) => event.guid)),
+    );
+    return events.filter((event) => !locatedGuids.has(event.guid));
+  }, [events, groups]);
   const [status, setStatus] = useState<"loading" | "ready" | "error">(
     groups.length ? "loading" : "error",
   );
@@ -130,6 +134,13 @@ export default function EventMap({ events, returnQuery = "" }: EventMapProps) {
           mapTypeControl: false,
           streetViewControl: false,
         });
+        if (groups.length > 1) {
+          const bounds = new google.maps.LatLngBounds();
+          for (const group of groups) {
+            bounds.extend({ lat: group.latitude, lng: group.longitude });
+          }
+          map.fitBounds(bounds, 48);
+        }
         let firstIdle = true;
         panListener = map.addListener("idle", () => {
           if (firstIdle) {
@@ -162,12 +173,6 @@ export default function EventMap({ events, returnQuery = "" }: EventMapProps) {
             );
           };
           target.addEventListener("click", select);
-          target.addEventListener("keydown", (event) => {
-            if (event.key === "Enter" || event.key === " ") {
-              event.preventDefault();
-              select();
-            }
-          });
           return new google.maps.marker.AdvancedMarkerElement({
             map,
             position: { lat: group.latitude, lng: group.longitude },

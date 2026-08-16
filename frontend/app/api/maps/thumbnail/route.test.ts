@@ -91,6 +91,50 @@ describe("Issue #26 server-only Static Maps endpoint", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
+  it("indexes the same validated, de-duplicated coordinates as the browser", async () => {
+    const fetchMock = vi.fn<
+      (input: string | URL | Request) => Promise<Response>
+    >(async () =>
+      new Response(new Uint8Array([1, 2, 3]), {
+        headers: { "content-type": "image/png" },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+    getEvent.mockResolvedValue({
+      coordinates: {
+        value: [
+          { latitude: 0, longitude: 0 },
+          { latitude: 40.7, longitude: -73.9 },
+          { latitude: 40.7, longitude: -73.9 },
+          { latitude: 40.8, longitude: -73.8 },
+        ],
+      },
+    });
+
+    expect(
+      (
+        await GET(request("guid=event-1&variant=detail&location=0"))
+      ).status,
+    ).toBe(200);
+    expect(
+      (
+        await GET(request("guid=event-1&variant=detail&location=1"))
+      ).status,
+    ).toBe(200);
+    expect(
+      (
+        await GET(request("guid=event-1&variant=detail&location=2"))
+      ).status,
+    ).toBe(404);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(
+      new URL(fetchMock.mock.calls[0][0].toString()).searchParams.get("center"),
+    ).toBe("40.700000,-73.900000");
+    expect(
+      new URL(fetchMock.mock.calls[1][0].toString()).searchParams.get("center"),
+    ).toBe("40.800000,-73.800000");
+  });
+
   it("fails once without reflecting credentials or upstream details", async () => {
     const fetchMock = vi.fn<
       (input: string | URL | Request) => Promise<Response>

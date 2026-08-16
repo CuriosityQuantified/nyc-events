@@ -84,3 +84,12 @@
   overflow-wrap: anywhere;
   font-size: var(--text-sm);
 }
+
+.fallbackLink {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  color: var(--color-primary);
+  font-weight: 700;
+}

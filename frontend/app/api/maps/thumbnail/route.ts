@@ -1,5 +1,5 @@
 import { EventsApiError, getEvent } from "@/app/data/events";
-import { isValidCoordinate } from "@/app/data/maps";
+import { validCoordinates } from "@/app/data/maps";
 
 export const dynamic = "force-dynamic";
 
@@ -48,8 +48,9 @@ export async function GET(request: Request): Promise<Response> {
 
   try {
     const event = await getEvent(guid);
-    const coordinate = event.coordinates.value?.[Number(locationValue)];
-    if (!isValidCoordinate(coordinate)) {
+    const coordinates = validCoordinates(event.coordinates.value ?? []);
+    const coordinate = coordinates[Number(locationValue)];
+    if (!coordinate) {
       return errorResponse(404, "Map location is unavailable");
     }
 

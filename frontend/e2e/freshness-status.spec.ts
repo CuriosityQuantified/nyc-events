@@ -151,7 +151,6 @@ test.describe("Issue #17 freshness and Event lifecycle states", () => {
   test("uses the exact stale-data warning on list and detail screens", async ({
     page,
   }) => {
-    await page.unrouteAll({ behavior: "wait" });
     await installRoutes(page, true);
     await page.goto("/");
 

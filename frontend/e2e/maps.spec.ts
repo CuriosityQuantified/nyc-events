@@ -74,18 +74,41 @@ async function installFakeGoogle(page: Page): Promise<void> {
 
       setCenter() {}
 
+      fitBounds() {
+        this.element.dataset.fitBounds = "true";
+      }
+
       addListener(name: string, callback: () => void) {
         this.listeners.set(name, callback);
         return { remove: () => this.listeners.delete(name) };
       }
     }
 
+    class FakeLatLngBounds {
+      extend() {}
+    }
+
     class FakeAdvancedMarkerElement {
+      private static nextIndex = 0;
       private content: HTMLElement;
       private currentMap: FakeMap | null = null;
 
       constructor(options: { map: FakeMap; content: HTMLElement }) {
         this.content = options.content;
+        const positions = [
+          { left: "34%", top: "38%" },
+          { left: "66%", top: "54%" },
+          { left: "48%", top: "72%" },
+        ];
+        const position =
+          positions[FakeAdvancedMarkerElement.nextIndex % positions.length];
+        FakeAdvancedMarkerElement.nextIndex += 1;
+        Object.assign(this.content.style, {
+          position: "absolute",
+          left: position.left,
+          top: position.top,
+          transform: "translate(-50%, -50%)",
+        });
         this.map = options.map;
       }
 
@@ -103,6 +126,7 @@ async function installFakeGoogle(page: Page): Promise<void> {
     (window as unknown as Record<string, unknown>).google = {
       maps: {
         Map: FakeMap,
+        LatLngBounds: FakeLatLngBounds,
         marker: { AdvancedMarkerElement: FakeAdvancedMarkerElement },
       },
     };
@@ -217,6 +241,33 @@ test.describe("Issue #26 maps", () => {
       body: await page.screenshot({ fullPage: true }),
       contentType: "image/png",
     });
+
+    await page.unroute("**/api/maps/thumbnail?*");
+    let failedRequests = 0;
+    await page.route("**/api/maps/thumbnail?*", (route) => {
+      failedRequests += 1;
+      return route.fulfill({ status: 503 });
+    });
+    await page.reload();
+    for (const card of await page.getByTestId("event-card").all()) {
+      await card.scrollIntoViewIfNeeded();
+    }
+    await expect(page.getByTestId("map-thumbnail-fallback")).toHaveCount(5);
+    const fallbackLinks = page.getByRole("link", {
+      name: "Open location in Google Maps",
+    });
+    await expect(fallbackLinks).toHaveCount(4);
+    await expect(fallbackLinks.first()).toHaveAttribute("target", "_blank");
+    await expect(fallbackLinks.first()).toHaveAttribute("rel", /noopener/);
+    expect(failedRequests).toBe(4);
+    const expectedNetworkErrors = (page as AuditedPage).__mapErrors ?? [];
+    expect(expectedNetworkErrors).toHaveLength(4);
+    expect(
+      expectedNetworkErrors.every((error) =>
+        error.includes("503 (Service Unavailable)"),
+      ),
+    ).toBe(true);
+    expectedNetworkErrors.length = 0;
   });
 
   test("groups stable locations and supports keyboard marker selection at both viewports", async ({
@@ -230,8 +281,26 @@ test.describe("Issue #26 maps", () => {
 
     const map = page.getByTestId("event-map");
     await expect(map).toHaveAttribute("data-map-status", "ready");
+    const googleMap = page.getByTestId("google-map");
+    await expect(googleMap).toHaveAttribute("data-fit-bounds", "true");
+    await googleMap.scrollIntoViewIfNeeded();
     const markers = page.getByTestId("map-marker");
     await expect(markers).toHaveCount(3);
+    for (const marker of await markers.all()) {
+      expect(
+        await marker.evaluate((element) => {
+          const bounds = element.getBoundingClientRect();
+          return (
+            bounds.width >= 44 &&
+            bounds.height >= 44 &&
+            bounds.left >= 0 &&
+            bounds.top >= 0 &&
+            bounds.right <= window.innerWidth &&
+            bounds.bottom <= window.innerHeight
+          );
+        }),
+      ).toBe(true);
+    }
     const sharedMarker = page.getByRole("button", {
       name: /Soldiers' and Sailors' Monument.*2 events/,
     });
@@ -241,11 +310,17 @@ test.describe("Issue #26 maps", () => {
     expect(targetBox!.height).toBeGreaterThanOrEqual(44);
     expect(await sharedMarker.getAttribute("data-diameter")).toBe("22");
 
-    await sharedMarker.focus();
-    await page.keyboard.press("Enter");
     const panel = page.getByRole("complementary", {
       name: "Events at selected location",
     });
+    const distinctMarker = markers.nth(1);
+    await distinctMarker.focus();
+    await page.keyboard.press("Space");
+    await expect(panel).toContainText(source[1].title);
+    await expect(panel).not.toContainText(source[0].title);
+
+    await sharedMarker.focus();
+    await page.keyboard.press("Enter");
     await expect(panel).toContainText(source[0].title);
     await expect(panel).toContainText(shared.title);
     await expect(panel.locator("ul").first()).not.toContainText(invalid.title);

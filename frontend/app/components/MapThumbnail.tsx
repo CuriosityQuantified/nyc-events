@@ -27,6 +27,9 @@ export default function MapThumbnail({
   const coordinate = coordinates[coordinateIndex];
   const src = thumbnailPath(event, variant, coordinateIndex);
   const unavailable = !coordinate || !src || failed;
+  const directionsUrl = coordinate
+    ? googleMapsDirectionsUrl(coordinate)
+    : undefined;
   const accuracy =
     event.positionAccuracy === "exact"
       ? "Exact source location"
@@ -88,14 +91,23 @@ export default function MapThumbnail({
       >
         <strong>Map Image Unavailable</strong>
         <span>
-          {event.location}, {event.borough}. Use the location facts in this
-          card.
+          {event.location || "Location not listed"}, {event.borough}. Use the
+          location facts in this card.
         </span>
+        {failed && directionsUrl ? (
+          <a
+            className={styles.fallbackLink}
+            href={directionsUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Open location in Google Maps
+          </a>
+        ) : null}
       </section>
     );
   }
 
-  const directionsUrl = googleMapsDirectionsUrl(coordinate);
   const width = 640;
   const height = variant === "compact" ? 360 : 400;
 
