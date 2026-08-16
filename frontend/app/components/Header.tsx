@@ -14,7 +14,7 @@ const boroughs = [
 export default function Header() {
   return (
     <header className={styles.header} data-testid="header">
-      <div className={styles.brand}>
+      <div className={styles.brand} data-testid="header-brand">
         <div className={styles.logo} aria-hidden="true">
           EM
         </div>

@@ -17,7 +17,15 @@ const FACET_TYPE_LABELS: Record<string, string> = {
   borough: "Borough",
   category: "Category",
   registration: "Registration",
+  composite: "Combination",
 };
+
+function interestLabel(interest: Interest): string {
+  if (interest.facets && interest.facets.length > 1) {
+    return interest.facets.map((facet) => facet.facetValue).join(" + ");
+  }
+  return interest.facetValue;
+}
 
 /**
  * Profile destination (#22): the current Interests are visible here so it is
@@ -120,7 +128,7 @@ export default function ProfileView({ account }: { account?: ReactNode }) {
                         {FACET_TYPE_LABELS[interest.facetType] ??
                           interest.facetType}
                       </span>
-                      {interest.facetValue}
+                      {interestLabel(interest)}
                       <span className={styles.itemAlert}>
                         {interest.alertEnabled ? "· alerts on" : "· alerts off"}
                       </span>
@@ -129,7 +137,7 @@ export default function ProfileView({ account }: { account?: ReactNode }) {
                       type="button"
                       className={styles.unfollow}
                       onClick={() => void onUnfollow(interest)}
-                      aria-label={`Unfollow ${interest.facetValue}`}
+                      aria-label={`Unfollow ${interestLabel(interest)}`}
                     >
                       Unfollow
                     </button>

@@ -65,6 +65,7 @@ async def test_follow_list_update_and_unfollow_are_idempotent_and_profile_owned(
         "id": repeated.json()["id"],
         "facet_type": "category",
         "facet_value": "fitness",
+        "facets": [{"facet_type": "category", "facet_value": "fitness"}],
         "alert_enabled": True,
         "origin": "manual",
     }
