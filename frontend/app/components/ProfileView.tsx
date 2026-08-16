@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import Link from "next/link";
 import Header from "@/app/components/Header";
 import DesktopSidebar from "@/app/components/DesktopSidebar";
@@ -21,10 +21,13 @@ const FACET_TYPE_LABELS: Record<string, string> = {
 
 /**
  * Profile destination (#22): the current Interests are visible here so it is
- * clear why a Match arrived, and each can be unfollowed. Account claim and
- * notification controls arrive with #23/#24/#25.
+ * clear why a Match arrived, and each can be unfollowed. Notification controls
+ * arrive with #25.
+ *
+ * `account` carries the Clerk-backed Account controls (#24) when Clerk is
+ * configured; the page decides, so no Clerk code reaches a build without a key.
  */
-export default function ProfileView() {
+export default function ProfileView({ account }: { account?: ReactNode }) {
   const [status, setStatus] = useState<"loading" | "ready" | "error">(
     "loading",
   );
@@ -138,10 +141,12 @@ export default function ProfileView() {
 
           <section aria-label="Account" className={styles.section}>
             <h3 className={styles.heading}>Account</h3>
-            <p className={styles.state}>
-              Sign-in to keep your profile across devices is coming soon. Your
-              saves and interests stay on this device until then.
-            </p>
+            {account ?? (
+              <p className={styles.state}>
+                Sign-in to keep your profile across devices is coming soon. Your
+                saves and interests stay on this device until then.
+              </p>
+            )}
           </section>
         </main>
         <BottomNav />
