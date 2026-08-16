@@ -35,10 +35,40 @@ describe("live Event API mapping", () => {
     expect(event.costType).toBe("Not listed");
   });
 
+  it("maps only allowlisted lifecycle classifications", () => {
+    const source = parseEventsResponse(eventList).events[0];
+    expect(
+      apiToUiEvent({
+        ...source,
+        lifecycle_status: {
+          value: "cancelled",
+          provenance: "Stated",
+          raw: "Cancelled",
+        },
+      }).lifecycleStatus,
+    ).toBe("cancelled");
+    expect(
+      apiToUiEvent({
+        ...source,
+        lifecycle_status: {
+          value: "definitely-cancelled-maybe",
+          provenance: "Derived",
+          raw: null,
+        },
+      }).lifecycleStatus,
+    ).toBeNull();
+  });
+
   it("fails closed on malformed event and freshness payloads", () => {
     expect(() =>
       parseEventsResponse({ ...eventList, events: [{ guid: "broken" }] }),
     ).toThrow(/contract Fact/);
+    expect(() =>
+      parseEventsResponse({
+        ...eventList,
+        events: [{ ...eventList.events[0], lifecycle_status: "cancelled" }],
+      }),
+    ).toThrow(/lifecycle_status is not a contract Fact/);
     expect(() =>
       parseFreshnessResponse({ ...freshness, is_stale: null }),
     ).toThrow(/Freshness response/);

@@ -4,6 +4,11 @@ import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 import BottomNav from "@/app/components/BottomNav";
 import {
+  EventLifecycleStatus,
+  FreshnessBanner,
+} from "@/app/components/TrustStatus";
+import {
+  eventLifecycleStatus,
   parseEventResponse,
   safeOfficialUrl,
   type ApiFact,
@@ -42,17 +47,6 @@ function formatTime(value: string | null): string {
     minute: "2-digit",
     timeZone: "America/New_York",
     timeZoneName: "short",
-  }).format(date);
-}
-
-function formatSyncTime(value: string | null): string {
-  if (!value) return "Update time not listed";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Update time not listed";
-  return new Intl.DateTimeFormat("en-US", {
-    dateStyle: "medium",
-    timeStyle: "short",
-    timeZone: "America/New_York",
   }).format(date);
 }
 
@@ -124,9 +118,15 @@ function FactRow({
 
 function DetailShell({
   returnHref,
+  freshness,
+  freshnessLoading = false,
+  freshnessUnavailable = false,
   children,
 }: {
   returnHref: string;
+  freshness: Freshness | null;
+  freshnessLoading?: boolean;
+  freshnessUnavailable?: boolean;
   children: ReactNode;
 }) {
   return (
@@ -140,6 +140,11 @@ function DetailShell({
           <small>NYC Parks event explorer</small>
         </Link>
       </header>
+      <FreshnessBanner
+        freshness={freshness}
+        loading={freshnessLoading}
+        unavailable={freshnessUnavailable}
+      />
       <main id="event-detail" className={styles.page} tabIndex={-1}>
         <Link className={styles.backLink} href={returnHref}>
           <span aria-hidden="true">←</span> Back to filtered events
@@ -257,13 +262,7 @@ function DecisionPanel({
   );
 }
 
-function VerificationPanel({
-  freshness,
-  officialUrl,
-}: {
-  freshness: Freshness | null;
-  officialUrl: string | null;
-}) {
+function VerificationPanel({ officialUrl }: { officialUrl: string | null }) {
   return (
     <aside className={styles.verifyPanel} aria-label="Source verification">
       <h2>Verify before you go</h2>
@@ -271,22 +270,6 @@ function VerificationPanel({
         Event details can change. Check registration, cost, and accessibility
         information with NYC Parks before traveling.
       </p>
-      {freshness ? (
-        <p
-          className={freshness.isStale ? styles.stale : styles.freshness}
-          data-testid="detail-freshness"
-        >
-          {freshness.isStale
-            ? "Event data may be stale. "
-            : "Event data updated "}
-          <time dateTime={freshness.lastSuccessfulSync ?? undefined}>
-            {formatSyncTime(freshness.lastSuccessfulSync)}
-          </time>
-          .
-        </p>
-      ) : (
-        <p className={styles.stale}>Update time is unavailable.</p>
-      )}
       {officialUrl ? (
         <a href={officialUrl} target="_blank" rel="noopener noreferrer">
           Check the source record
@@ -297,13 +280,7 @@ function VerificationPanel({
   );
 }
 
-export function EventDetailContent({
-  event,
-  freshness,
-}: {
-  event: ApiEvent;
-  freshness: Freshness | null;
-}) {
+export function EventDetailContent({ event }: { event: ApiEvent }) {
   const officialUrl = safeOfficialUrl(event.official_event_url.value);
   const title = presentFact(event.title, "Untitled event", String);
   const description = presentFact(
@@ -361,6 +338,7 @@ export function EventDetailContent({
           </p>
           <h1 id="event-title">{title.value}</h1>
           <ProvenanceBadge provenance={title.provenance} />
+          <EventLifecycleStatus status={eventLifecycleStatus(event)} detail />
           <div className={styles.datePlace} data-testid="event-summary">
             <div>
               <span className={styles.summaryLabel}>When</span>
@@ -452,7 +430,7 @@ export function EventDetailContent({
           registration={registration}
           borough={borough}
         />
-        <VerificationPanel freshness={freshness} officialUrl={officialUrl} />
+        <VerificationPanel officialUrl={officialUrl} />
       </div>
     </div>
   );
@@ -462,6 +440,7 @@ export default function EventDetail({ guid, returnHref }: EventDetailProps) {
   const [state, setState] = useState<LoadState>("loading");
   const [event, setEvent] = useState<ApiEvent | null>(null);
   const [freshness, setFreshness] = useState<Freshness | null>(null);
+  const [freshnessUnavailable, setFreshnessUnavailable] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -480,18 +459,25 @@ export default function EventDetail({ guid, returnHref }: EventDetailProps) {
         ]);
         if (controller.signal.aborted) return;
         if (eventResult.status === "rejected") throw eventResult.reason;
+        if (
+          freshnessResult.status === "fulfilled" &&
+          freshnessResult.value.ok
+        ) {
+          try {
+            setFreshness((await freshnessResult.value.json()) as Freshness);
+            setFreshnessUnavailable(false);
+          } catch {
+            setFreshnessUnavailable(true);
+          }
+        } else {
+          setFreshnessUnavailable(true);
+        }
         if (eventResult.value.status === 404) {
           setState("not-found");
           return;
         }
         if (!eventResult.value.ok) throw new Error("Event is unavailable");
         setEvent(parseEventResponse(await eventResult.value.json()));
-        if (
-          freshnessResult.status === "fulfilled" &&
-          freshnessResult.value.ok
-        ) {
-          setFreshness((await freshnessResult.value.json()) as Freshness);
-        }
         setState("ready");
       } catch {
         if (!controller.signal.aborted) setState("error");
@@ -504,7 +490,11 @@ export default function EventDetail({ guid, returnHref }: EventDetailProps) {
 
   if (state === "loading") {
     return (
-      <DetailShell returnHref={returnHref}>
+      <DetailShell
+        returnHref={returnHref}
+        freshness={freshness}
+        freshnessLoading
+      >
         <section className={styles.dataState} role="status" aria-live="polite">
           <h1>Loading event details…</h1>
           <p>Checking the current NYC Parks source record.</p>
@@ -515,7 +505,11 @@ export default function EventDetail({ guid, returnHref }: EventDetailProps) {
 
   if (state === "not-found") {
     return (
-      <DetailShell returnHref={returnHref}>
+      <DetailShell
+        returnHref={returnHref}
+        freshness={freshness}
+        freshnessUnavailable={freshnessUnavailable}
+      >
         <section className={styles.dataState}>
           <h1>Event not found</h1>
           <p>This source event is not in the current EventMatch snapshot.</p>
@@ -526,7 +520,11 @@ export default function EventDetail({ guid, returnHref }: EventDetailProps) {
 
   if (state === "error" || !event) {
     return (
-      <DetailShell returnHref={returnHref}>
+      <DetailShell
+        returnHref={returnHref}
+        freshness={freshness}
+        freshnessUnavailable={freshnessUnavailable}
+      >
         <section className={styles.dataState}>
           <h1>Event details are unavailable</h1>
           <p>Return to the filtered event list and try again.</p>
@@ -536,8 +534,12 @@ export default function EventDetail({ guid, returnHref }: EventDetailProps) {
   }
 
   return (
-    <DetailShell returnHref={returnHref}>
-      <EventDetailContent event={event} freshness={freshness} />
+    <DetailShell
+      returnHref={returnHref}
+      freshness={freshness}
+      freshnessUnavailable={freshnessUnavailable}
+    >
+      <EventDetailContent event={event} />
     </DetailShell>
   );
 }
