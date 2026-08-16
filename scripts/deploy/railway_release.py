@@ -283,7 +283,10 @@ def wait_deployment(args: argparse.Namespace) -> int:
 def fetch_revision(origin: str) -> str:
     request = urllib.request.Request(
         f"{https_origin(origin)}/api/revision",
-        headers={"Accept": "application/json"},
+        headers={
+            "Accept": "application/json",
+            "User-Agent": "EventMatch-Deployment-Probe/1.0",
+        },
     )
     with urllib.request.urlopen(request, timeout=10) as response:
         if response.status != 200:

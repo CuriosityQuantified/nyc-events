@@ -5,6 +5,7 @@ import subprocess
 import sys
 import tempfile
 import unittest
+from io import BytesIO
 from argparse import Namespace
 from pathlib import Path
 from unittest.mock import patch
@@ -17,6 +18,7 @@ from scripts.deploy.railway_release import (  # noqa: E402
     discover,
     deployment_records,
     exact_named,
+    fetch_revision,
     https_origin,
     parse_json_output,
     main,
@@ -155,6 +157,29 @@ class RailwayReleaseTests(unittest.TestCase):
                     "production",
                 ]
             )
+
+
+    def test_revision_probe_uses_a_cloudflare_compatible_user_agent(self) -> None:
+        class Response(BytesIO):
+            status = 200
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_args):
+                self.close()
+
+        response = Response(b'{"revision":"revision-1"}')
+        with patch(
+            "scripts.deploy.railway_release.urllib.request.urlopen",
+            return_value=response,
+        ) as urlopen:
+            self.assertEqual(fetch_revision("https://eventmatch.nyc"), "revision-1")
+        request = urlopen.call_args.args[0]
+        self.assertEqual(
+            request.get_header("User-agent"),
+            "EventMatch-Deployment-Probe/1.0",
+        )
 
 
 if __name__ == "__main__":
