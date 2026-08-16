@@ -37,6 +37,13 @@ jobs:
       EXPECTED_DEPLOY_REVISION: ${{ github.sha }}
       ROLLBACK_DRILL: ${{ inputs.rollback_drill || false }}
     steps:
+      - name: Initialize deployment failure evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/backend-deployment"
+          printf '%s\n' '{"status":"initialized","stage":"job"}' > "$RUNNER_TEMP/backend-deployment/status.json"
+
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
@@ -212,7 +219,9 @@ jobs:
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: production-backend-${{ github.sha }}
-          path: artifacts/backend-deployment/
+          path: |
+            ${{ runner.temp }}/backend-deployment/
+            artifacts/backend-deployment/
           if-no-files-found: error
 
   deploy-frontend:
@@ -227,6 +236,13 @@ jobs:
       EXPECTED_DEPLOY_REVISION: ${{ github.sha }}
       ROLLBACK_DRILL: ${{ inputs.rollback_drill || false }}
     steps:
+      - name: Initialize deployment failure evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p "$RUNNER_TEMP/frontend-deployment"
+          printf '%s\n' '{"status":"initialized","stage":"job"}' > "$RUNNER_TEMP/frontend-deployment/status.json"
+
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
           persist-credentials: false
@@ -440,6 +456,7 @@ jobs:
         with:
           name: production-${{ github.sha }}
           path: |
+            ${{ runner.temp }}/frontend-deployment/
             artifacts/deployment/
             frontend/playwright-production-report/
             frontend/test-results/production/

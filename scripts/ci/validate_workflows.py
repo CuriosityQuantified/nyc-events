@@ -106,6 +106,14 @@ def validate_workflows(ci: dict[str, Any], deploy: dict[str, Any]) -> list[str]:
         for step in deploy_jobs[job_name].get("steps", []):
             if "railway api '" in step.get("run", ""):
                 errors.append(f"deployment job {job_name} contains single-quoted GraphQL")
+            if "railway list" in step.get("run", ""):
+                errors.append(f"deployment job {job_name} contains account-level Railway discovery")
+        steps = deploy_jobs[job_name].get("steps", [])
+        if not steps or (
+            steps[0].get("name") != "Initialize deployment failure evidence"
+            or "RUNNER_TEMP" not in steps[0].get("run", "")
+        ):
+            errors.append(f"deployment job {job_name} must initialize failure evidence before checkout")
 
     for workflow_name, workflow in (("CI", ci), ("deployment", deploy)):
         for job_name, step in iter_steps(workflow):

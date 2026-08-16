@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import json
+import subprocess
 import sys
 import tempfile
 import unittest
+from io import BytesIO
 from argparse import Namespace
 from pathlib import Path
 from unittest.mock import patch
@@ -16,10 +18,12 @@ from scripts.deploy.railway_release import (  # noqa: E402
     discover,
     deployment_records,
     exact_named,
+    fetch_revision,
     https_origin,
     parse_json_output,
+    main,
+    parser,
     public_deployment,
-    write_status_evidence,
 )
 
 
@@ -85,7 +89,6 @@ class RailwayReleaseTests(unittest.TestCase):
         ]
         args = Namespace(
             project_id="project-1",
-            project_name=None,
             service_name="backend",
             environment="production",
             origin="https://backend.example",
@@ -103,16 +106,80 @@ class RailwayReleaseTests(unittest.TestCase):
         self.assertEqual(commands[0][:4], ["railway", "service", "list", "--project"])
         self.assertEqual(commands[0][4], "project-1")
 
-    def test_failure_evidence_is_sanitized_and_parent_is_created(self) -> None:
+    def test_failed_discovery_writes_actionable_sanitized_evidence(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             path = Path(directory) / "nested" / "discover.json"
-            write_status_evidence(str(path), "failed", "CalledProcessError")
+            argv = [
+                "railway_release.py",
+                "discover",
+                "--project-id",
+                "project-1",
+                "--service-name",
+                "backend",
+                "--environment",
+                "production",
+                "--evidence-output",
+                str(path),
+            ]
+            error = subprocess.CalledProcessError(
+                1,
+                ["railway", "service", "list"],
+                stderr="Unauthorized: token secret-value",
+            )
+            with (
+                patch.object(sys, "argv", argv),
+                patch("scripts.deploy.railway_release.subprocess.run", side_effect=error),
+            ):
+                self.assertEqual(main(), 1)
             evidence = json.loads(path.read_text())
         self.assertEqual(
             evidence,
-            {"status": "failed", "errorType": "CalledProcessError"},
+            {
+                "status": "failed",
+                "errorType": "RailwayCommandError",
+                "operation": "service-list",
+                "returnCode": 1,
+                "diagnostic": "unauthorized",
+            },
         )
-        self.assertNotIn("token", json.dumps(evidence).lower())
+        self.assertNotIn("secret-value", json.dumps(evidence))
+
+    def test_name_based_account_discovery_is_not_supported(self) -> None:
+        with self.assertRaises(SystemExit):
+            parser().parse_args(
+                [
+                    "discover",
+                    "--project-name",
+                    "nyc-events",
+                    "--service-name",
+                    "backend",
+                    "--environment",
+                    "production",
+                ]
+            )
+
+
+    def test_revision_probe_uses_a_cloudflare_compatible_user_agent(self) -> None:
+        class Response(BytesIO):
+            status = 200
+
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_args):
+                self.close()
+
+        response = Response(b'{"revision":"revision-1"}')
+        with patch(
+            "scripts.deploy.railway_release.urllib.request.urlopen",
+            return_value=response,
+        ) as urlopen:
+            self.assertEqual(fetch_revision("https://eventmatch.nyc"), "revision-1")
+        request = urlopen.call_args.args[0]
+        self.assertEqual(
+            request.get_header("User-agent"),
+            "EventMatch-Deployment-Probe/1.0",
+        )
 
 
 if __name__ == "__main__":
