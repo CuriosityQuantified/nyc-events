@@ -37,7 +37,9 @@ export type Freshness = {
   isStale: boolean;
 };
 
-type ApiFact<T> = {
+export type Provenance = "Stated" | "Derived" | "Not listed";
+
+export type ApiFact<T> = {
   value: T | null;
   provenance: string;
   raw: string | null;
@@ -111,7 +113,7 @@ function formatDate(value: string | null): string {
   }).format(parsed);
 }
 
-function safeOfficialUrl(value: string | null): string | null {
+export function safeOfficialUrl(value: string | null): string | null {
   if (!value) return null;
   try {
     const parsed = new URL(value);
@@ -154,7 +156,7 @@ function isFact(value: unknown): boolean {
   );
 }
 
-function parseApiEvent(value: unknown): ApiEvent {
+export function parseEventResponse(value: unknown): ApiEvent {
   if (!isRecord(value) || typeof value.guid !== "string" || !value.guid) {
     throw new TypeError("Event is missing its source guid");
   }
@@ -181,7 +183,7 @@ export function parseEventsResponse(value: unknown): ApiEventsResponse {
     throw new TypeError("Events response does not match the API contract");
   }
   return {
-    events: value.events.map(parseApiEvent),
+    events: value.events.map(parseEventResponse),
     page: Number(value.page),
     page_size: Number(value.page_size),
     total: Number(value.total),
@@ -254,12 +256,26 @@ export function apiToUiEvent(event: ApiEvent): ParkEvent {
   };
 }
 
+export class EventsApiError extends Error {
+  constructor(readonly status: number) {
+    super(`Events API returned HTTP ${status}`);
+  }
+}
+
 async function apiFetch(path: string): Promise<Response> {
   const response = await fetch(`${apiBaseUrl()}${path}`, { cache: "no-store" });
   if (!response.ok) {
-    throw new Error(`Events API returned HTTP ${response.status}`);
+    throw new EventsApiError(response.status);
   }
   return response;
+}
+
+export async function getEvent(guid: string): Promise<ApiEvent> {
+  if (!guid || guid.length > 256) {
+    throw new TypeError("Event guid must contain 1 to 256 characters");
+  }
+  const response = await apiFetch(`/events/${encodeURIComponent(guid)}`);
+  return parseEventResponse(await response.json());
 }
 
 export async function getEvents(page = 1, pageSize = 12): Promise<EventPage> {

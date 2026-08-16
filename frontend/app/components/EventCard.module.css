@@ -100,3 +100,15 @@
 .newTabNotice {
   font-size: var(--text-xs);
 }
+
+.detailLink {
+  min-height: var(--touch-min);
+  display: inline-flex;
+  align-items: center;
+  margin-top: var(--space-3);
+  margin-right: var(--space-4);
+  color: var(--color-accent);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}

@@ -83,7 +83,7 @@ describe("ListMapToggle", () => {
 
 describe("EventCard", () => {
   it("renders the event identity, location, time, and cost", () => {
-    render(<EventCard event={event} />);
+    render(<EventCard event={event} returnQuery="borough=Brooklyn" />);
 
     expect(
       screen.getByRole("heading", { level: 2, name: event.title }),
@@ -94,6 +94,11 @@ describe("EventCard", () => {
     expect(screen.queryByRole("img")).toBeNull();
     expect(screen.getByText(event.registration)).toBeTruthy();
     expect(screen.getByText(event.accessibility)).toBeTruthy();
+    expect(
+      screen
+        .getByRole("link", { name: `View details for ${event.title}` })
+        .getAttribute("href"),
+    ).toBe("/events/test-event?borough=Brooklyn");
     expect(
       screen.getByRole("link", {
         name: "Official event details (opens in a new tab)",
@@ -118,7 +123,10 @@ describe("EventCard", () => {
       screen.getByText("Accessibility information not listed"),
     ).toBeTruthy();
     expect(screen.getByText("Official event link not listed")).toBeTruthy();
-    expect(screen.queryByRole("link")).toBeNull();
+    expect(
+      screen.queryByRole("link", { name: /Official event details/ }),
+    ).toBeNull();
+    expect(screen.getByRole("link", { name: /View details/ })).toBeTruthy();
   });
 });
 

@@ -1,8 +1,10 @@
+import Link from "next/link";
 import type { ParkEvent } from "@/app/data/events";
 import styles from "./EventCard.module.css";
 
 interface EventCardProps {
   event: ParkEvent;
+  returnQuery?: string;
 }
 
 function costLabel(event: ParkEvent): string {
@@ -27,7 +29,9 @@ function costBadgeClass(costType: ParkEvent["costType"]): string {
   }
 }
 
-export default function EventCard({ event }: EventCardProps) {
+export default function EventCard({ event, returnQuery = "" }: EventCardProps) {
+  const detailHref = `/events/${encodeURIComponent(event.guid)}${returnQuery ? `?${returnQuery}` : ""}`;
+
   return (
     <article
       className={styles.card}
@@ -65,6 +69,13 @@ export default function EventCard({ event }: EventCardProps) {
           <p className={styles.metaItem}>{event.registration}</p>
           <p className={styles.metaItem}>{event.accessibility}</p>
         </div>
+        <Link
+          className={styles.detailLink}
+          href={detailHref}
+          aria-label={`View details for ${event.title}`}
+        >
+          View event details
+        </Link>
         {event.officialUrl ? (
           <a href={event.officialUrl} rel="noreferrer" target="_blank">
             Official event details{" "}

@@ -62,6 +62,10 @@ export default function EventExplorer({ initialFilters }: EventExplorerProps) {
   const [loadMoreMessage, setLoadMoreMessage] = useState("");
   const requestVersion = useRef(0);
   const activeFilterDescriptions = describeFilters(filters);
+  const returnQuery = writeFilterSearchParams(
+    new URLSearchParams(),
+    filters,
+  ).toString();
 
   const load = useCallback(
     async (targetPage: number, replace: boolean) => {
@@ -317,7 +321,11 @@ export default function EventExplorer({ initialFilters }: EventExplorerProps) {
                     aria-label="Event listings"
                   >
                     {events.map((event) => (
-                      <EventCard key={event.guid} event={event} />
+                      <EventCard
+                        key={event.guid}
+                        event={event}
+                        returnQuery={returnQuery}
+                      />
                     ))}
                   </section>
                   {loadMoreError ? (

@@ -1,8 +1,10 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import eventList from "../../../contracts/golden/events-list.json";
+import eventDetail from "../../../contracts/golden/event-detail.json";
 import freshness from "../../../contracts/golden/freshness.json";
 import {
   apiToUiEvent,
+  getEvent,
   getFilteredEvents,
   parseEventsResponse,
   parseFreshnessResponse,
@@ -40,6 +42,19 @@ describe("live Event API mapping", () => {
     expect(() =>
       parseFreshnessResponse({ ...freshness, is_stale: null }),
     ).toThrow(/Freshness response/);
+  });
+
+  it("fetches one detail using an encoded source guid and validates it", async () => {
+    const fetchMock = vi.fn<
+      (input: string | URL | Request) => Promise<Response>
+    >(async () => Response.json(eventDetail));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const event = await getEvent("parks/guid,14");
+
+    expect(event.title.value).toBe(eventDetail.title.value);
+    expect(fetchMock).toHaveBeenCalledOnce();
+    expect(fetchMock.mock.calls[0][0]).toContain("/events/parks%2Fguid%2C14");
   });
 
   it("filters the complete source when the current snapshot exceeds 1,000 Events", async () => {
