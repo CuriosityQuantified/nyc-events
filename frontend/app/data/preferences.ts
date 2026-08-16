@@ -5,10 +5,17 @@ import { getDeviceToken } from "./device-token";
 
 export type FacetType = "borough" | "category" | "registration";
 
-export type Interest = {
-  id: string;
+export type InterestFacet = {
   facetType: FacetType;
   facetValue: string;
+};
+
+export type Interest = {
+  id: string;
+  facetType: FacetType | "composite";
+  facetValue: string;
+  /** Every member Facet; a single-facet Interest has exactly one. */
+  facets: InterestFacet[];
   alertEnabled: boolean;
   origin: string;
 };
@@ -43,6 +50,25 @@ export async function followInterest(
     body: JSON.stringify({
       facet_type: facetType,
       facet_value: facetValue,
+      alert_enabled: true,
+    }),
+  });
+  if (!response.ok) throw new PreferencesApiError(response.status);
+  return (await response.json()) as Interest;
+}
+
+/** Follow a combination of Facets as one Interest (AND semantics). */
+export async function followCompositeInterest(
+  facets: InterestFacet[],
+): Promise<Interest> {
+  const response = await fetch("/api/profile/interests", {
+    method: "PUT",
+    headers: headers({ "Content-Type": "application/json" }),
+    body: JSON.stringify({
+      facets: facets.map((facet) => ({
+        facet_type: facet.facetType,
+        facet_value: facet.facetValue,
+      })),
       alert_enabled: true,
     }),
   });

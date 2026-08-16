@@ -2,7 +2,11 @@
 
 import { useState } from "react";
 import { filterLabel, type FilterState } from "@/app/data/filters";
-import { followInterest, type FacetType } from "@/app/data/preferences";
+import {
+  followCompositeInterest,
+  followInterest,
+  type FacetType,
+} from "@/app/data/preferences";
 import styles from "./FollowFacets.module.css";
 
 type Followable = { facetType: FacetType; value: string; label: string };
@@ -54,6 +58,26 @@ export default function FollowFacets({ filters }: { filters: FilterState }) {
     }
   };
 
+  const combinationKey = facets
+    .map((facet) => `${facet.facetType}:${facet.value}`)
+    .join("|");
+  const combinationLabel = facets.map((facet) => facet.label).join(" + ");
+
+  const onFollowCombination = async () => {
+    setFailed(null);
+    try {
+      await followCompositeInterest(
+        facets.map((facet) => ({
+          facetType: facet.facetType,
+          facetValue: facet.value,
+        })),
+      );
+      setFollowed((prev) => new Set(prev).add(combinationKey));
+    } catch {
+      setFailed(`Could not follow ${combinationLabel}. Try again.`);
+    }
+  };
+
   return (
     <div
       className={styles.wrapper}
@@ -67,6 +91,19 @@ export default function FollowFacets({ filters }: { filters: FilterState }) {
           Pick a borough, category, or registration filter, then follow it to
           build Interests.
         </span>
+      ) : null}
+      {facets.length >= 2 ? (
+        <button
+          type="button"
+          className={`${styles.follow} ${styles.combined} ${followed.has(combinationKey) ? styles.following : ""}`}
+          aria-pressed={followed.has(combinationKey)}
+          disabled={followed.has(combinationKey)}
+          onClick={() => void onFollowCombination()}
+        >
+          {followed.has(combinationKey)
+            ? `Following ${combinationLabel} ✓`
+            : `Follow ${combinationLabel} (combined)`}
+        </button>
       ) : null}
       {facets.map((facet) => {
         const key = `${facet.facetType}:${facet.value}`;
