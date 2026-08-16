@@ -15,7 +15,7 @@ export const coreNavItems: NavItem[] = [
   { id: "explore", label: "Explore", icon: "🔍", href: "/" },
   { id: "saved", label: "Saved", icon: "♥", href: "/saved" },
   { id: "concierge", label: "Concierge", icon: "💬", href: null },
-  { id: "profile", label: "Profile", icon: "👤", href: null },
+  { id: "profile", label: "Profile", icon: "👤", href: "/profile" },
 ];
 
 /** Desktop sidebar shares the same destinations with longer labels */
@@ -23,5 +23,5 @@ export const sidebarNavItems: NavItem[] = [
   { id: "explore", label: "Explore", icon: "🔍", href: "/" },
   { id: "saved", label: "Saved Events", icon: "♥", href: "/saved" },
   { id: "concierge", label: "Concierge", icon: "💬", href: null },
-  { id: "profile", label: "Profile", icon: "👤", href: null },
+  { id: "profile", label: "Profile", icon: "👤", href: "/profile" },
 ];

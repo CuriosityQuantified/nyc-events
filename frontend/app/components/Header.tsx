@@ -23,10 +23,7 @@ export default function Header() {
       </div>
       <label>
         <span className="sr-only">Select borough</span>
-        <select
-          className={styles.boroughSelect}
-          defaultValue="All Boroughs"
-        >
+        <select className={styles.boroughSelect} defaultValue="All Boroughs">
           {boroughs.map((b) => (
             <option key={b} value={b}>
               {b}

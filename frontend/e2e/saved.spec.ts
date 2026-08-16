@@ -46,6 +46,11 @@ test.describe("Saved tab with List/Calendar views", () => {
         json: { events: [savedEvent], page: 1, pageSize: 100, total: 1 },
       }),
     );
+    await page.route("**/api/profile/matches**", (route) =>
+      route.fulfill({
+        json: { events: [], page: 1, pageSize: 100, total: 0 },
+      }),
+    );
     await page.route("**/api/events?*", (route) =>
       route.fulfill({
         json: { events: [], page: 1, pageSize: 12, total: 0, totalPages: 0 },
@@ -132,5 +137,71 @@ test.describe("Saved tab with List/Calendar views", () => {
   }) => {
     const results = await new AxeBuilder({ page }).analyze();
     expect(results.violations).toEqual([]);
+  });
+});
+
+test.describe("Matches inside the Saved destination", () => {
+  const matchEvent = {
+    ...savedEvent,
+    id: "e-match-1",
+    guid: "e-match-1",
+    title: "Beginner Birding",
+  };
+
+  test.beforeEach(async ({ page }) => {
+    let matchesDismissed = false;
+    let matchesPromoted = false;
+    await page.route("**/api/profile/saved**", (route) =>
+      route.fulfill({
+        json: { events: [savedEvent], page: 1, pageSize: 100, total: 1 },
+      }),
+    );
+    await page.route("**/api/profile/matches?*", (route) =>
+      route.fulfill({
+        json:
+          matchesDismissed || matchesPromoted
+            ? { events: [], page: 1, pageSize: 100, total: 0 }
+            : { events: [matchEvent], page: 1, pageSize: 100, total: 1 },
+      }),
+    );
+    await page.route("**/api/profile/matches/e-match-1", (route) => {
+      if (route.request().method() === "PUT") {
+        matchesPromoted = true;
+        return route.fulfill({
+          json: {
+            profile_id: "p1",
+            event_guid: "e-match-1",
+            matched: false,
+            saved: true,
+          },
+        });
+      }
+      matchesDismissed = true;
+      return route.fulfill({ status: 204, body: "" });
+    });
+    await page.goto("/saved");
+  });
+
+  test("a Match stays separate from Saved and can be promoted", async ({
+    page,
+  }) => {
+    const matches = page.getByTestId("matches-section");
+    await expect(matches).toBeVisible();
+    const matchesList = matches.getByTestId("matches-list");
+    await expect(matchesList.getByText("Beginner Birding")).toBeVisible();
+    await expect(
+      page.getByTestId("saved-list").getByText("Beginner Birding"),
+    ).toHaveCount(0);
+
+    await matches.getByRole("button", { name: "Add to Saved" }).click();
+    await expect(matches.getByTestId("matches-empty")).toBeVisible();
+  });
+
+  test("a Match can be dismissed", async ({ page }) => {
+    const matches = page.getByTestId("matches-section");
+    await matches
+      .getByRole("button", { name: "Dismiss Beginner Birding" })
+      .click();
+    await expect(matches.getByTestId("matches-empty")).toBeVisible();
   });
 });

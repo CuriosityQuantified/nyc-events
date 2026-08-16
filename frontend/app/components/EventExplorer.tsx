@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Header from "@/app/components/Header";
 import SearchBar from "@/app/components/SearchBar";
 import FilterChips from "@/app/components/FilterChips";
+import FollowFacets from "@/app/components/FollowFacets";
 import ListMapToggle from "@/app/components/ListMapToggle";
 import type { View } from "@/app/components/ListMapToggle";
 import EventCard from "@/app/components/EventCard";
@@ -253,6 +254,7 @@ export default function EventExplorer({ initialFilters }: EventExplorerProps) {
           <SearchBar />
           <div className={styles.explorerWorkspace}>
             <FilterChips filters={filters} onChange={changeFilters} />
+            <FollowFacets filters={filters} />
             <section
               className={styles.resultsRegion}
               aria-label="Filtered events"
