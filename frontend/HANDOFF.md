@@ -3,7 +3,7 @@
 - Job/lane: NYC frontend autonomous issue worker; persistent `frontend` branch/worktree at `/Users/halgorithm/workspaces/AI/nyc-events-frontend`
 - Issue: #14 — Event detail page with provenance and official NYC Parks link
 - Ownership: frontend-only implementation plus tracked Graphify outputs
-- Stop reason: Fullstack Issue #51 is still OPEN with `in-progress`. The lane contract blocks Issue #14 until #51 is CLOSED, even though #51 has a resolution comment and no open PR/fullstack worktree.
+- Stop reason: Fullstack Issue #51 is still OPEN with `in-progress`. The lane contract blocks Issue #14 until #51 is CLOSED, even though #51 has a resolution comment and no open PR/fullstack worktree. Reverified at `2026-08-16T09:02:58Z`; the fullstack worktree is absent, but issue state and label are authoritative.
 
 ## Completed
 
