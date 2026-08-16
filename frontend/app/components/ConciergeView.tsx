@@ -1,6 +1,8 @@
 "use client";
 
 import { FormEvent, useRef, useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import BottomNav from "@/app/components/BottomNav";
 import DesktopSidebar from "@/app/components/DesktopSidebar";
 import Header from "@/app/components/Header";
@@ -206,7 +208,15 @@ export default function ConciergeView() {
                     data-role={message.role}
                   >
                     <span>{message.role === "user" ? "You" : "Concierge"}</span>
-                    <p>{message.content}</p>
+                    {message.role === "user" ? (
+                      <p>{message.content}</p>
+                    ) : (
+                      <div className={styles.markdown}>
+                        <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                          {message.content}
+                        </ReactMarkdown>
+                      </div>
+                    )}
                   </article>
                 ))
               )}
