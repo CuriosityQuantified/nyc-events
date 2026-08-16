@@ -59,6 +59,15 @@ test.describe("EventMatch NYC Walking Skeleton", () => {
         },
       });
     });
+    await page.route("https://tile.openstreetmap.org/**", (route) =>
+      route.fulfill({
+        body: Buffer.from(
+          "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+          "base64",
+        ),
+        contentType: "image/png",
+      }),
+    );
     await page.route("**/api/profile/saved**", (route) =>
       route.fulfill({
         json: { events: [], page: 1, pageSize: 100, total: 0 },

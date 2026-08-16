@@ -5,6 +5,7 @@ import {
   applyEventFilters,
   describeFilters,
   parseFilterSearchParams,
+  parseStrictFilterSearchParams,
   writeFilterSearchParams,
 } from "./filters";
 
@@ -66,6 +67,8 @@ describe("filter URL state", () => {
       category: "Nature",
       date: "today",
       registration: "required",
+      dateFrom: null,
+      dateTo: null,
     });
   });
 
@@ -77,6 +80,8 @@ describe("filter URL state", () => {
         category: "Best for Kids",
         date: "weekend",
         registration: "not_listed",
+        dateFrom: null,
+        dateTo: null,
       },
     );
 
@@ -98,6 +103,8 @@ describe("event filtering", () => {
         category: "Best for Kids",
         date: "today",
         registration: "required",
+        dateFrom: null,
+        dateTo: null,
       },
       new Date("2026-08-16T16:00:00Z"),
     );
@@ -136,6 +143,8 @@ describe("event filtering", () => {
         category: "Nature",
         date: "weekend",
         registration: "required",
+        dateFrom: null,
+        dateTo: null,
       }),
     ).toEqual([
       "Borough: Queens",
@@ -143,5 +152,73 @@ describe("event filtering", () => {
       "Date: This weekend",
       "Registration: Required",
     ]);
+  });
+});
+
+describe("exact-date filters", () => {
+  it("round-trips date_from and date_to through URL state", () => {
+    const params = writeFilterSearchParams(new URLSearchParams(), {
+      ...EMPTY_FILTERS,
+      dateFrom: "2026-08-20",
+      dateTo: "2026-08-22",
+    });
+    expect(params.get("date_from")).toBe("2026-08-20");
+    expect(params.get("date_to")).toBe("2026-08-22");
+    const parsed = parseFilterSearchParams(params);
+    expect(parsed.dateFrom).toBe("2026-08-20");
+    expect(parsed.dateTo).toBe("2026-08-22");
+  });
+
+  it("drops malformed or inverted exact dates on lenient parse", () => {
+    expect(
+      parseFilterSearchParams(new URLSearchParams("date_from=2026-13-40"))
+        .dateFrom,
+    ).toBeNull();
+    const inverted = parseFilterSearchParams(
+      new URLSearchParams("date_from=2026-08-22&date_to=2026-08-20"),
+    );
+    expect(inverted.dateFrom).toBeNull();
+    expect(inverted.dateTo).toBeNull();
+  });
+
+  it("rejects malformed and inverted exact dates on strict parse", () => {
+    expect(() =>
+      parseStrictFilterSearchParams(new URLSearchParams("date_from=nope")),
+    ).toThrowError(/date_from/);
+    expect(() =>
+      parseStrictFilterSearchParams(
+        new URLSearchParams("date_from=2026-08-22&date_to=2026-08-20"),
+      ),
+    ).toThrowError(/date_from/);
+  });
+
+  it("keeps only events whose New York date falls inside the bounds", () => {
+    const from = applyEventFilters(events, {
+      ...EMPTY_FILTERS,
+      dateFrom: "2026-08-17",
+    });
+    expect(from.map((event) => event.guid)).toEqual(["manhattan-fitness"]);
+
+    const to = applyEventFilters(events, {
+      ...EMPTY_FILTERS,
+      dateTo: "2026-08-16",
+    });
+    expect(to.map((event) => event.guid)).toEqual(["queens-nature"]);
+
+    const none = applyEventFilters([{ ...events[0], startDate: null }], {
+      ...EMPTY_FILTERS,
+      dateFrom: "2026-08-01",
+    });
+    expect(none).toEqual([]);
+  });
+
+  it("describes exact dates for the results header", () => {
+    expect(
+      describeFilters({
+        ...EMPTY_FILTERS,
+        dateFrom: "2026-08-20",
+        dateTo: "2026-08-22",
+      }),
+    ).toContain("Dates: 2026-08-20 to 2026-08-22");
   });
 });

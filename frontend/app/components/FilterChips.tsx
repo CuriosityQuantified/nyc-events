@@ -5,6 +5,7 @@ import {
   EMPTY_FILTERS,
   FILTER_OPTIONS,
   hasActiveFilters,
+  isValidIsoDate,
   type FilterKey,
   type FilterState,
 } from "@/app/data/filters";
@@ -54,10 +55,25 @@ export default function FilterChips({ filters, onChange }: FilterChipsProps) {
   }, [filters]);
 
   function toggle(key: FilterKey, value: string) {
-    onChange({
+    const next = {
       ...filters,
       [key]: filters[key] === value ? null : value,
-    } as FilterState);
+    } as FilterState;
+    // A preset date range and exact dates would silently intersect; the
+    // last choice wins instead.
+    if (key === "date" && next.date) {
+      next.dateFrom = null;
+      next.dateTo = null;
+    }
+    onChange(next);
+  }
+
+  function setExactDate(bound: "dateFrom" | "dateTo", value: string) {
+    onChange({
+      ...filters,
+      [bound]: value && isValidIsoDate(value) ? value : null,
+      date: null,
+    });
   }
 
   return (
@@ -109,6 +125,46 @@ export default function FilterChips({ filters, onChange }: FilterChipsProps) {
             </ul>
           </fieldset>
         ))}
+        <fieldset className={styles.group}>
+          <legend>Exact dates</legend>
+          <div className={styles.dateInputs} data-testid="exact-date-filter">
+            <label className={styles.dateLabel}>
+              From
+              <input
+                type="date"
+                className={styles.dateInput}
+                value={filters.dateFrom ?? ""}
+                max={filters.dateTo ?? undefined}
+                onChange={(changeEvent) =>
+                  setExactDate("dateFrom", changeEvent.target.value)
+                }
+              />
+            </label>
+            <label className={styles.dateLabel}>
+              To
+              <input
+                type="date"
+                className={styles.dateInput}
+                value={filters.dateTo ?? ""}
+                min={filters.dateFrom ?? undefined}
+                onChange={(changeEvent) =>
+                  setExactDate("dateTo", changeEvent.target.value)
+                }
+              />
+            </label>
+            {filters.dateFrom || filters.dateTo ? (
+              <button
+                type="button"
+                className={styles.clearDates}
+                onClick={() =>
+                  onChange({ ...filters, dateFrom: null, dateTo: null })
+                }
+              >
+                Clear dates
+              </button>
+            ) : null}
+          </div>
+        </fieldset>
       </div>
     </section>
   );

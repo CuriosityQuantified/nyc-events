@@ -42,7 +42,6 @@ export default function FollowFacets({ filters }: { filters: FilterState }) {
   const [followed, setFollowed] = useState<ReadonlySet<string>>(new Set());
   const [failed, setFailed] = useState<string | null>(null);
   const facets = followableFacets(filters);
-  if (facets.length === 0) return null;
 
   const onFollow = async (facet: Followable) => {
     const key = `${facet.facetType}:${facet.value}`;
@@ -61,7 +60,14 @@ export default function FollowFacets({ filters }: { filters: FilterState }) {
       role="group"
       aria-label="Follow these filters"
       data-testid="follow-facets"
+      tabIndex={0}
     >
+      {facets.length === 0 ? (
+        <span className={styles.hint}>
+          Pick a borough, category, or registration filter, then follow it to
+          build Interests.
+        </span>
+      ) : null}
       {facets.map((facet) => {
         const key = `${facet.facetType}:${facet.value}`;
         const isFollowed = followed.has(key);
