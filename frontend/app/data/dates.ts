@@ -1,11 +1,18 @@
-/** Generate ISO date strings (YYYY-MM-DD) for the next N days starting from today */
+const NYC_DATE_FORMATTER = new Intl.DateTimeFormat("en-US", {
+  timeZone: "America/New_York",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+});
+
+/** Generate ISO date strings for the next N New York calendar days. */
 export function getUpcomingDates(count: number): string[] {
-  const dates: string[] = [];
-  const now = new Date();
-  for (let i = 0; i < count; i++) {
-    const d = new Date(now);
-    d.setDate(now.getDate() + i);
-    dates.push(d.toISOString().split("T")[0]);
-  }
-  return dates;
+  const parts = Object.fromEntries(
+    NYC_DATE_FORMATTER.formatToParts(new Date()).map(({ type, value }) => [type, value]),
+  );
+  const start = Date.UTC(Number(parts.year), Number(parts.month) - 1, Number(parts.day));
+
+  return Array.from({ length: count }, (_, index) =>
+    new Date(start + index * 86_400_000).toISOString().slice(0, 10),
+  );
 }
