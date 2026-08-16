@@ -120,6 +120,43 @@ def validate_workflows(ci: dict[str, Any], deploy: dict[str, Any]) -> list[str]:
         ):
             errors.append(f"deployment job {job_name} must initialize failure evidence before checkout")
 
+    backend = deploy_jobs.get("deploy-backend", {})
+    backend_env = backend.get("env", {})
+    backend_text = str(backend)
+    if (
+        backend_env.get("RAILWAY_SSH_PRIVATE_KEY")
+        != "${{ secrets.RAILWAY_SSH_PRIVATE_KEY }}"
+    ):
+        errors.append(
+            "backend deployment must use the dedicated Railway SSH identity secret"
+        )
+    for required in (
+        "--identity-file",
+        "RAILWAY_SSH_IDENTITY",
+        "scripts/deploy/railway_known_hosts",
+        "UserKnownHostsFile",
+        "StrictHostKeyChecking yes",
+        "BatchMode yes",
+        "SHA256:+S1xg92FrnHz6pY3bpkmh1OGtWQGNANXilPzlxA7B1g",
+    ):
+        if required not in backend_text:
+            errors.append(f"backend deployment SSH is missing {required}")
+    for forbidden in ("StrictHostKeyChecking no", "StrictHostKeyChecking accept-new"):
+        if forbidden in backend_text:
+            errors.append(f"backend deployment SSH contains unsafe {forbidden}")
+
+    for job_name in DEPLOY_JOBS:
+        for step in deploy_jobs.get(job_name, {}).get("steps", []):
+            run = step.get("run", "")
+            if "deploymentRollback" not in run or "wait-revision" not in run:
+                continue
+            if "wait-deployment" not in run or run.index("wait-deployment") > run.index(
+                "wait-revision"
+            ):
+                errors.append(
+                    f"deployment job {job_name} must verify rollback deployment before revision"
+                )
+
     for workflow_name, workflow in (("CI", ci), ("deployment", deploy)):
         for job_name, step in iter_steps(workflow):
             action = step.get("uses")

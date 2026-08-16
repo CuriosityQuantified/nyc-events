@@ -32,6 +32,7 @@ jobs:
       deployment_id: ${{ steps.wait.outputs.deployment_id }}
     env:
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      RAILWAY_SSH_PRIVATE_KEY: ${{ secrets.RAILWAY_SSH_PRIVATE_KEY }}
       CONFIGURED_RAILWAY_PROJECT_ID: ${{ vars.RAILWAY_PROJECT_ID }}
       CONFIGURED_PUBLIC_ORIGIN: ${{ vars.BACKEND_PUBLIC_ORIGIN }}
       CONFIGURED_FRONTEND_ORIGIN: ${{ vars.FRONTEND_PUBLIC_ORIGIN }}
@@ -68,8 +69,32 @@ jobs:
         run: |
           set -euo pipefail
           test -n "$RAILWAY_TOKEN" || { echo "::error::RAILWAY_TOKEN is missing from the production environment"; exit 1; }
+          test -n "$RAILWAY_SSH_PRIVATE_KEY" || { echo "::error::RAILWAY_SSH_PRIVATE_KEY is missing from the production environment"; exit 1; }
           test -n "$CONFIGURED_RAILWAY_PROJECT_ID" || { echo "::error::RAILWAY_PROJECT_ID is missing from the production environment"; exit 1; }
           test -n "$CONFIGURED_FRONTEND_ORIGIN" || { echo "::error::FRONTEND_PUBLIC_ORIGIN is missing from the production environment"; exit 1; }
+
+      - name: Provision the dedicated noninteractive Railway SSH identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          umask 077
+          RAILWAY_SSH_IDENTITY="$RUNNER_TEMP/railway-ci-ssh"
+          RAILWAY_SSH_KNOWN_HOSTS="$RUNNER_TEMP/railway-known-hosts"
+          printf '%s\n' "$RAILWAY_SSH_PRIVATE_KEY" > "$RAILWAY_SSH_IDENTITY"
+          chmod 600 "$RAILWAY_SSH_IDENTITY"
+          install -d -m 700 "$HOME/.ssh"
+          install -m 600 scripts/deploy/railway_known_hosts "$RAILWAY_SSH_KNOWN_HOSTS"
+          test "$(ssh-keygen -lf "$RAILWAY_SSH_KNOWN_HOSTS" | cut -d' ' -f2)" = \
+            "SHA256:+S1xg92FrnHz6pY3bpkmh1OGtWQGNANXilPzlxA7B1g"
+          cat >> "$HOME/.ssh/config" <<EOF
+          Host ssh.railway.com
+            BatchMode yes
+            StrictHostKeyChecking yes
+            UserKnownHostsFile $RAILWAY_SSH_KNOWN_HOSTS
+          EOF
+          chmod 600 "$HOME/.ssh/config"
+          printf 'RAILWAY_SSH_IDENTITY=%s\n' "$RAILWAY_SSH_IDENTITY" >> "$GITHUB_ENV"
+          printf 'RAILWAY_SSH_KNOWN_HOSTS=%s\n' "$RAILWAY_SSH_KNOWN_HOSTS" >> "$GITHUB_ENV"
 
       - name: Discover the exact backend service and public origin
         id: railway
@@ -163,6 +188,7 @@ jobs:
             --project "$RAILWAY_PROJECT_ID" \
             --service "$RAILWAY_SERVICE_ID" \
             --environment production \
+            --identity-file "$RAILWAY_SSH_IDENTITY" \
             .venv/bin/python -m app.sync \
             | tee artifacts/backend-deployment/sync.log
           curl --fail --silent --show-error "$PUBLIC_ORIGIN/freshness" \
@@ -175,6 +201,7 @@ jobs:
             --project "$RAILWAY_PROJECT_ID" \
             --service "$RAILWAY_SERVICE_ID" \
             --environment production \
+            --identity-file "$RAILWAY_SSH_IDENTITY" \
             .venv/bin/python -m app.verify_snapshot \
             > artifacts/backend-deployment/database-snapshot.json
           python3 - <<'PY'
@@ -198,6 +225,11 @@ jobs:
           if database.get("first_guid") != events["events"][0]["guid"]:
               raise SystemExit("database and API first Event GUIDs differ")
           PY
+
+      - name: Remove the Railway SSH identity from the runner
+        if: always()
+        shell: bash
+        run: rm -f "$RAILWAY_SSH_IDENTITY" "$RAILWAY_SSH_KNOWN_HOSTS"
 
       - name: Snapshot the verified backend before the rollback drill
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.rollback_drill }}
@@ -238,9 +270,20 @@ jobs:
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.rollback_drill }}
         run: |
           set -euo pipefail
+          python3 scripts/deploy/railway_release.py snapshot \
+            --project "$RAILWAY_PROJECT_ID" \
+            --service "$RAILWAY_SERVICE_ID" \
+            --environment production \
+            --output artifacts/backend-deployment/drill-rollback-before.json
           railway api "mutation(\$id: String!) { deploymentRollback(id: \$id) }" \
             --var id="$DEPLOYMENT_ID" \
             > artifacts/backend-deployment/drill-rollback.json
+          python3 scripts/deploy/railway_release.py wait-deployment \
+            --project "$RAILWAY_PROJECT_ID" \
+            --service "$RAILWAY_SERVICE_ID" \
+            --environment production \
+            --before artifacts/backend-deployment/drill-rollback-before.json \
+            --output artifacts/backend-deployment/drill-rollback-deployed.json
           python3 scripts/deploy/railway_release.py wait-revision \
             --origin "$PUBLIC_ORIGIN" \
             --expected "$GITHUB_SHA" \
@@ -253,14 +296,24 @@ jobs:
         run: |
           set -euo pipefail
           test -n "$PREVIOUS_DEPLOYMENT_ID" || { echo "::error::no backend rollback target exists"; exit 1; }
+          test -n "$PREVIOUS_REVISION" || { echo "::error::no exact backend rollback revision exists"; exit 1; }
+          python3 scripts/deploy/railway_release.py snapshot \
+            --project "$RAILWAY_PROJECT_ID" \
+            --service "$RAILWAY_SERVICE_ID" \
+            --environment production \
+            --output artifacts/backend-deployment/failure-rollback-before.json
           railway api "mutation(\$id: String!) { deploymentRollback(id: \$id) }" \
             --var id="$PREVIOUS_DEPLOYMENT_ID" > artifacts/backend-deployment/failure-rollback.json
-          if [ -n "$PREVIOUS_REVISION" ]; then
-            python3 scripts/deploy/railway_release.py wait-revision \
-              --origin "$PUBLIC_ORIGIN" \
-              --expected "$PREVIOUS_REVISION" \
-              --output artifacts/backend-deployment/failure-rollback-cutover.json
-          fi
+          python3 scripts/deploy/railway_release.py wait-deployment \
+            --project "$RAILWAY_PROJECT_ID" \
+            --service "$RAILWAY_SERVICE_ID" \
+            --environment production \
+            --before artifacts/backend-deployment/failure-rollback-before.json \
+            --output artifacts/backend-deployment/failure-rollback-deployed.json
+          python3 scripts/deploy/railway_release.py wait-revision \
+            --origin "$PUBLIC_ORIGIN" \
+            --expected "$PREVIOUS_REVISION" \
+            --output artifacts/backend-deployment/failure-rollback-cutover.json
 
       - name: Upload backend deployment and rollback evidence
         if: always()
@@ -373,17 +426,48 @@ jobs:
       - name: Roll back worker and backend when the scheduled deployment fails
         if: ${{ failure() && steps.deploy.outcome != 'skipped' }}
         env:
+          BACKEND_PUBLIC_ORIGIN: ${{ needs.deploy-backend.outputs.origin }}
+          BACKEND_RAILWAY_SERVICE_ID: ${{ needs.deploy-backend.outputs.service_id }}
           BACKEND_PREVIOUS_DEPLOYMENT_ID: ${{ needs.deploy-backend.outputs.previous_id }}
+          BACKEND_PREVIOUS_REVISION: ${{ needs.deploy-backend.outputs.previous_revision }}
         run: |
           set -euo pipefail
           if [ -n "$PREVIOUS_DEPLOYMENT_ID" ]; then
+            python3 scripts/deploy/railway_release.py snapshot \
+              --project "$CONFIGURED_RAILWAY_PROJECT_ID" \
+              --service "$SYNC_RAILWAY_SERVICE_ID" \
+              --environment production \
+              --output artifacts/sync-worker/failure-rollback-before.json
             railway api "mutation(\$id: String!) { deploymentRollback(id: \$id) }" \
               --var id="$PREVIOUS_DEPLOYMENT_ID" > artifacts/sync-worker/failure-rollback.json
+            python3 scripts/deploy/railway_release.py wait-deployment \
+              --project "$CONFIGURED_RAILWAY_PROJECT_ID" \
+              --service "$SYNC_RAILWAY_SERVICE_ID" \
+              --environment production \
+              --before artifacts/sync-worker/failure-rollback-before.json \
+              --output artifacts/sync-worker/failure-rollback-deployed.json
           fi
           test -n "$BACKEND_PREVIOUS_DEPLOYMENT_ID" || { echo "::error::no backend rollback target"; exit 1; }
+          test -n "$BACKEND_RAILWAY_SERVICE_ID" || { echo "::error::no backend service exists"; exit 1; }
+          test -n "$BACKEND_PREVIOUS_REVISION" || { echo "::error::no exact backend rollback revision exists"; exit 1; }
+          python3 scripts/deploy/railway_release.py snapshot \
+            --project "$CONFIGURED_RAILWAY_PROJECT_ID" \
+            --service "$BACKEND_RAILWAY_SERVICE_ID" \
+            --environment production \
+            --output artifacts/sync-worker/failure-backend-rollback-before.json
           railway api "mutation(\$id: String!) { deploymentRollback(id: \$id) }" \
             --var id="$BACKEND_PREVIOUS_DEPLOYMENT_ID" \
             > artifacts/sync-worker/failure-backend-rollback.json
+          python3 scripts/deploy/railway_release.py wait-deployment \
+            --project "$CONFIGURED_RAILWAY_PROJECT_ID" \
+            --service "$BACKEND_RAILWAY_SERVICE_ID" \
+            --environment production \
+            --before artifacts/sync-worker/failure-backend-rollback-before.json \
+            --output artifacts/sync-worker/failure-backend-rollback-deployed.json
+          python3 scripts/deploy/railway_release.py wait-revision \
+            --origin "$BACKEND_PUBLIC_ORIGIN" \
+            --expected "$BACKEND_PREVIOUS_REVISION" \
+            --output artifacts/sync-worker/failure-backend-rollback-cutover.json
 
       - name: Upload scheduled-worker deployment evidence
         if: always()
@@ -569,9 +653,20 @@ jobs:
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.rollback_drill }}
         run: |
           set -euo pipefail
+          python3 scripts/deploy/railway_release.py snapshot \
+            --project "$RAILWAY_PROJECT_ID" \
+            --service "$RAILWAY_SERVICE_ID" \
+            --environment production \
+            --output artifacts/deployment/drill-rollback-before.json
           railway api "mutation(\$id: String!) { deploymentRollback(id: \$id) }" \
             --var id="$DEPLOYMENT_ID" \
             > artifacts/deployment/drill-rollback.json
+          python3 scripts/deploy/railway_release.py wait-deployment \
+            --project "$RAILWAY_PROJECT_ID" \
+            --service "$RAILWAY_SERVICE_ID" \
+            --environment production \
+            --before artifacts/deployment/drill-rollback-before.json \
+            --output artifacts/deployment/drill-rollback-deployed.json
           python3 scripts/deploy/railway_release.py wait-revision \
             --origin "$PUBLIC_ORIGIN" \
             --expected "$GITHUB_SHA" \
@@ -586,29 +681,51 @@ jobs:
         if: ${{ failure() && steps.deploy.outcome != 'skipped' }}
         env:
           BACKEND_PUBLIC_ORIGIN: ${{ needs.deploy-backend.outputs.origin }}
+          BACKEND_RAILWAY_SERVICE_ID: ${{ needs.deploy-backend.outputs.service_id }}
           BACKEND_PREVIOUS_DEPLOYMENT_ID: ${{ needs.deploy-backend.outputs.previous_id }}
           BACKEND_PREVIOUS_REVISION: ${{ needs.deploy-backend.outputs.previous_revision }}
         run: |
           set -euo pipefail
           test -n "$PREVIOUS_DEPLOYMENT_ID" || { echo "::error::no rollback target exists"; exit 1; }
+          test -n "$PREVIOUS_REVISION" || { echo "::error::no exact frontend rollback revision exists"; exit 1; }
+          python3 scripts/deploy/railway_release.py snapshot \
+            --project "$RAILWAY_PROJECT_ID" \
+            --service "$RAILWAY_SERVICE_ID" \
+            --environment production \
+            --output artifacts/deployment/failure-rollback-before.json
           railway api "mutation(\$id: String!) { deploymentRollback(id: \$id) }" \
             --var id="$PREVIOUS_DEPLOYMENT_ID" > artifacts/deployment/failure-rollback.json
-          if [ -n "$PREVIOUS_REVISION" ]; then
-            python3 scripts/deploy/railway_release.py wait-revision \
-              --origin "$PUBLIC_ORIGIN" \
-              --expected "$PREVIOUS_REVISION" \
-              --output artifacts/deployment/failure-rollback-cutover.json
-          fi
+          python3 scripts/deploy/railway_release.py wait-deployment \
+            --project "$RAILWAY_PROJECT_ID" \
+            --service "$RAILWAY_SERVICE_ID" \
+            --environment production \
+            --before artifacts/deployment/failure-rollback-before.json \
+            --output artifacts/deployment/failure-rollback-deployed.json
+          python3 scripts/deploy/railway_release.py wait-revision \
+            --origin "$PUBLIC_ORIGIN" \
+            --expected "$PREVIOUS_REVISION" \
+            --output artifacts/deployment/failure-rollback-cutover.json
           test -n "$BACKEND_PREVIOUS_DEPLOYMENT_ID" || { echo "::error::no backend rollback target exists"; exit 1; }
+          test -n "$BACKEND_RAILWAY_SERVICE_ID" || { echo "::error::no backend service exists"; exit 1; }
+          test -n "$BACKEND_PREVIOUS_REVISION" || { echo "::error::no exact backend rollback revision exists"; exit 1; }
+          python3 scripts/deploy/railway_release.py snapshot \
+            --project "$RAILWAY_PROJECT_ID" \
+            --service "$BACKEND_RAILWAY_SERVICE_ID" \
+            --environment production \
+            --output artifacts/deployment/failure-backend-rollback-before.json
           railway api "mutation(\$id: String!) { deploymentRollback(id: \$id) }" \
             --var id="$BACKEND_PREVIOUS_DEPLOYMENT_ID" \
             > artifacts/deployment/failure-backend-rollback.json
-          if [ -n "$BACKEND_PREVIOUS_REVISION" ]; then
-            python3 scripts/deploy/railway_release.py wait-revision \
-              --origin "$BACKEND_PUBLIC_ORIGIN" \
-              --expected "$BACKEND_PREVIOUS_REVISION" \
-              --output artifacts/deployment/failure-backend-rollback-cutover.json
-          fi
+          python3 scripts/deploy/railway_release.py wait-deployment \
+            --project "$RAILWAY_PROJECT_ID" \
+            --service "$BACKEND_RAILWAY_SERVICE_ID" \
+            --environment production \
+            --before artifacts/deployment/failure-backend-rollback-before.json \
+            --output artifacts/deployment/failure-backend-rollback-deployed.json
+          python3 scripts/deploy/railway_release.py wait-revision \
+            --origin "$BACKEND_PUBLIC_ORIGIN" \
+            --expected "$BACKEND_PREVIOUS_REVISION" \
+            --output artifacts/deployment/failure-backend-rollback-cutover.json
 
       - name: Write deployment summary
         if: always()
