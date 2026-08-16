@@ -10,8 +10,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from sqlalchemy import text
 
+from app.concierge_runtime import concierge_runtime
 from app.config import get_settings
 from app.database import get_engine, reset_engine
+from app.routes.concierge import router as concierge_router
 from app.routes.events import router as events_router
 from app.routes.preferences import router as preferences_router
 from app.routes.profiles import router as profiles_router
@@ -20,8 +22,13 @@ from app.routes.profiles import router as profiles_router
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Manage application startup and shutdown."""
-    yield
-    await reset_engine()
+    async with concierge_runtime() as concierge_agent:
+        app.state.concierge_agent = concierge_agent
+        try:
+            yield
+        finally:
+            app.state.concierge_agent = None
+            await reset_engine()
 
 
 app = FastAPI(title="NYC Events API", lifespan=lifespan)
@@ -29,12 +36,13 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[get_settings().frontend_origin],
     allow_credentials=False,
-    allow_methods=["GET", "PUT", "DELETE"],
+    allow_methods=["GET", "POST", "PUT", "DELETE"],
     allow_headers=["Accept", "Content-Type", "X-Device-Token"],
 )
 app.include_router(events_router)
 app.include_router(profiles_router)
 app.include_router(preferences_router)
+app.include_router(concierge_router)
 
 
 @app.get("/api/revision")
