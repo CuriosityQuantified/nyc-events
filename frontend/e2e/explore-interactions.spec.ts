@@ -182,6 +182,11 @@ test.describe("Explore layout stability and interactions", () => {
     await expect(page.getByTestId("event-card")).toHaveCount(2);
 
     const dateFilter = page.getByTestId("exact-date-filter");
+    await expect(dateFilter.getByLabel("From")).toHaveValue("");
+    await expect(dateFilter.getByLabel("To")).toHaveValue("");
+    expect(new URL(page.url()).searchParams.get("date_from")).toBeNull();
+    expect(new URL(page.url()).searchParams.get("date_to")).toBeNull();
+
     await dateFilter.getByLabel("From").fill("2026-08-21");
     await expect
       .poll(() => new URL(page.url()).searchParams.get("date_from"))

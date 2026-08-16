@@ -158,6 +158,7 @@ export default function FilterChips({ filters, onChange }: FilterChipsProps) {
               <input
                 type="date"
                 className={styles.dateInput}
+                autoComplete="off"
                 value={filters.dateFrom ?? ""}
                 max={filters.dateTo ?? undefined}
                 onChange={(changeEvent) =>
@@ -170,6 +171,7 @@ export default function FilterChips({ filters, onChange }: FilterChipsProps) {
               <input
                 type="date"
                 className={styles.dateInput}
+                autoComplete="off"
                 value={filters.dateTo ?? ""}
                 min={filters.dateFrom ?? undefined}
                 onChange={(changeEvent) =>
