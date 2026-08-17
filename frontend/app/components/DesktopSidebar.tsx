@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
+import NavIcon from "@/app/components/NavIcon";
 import { sidebarNavItems } from "@/app/data/nav-items";
 import styles from "./DesktopSidebar.module.css";
 
@@ -10,14 +11,14 @@ export default function DesktopSidebar() {
 
   return (
     <aside
-      className={styles.sidebar}
+      className={`${styles.sidebar} glass`}
       data-testid="desktop-sidebar"
       aria-label="Desktop navigation"
     >
       <div className={styles.brand}>
-        <div className={styles.brandLogo} aria-hidden="true">
+        <span className={styles.brandLogo} aria-hidden="true">
           EM
-        </div>
+        </span>
         <h1 className={styles.brandName}>
           Event<span className={styles.brandAccent}>Match</span>{" "}
           <span>NYC</span>
@@ -38,8 +39,8 @@ export default function DesktopSidebar() {
                   aria-disabled={item.href === null || undefined}
                   type="button"
                 >
-                  <span className={styles.navIcon} aria-hidden="true">
-                    {item.icon}
+                  <span className={styles.navIcon}>
+                    <NavIcon name={item.icon} />
                   </span>
                   <span>{item.label}</span>
                 </button>
@@ -48,6 +49,9 @@ export default function DesktopSidebar() {
           })}
         </ul>
       </nav>
+      <p className={styles.footNote}>
+        Data from the official NYC Parks 14-day events feed.
+      </p>
     </aside>
   );
 }

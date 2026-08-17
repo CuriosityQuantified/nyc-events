@@ -76,7 +76,7 @@ export default function ProfileView({ account }: { account?: ReactNode }) {
   };
 
   return (
-    <div className={pageStyles.appLayout}>
+    <div className={`${pageStyles.appLayout} app-page`}>
       <a className="skip-link" href="#main-content">
         Skip to profile
       </a>

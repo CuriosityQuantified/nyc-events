@@ -330,24 +330,28 @@ test.describe("EventMatch NYC Walking Skeleton", () => {
     const toggle = page.getByTestId("list-map-toggle");
     await expect(toggle).toBeVisible();
 
-    // Initially list view is active, event cards visible
+    // The map is the surface Explore is built on, so it is always present;
+    // the toggle decides whether the results list covers it.
     const eventList = page.getByTestId("event-list");
+    const eventMap = page.getByTestId("event-map");
     await expect(eventList).toBeVisible();
+    await expect(eventMap).toBeVisible();
+    await expect(eventMap).toHaveAttribute("data-map-status", "ready");
 
-    // Click Map button
+    // Map view hands the screen back to the map.
     const mapButton = toggle.getByRole("button", { name: "Map" });
     await mapButton.click();
-
-    // Event list should be hidden and the complete filtered map should load.
     await expect(eventList).not.toBeVisible();
-    const eventMap = page.getByTestId("event-map");
     await expect(eventMap).toBeVisible();
+    await expect(
+      page.getByRole("complementary", { name: "Events at selected location" }),
+    ).toBeVisible();
 
     // Click List button to switch back
     const listButton = toggle.getByRole("button", { name: "List" });
     await listButton.click();
     await expect(eventList).toBeVisible();
-    await expect(eventMap).not.toBeVisible();
+    await expect(eventMap).toBeVisible();
   });
 
   test("list/map toggle works with the keyboard", async ({ page }) => {
@@ -364,6 +368,7 @@ test.describe("EventMatch NYC Walking Skeleton", () => {
     await page.keyboard.press("Space");
     await expect(listButton).toHaveAttribute("aria-pressed", "true");
     await expect(page.getByTestId("event-list")).toBeVisible();
+    await expect(page.getByTestId("event-map")).toBeVisible();
   });
 
   test("key shell controls intersect the viewport and screenshot cleanly", async ({

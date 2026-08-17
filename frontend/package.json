@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "format:check": "prettier --check app/api/**/*.ts app/components/ConciergeView.tsx app/components/ConciergeView.test.tsx app/components/ConciergeView.module.css app/components/EventCard.tsx app/components/EventCard.module.css app/components/EventDetail.tsx app/components/EventDetail.test.tsx app/components/EventDetail.module.css app/components/EventExplorer.tsx app/components/EventMap.tsx app/components/EventMap.module.css app/components/ListMapToggle.module.css app/components/MapThumbnail.tsx app/components/MapThumbnail.module.css app/components/SearchBar.tsx app/components/SearchBar.module.css app/components/TrustStatus.tsx app/components/TrustStatus.test.tsx app/components/TrustStatus.module.css app/components/components.test.tsx app/concierge/**/*.tsx app/data/*.ts app/events/**/*.tsx app/globals.css app/page.tsx app/page.module.css e2e/*.ts next.config.ts playwright.config.ts playwright.production.config.ts tsconfig.json tsconfig.tests.json",
+    "format:check": "prettier --check \"app/**/*.{ts,tsx,css}\" \"e2e/*.ts\" next.config.ts playwright.config.ts playwright.production.config.ts tsconfig.json tsconfig.tests.json",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit && tsc --noEmit --project tsconfig.tests.json",
     "pretest": "playwright install --with-deps chromium",
@@ -14,12 +14,12 @@
     "test:unit": "vitest run",
     "test:e2e": "playwright test",
     "test:production": "playwright test --config playwright.production.config.ts",
-    "test:ui": "playwright test --ui"
+    "test:ui": "playwright test --ui",
+    "format": "prettier --write \"app/**/*.{ts,tsx,css}\" \"e2e/*.ts\" next.config.ts playwright.config.ts playwright.production.config.ts tsconfig.json tsconfig.tests.json"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.7.6",
-    "@types/leaflet": "^1.9.22",
-    "leaflet": "^1.9.4",
+    "maplibre-gl": "^5.24.0",
     "next": "16.3.1",
     "react": "19.2.8",
     "react-dom": "19.2.8",

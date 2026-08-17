@@ -10,10 +10,20 @@ type SearchBarProps = {
 export default function SearchBar({ query, onChange }: SearchBarProps) {
   return (
     <div className={styles.wrapper}>
-      <label className={styles.searchField}>
-        <span className={styles.searchIcon} aria-hidden="true">
-          ⌕
-        </span>
+      <label className={`${styles.searchField} glass-pill`}>
+        <svg
+          className={styles.searchIcon}
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          aria-hidden="true"
+          focusable="false"
+        >
+          <circle cx="11" cy="11" r="7" />
+          <path d="M20 20l-3.6-3.6" />
+        </svg>
         <input
           type="search"
           name="event-search"
@@ -25,6 +35,16 @@ export default function SearchBar({ query, onChange }: SearchBarProps) {
           value={query}
           onChange={(event) => onChange(event.target.value)}
         />
+        {query ? (
+          <button
+            type="button"
+            className={styles.clear}
+            aria-label="Clear search"
+            onClick={() => onChange("")}
+          >
+            <span aria-hidden="true">×</span>
+          </button>
+        ) : null}
       </label>
     </div>
   );

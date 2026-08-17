@@ -1,19 +1,21 @@
 .menu {
   position: relative;
-  font-size: 14px;
+  font-size: var(--text-sm);
 }
 
 .summary {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  min-height: 44px;
-  padding: 8px 14px;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  background: #ffffff;
-  color: #111827;
-  font-weight: 600;
+  gap: var(--space-2);
+  min-height: var(--touch-min);
+  padding: 0 var(--space-4);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  background: var(--glass);
+  backdrop-filter: var(--glass-filter-sm);
+  -webkit-backdrop-filter: var(--glass-filter-sm);
+  color: var(--color-foreground);
+  font-weight: 650;
   cursor: pointer;
   list-style: none;
 }
@@ -22,57 +24,51 @@
   display: none;
 }
 
-.summary:focus-visible {
-  outline: 3px solid #1d4ed8;
-  outline-offset: 2px;
+.summary:hover {
+  background: var(--glass-strong);
 }
 
 .menu[open] .summary {
-  border-color: #1d4ed8;
+  border-color: color-mix(in srgb, var(--color-accent) 55%, transparent);
+  color: var(--color-accent-strong);
 }
 
 .options {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-top: 8px;
-  padding: 12px;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  background: #ffffff;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+  padding: var(--space-3);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  background: var(--glass-strong);
+  backdrop-filter: var(--glass-filter);
+  -webkit-backdrop-filter: var(--glass-filter);
+  box-shadow: var(--glass-highlight), var(--shadow-glass);
   max-width: 340px;
 }
 
 .option {
-  display: block;
-  min-height: 44px;
-  padding: 10px 12px;
-  border: 1px solid #e5e7eb;
-  border-radius: 8px;
-  color: #1d4ed8;
-  font-weight: 600;
+  display: flex;
+  align-items: center;
+  min-height: var(--touch-min);
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  background: var(--glass-soft);
+  color: var(--color-accent-strong);
+  font-weight: 650;
   text-decoration: none;
 }
 
 .option:hover {
-  background: #eff6ff;
+  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
 }
 
-.option:focus-visible {
-  outline: 3px solid #1d4ed8;
-  outline-offset: 2px;
-}
-
-.notice {
-  color: #4b5563;
-  font-weight: 400;
-  font-size: 13px;
-  margin: 0;
-}
-
+.notice,
 .unavailable {
-  color: #4b5563;
-  font-size: 13px;
   margin: 0;
+  color: var(--color-foreground-secondary);
+  font-weight: 400;
+  font-size: var(--text-xs);
 }

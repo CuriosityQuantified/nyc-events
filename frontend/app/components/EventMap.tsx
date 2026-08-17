@@ -1,15 +1,14 @@
 "use client";
 
-import "leaflet/dist/leaflet.css";
-import Link from "next/link";
-import { useEffect, useMemo, useRef, useState } from "react";
-import type { LayerGroup, Map as LeafletMap } from "leaflet";
-import type { ParkEvent } from "@/app/data/events";
-import {
-  groupEventsByLocation,
-  markerDiameter,
-  type LocationGroup,
-} from "@/app/data/maps";
+import "maplibre-gl/dist/maplibre-gl.css";
+import { useEffect, useRef, useState } from "react";
+import type {
+  Map as MapLibreMap,
+  Marker,
+  StyleSpecification,
+} from "maplibre-gl";
+import type { View } from "@/app/components/ListMapToggle";
+import { markerDiameter, type LocationGroup } from "@/app/data/maps";
 import styles from "./EventMap.module.css";
 
 function markerLabel(group: LocationGroup): string {
@@ -17,77 +16,132 @@ function markerLabel(group: LocationGroup): string {
   return `${group.name}, ${group.borough}: ${count} ${count === 1 ? "event" : "events"}`;
 }
 
-function escapeAttribute(value: string): string {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
-}
-
-const NYC_CENTER: [number, number] = [40.7128, -74.006];
+/** MapLibre uses [longitude, latitude] where the source data is [lat, lng]. */
+const NYC_CENTER: [number, number] = [-74.006, 40.7128];
 const TILE_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
 const TILE_ATTRIBUTION =
   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
 
-type EventMapProps = {
-  events: ParkEvent[];
-  returnQuery?: string;
+/**
+ * Street tiles come straight from OpenStreetMap, so the map keeps working
+ * without any vendor key or account.
+ */
+const STREET_STYLE: StyleSpecification = {
+  version: 8,
+  sources: {
+    osm: {
+      type: "raster",
+      tiles: [TILE_URL],
+      tileSize: 256,
+      maxzoom: 19,
+      attribution: TILE_ATTRIBUTION,
+    },
+  },
+  layers: [{ id: "osm", type: "raster", source: "osm" }],
 };
 
-export default function EventMap({ events, returnQuery = "" }: EventMapProps) {
-  const groups = useMemo(() => groupEventsByLocation(events), [events]);
-  const unlocated = useMemo(() => {
-    const locatedGuids = new Set(
-      groups.flatMap((group) => group.events.map((event) => event.guid)),
-    );
-    return events.filter((event) => !locatedGuids.has(event.guid));
-  }, [events, groups]);
-  const [selectedKey, setSelectedKey] = useState(groups[0]?.key ?? "");
-  const [mapReady, setMapReady] = useState(false);
-  const detailPanel = useRef<HTMLElement>(null);
-  const mapContainer = useRef<HTMLDivElement>(null);
-  const leafletMap = useRef<LeafletMap | null>(null);
-  const markerLayer = useRef<LayerGroup | null>(null);
-  const selected =
-    groups.find((group) => group.key === selectedKey) ?? groups[0] ?? null;
-  const status = groups.length === 0 ? "error" : mapReady ? "ready" : "loading";
+/**
+ * Keeps every marker clear of the glass tiles floating over the map: the
+ * control column and the selected-location card cover different parts of the
+ * screen in each view, so the fit is computed per view and per breakpoint.
+ */
+function fitPadding(width: number, height: number, view: View) {
+  const desktop = width >= 1024;
+  const raw = desktop
+    ? { top: 130, bottom: 80, left: 700, right: 450 }
+    : view === "map"
+      ? {
+          top: Math.round(height * 0.32),
+          bottom: Math.round(height * 0.5),
+          left: 40,
+          right: 40,
+        }
+      : {
+          top: 96,
+          bottom: Math.round(height * 0.66),
+          left: 40,
+          right: 40,
+        };
+  // Never ask MapLibre for more padding than the canvas can give.
+  const vertical = Math.min(1, (height * 0.86) / (raw.top + raw.bottom));
+  const horizontal = Math.min(1, (width * 0.86) / (raw.left + raw.right));
+  return {
+    top: Math.round(raw.top * vertical),
+    bottom: Math.round(raw.bottom * vertical),
+    left: Math.round(raw.left * horizontal),
+    right: Math.round(raw.right * horizontal),
+  };
+}
 
-  function selectLocation(key: string) {
-    setSelectedKey(key);
-    queueMicrotask(() =>
-      detailPanel.current?.scrollIntoView({ block: "nearest" }),
-    );
-  }
+type EventMapProps = {
+  groups: LocationGroup[];
+  selectedKey: string;
+  view: View;
+  onSelectLocation: (key: string) => void;
+};
+
+export default function EventMap({
+  groups,
+  selectedKey,
+  view,
+  onSelectLocation,
+}: EventMapProps) {
+  const mapContainer = useRef<HTMLDivElement>(null);
+  const mapRef = useRef<MapLibreMap | null>(null);
+  const markersRef = useRef<Marker[]>([]);
+  const selectRef = useRef(onSelectLocation);
+  const [mapReady, setMapReady] = useState(false);
+  const [mapFailed, setMapFailed] = useState(false);
+  const status = mapFailed
+    ? "error"
+    : groups.length === 0
+      ? "error"
+      : mapReady
+        ? "ready"
+        : "loading";
+
+  useEffect(() => {
+    selectRef.current = onSelectLocation;
+  }, [onSelectLocation]);
 
   useEffect(() => {
     let disposed = false;
     (async () => {
-      const leaflet = (await import("leaflet")).default;
-      if (disposed || !mapContainer.current || leafletMap.current) return;
-      const map = leaflet.map(mapContainer.current, {
-        center: NYC_CENTER,
-        zoom: 11,
-        zoomControl: false,
-        scrollWheelZoom: true,
-        // Require a more intentional wheel or trackpad gesture than Leaflet's
-        // default. Buttons remain available for precise zooming.
-        wheelPxPerZoomLevel: 140,
-        wheelDebounceTime: 90,
-        zoomAnimation: false,
-        fadeAnimation: false,
-        markerZoomAnimation: false,
-      });
-      leaflet
-        .tileLayer(TILE_URL, { maxZoom: 19, attribution: TILE_ATTRIBUTION })
-        .addTo(map);
-      leafletMap.current = map;
-      setMapReady(true);
+      const maplibre = (await import("maplibre-gl")).default;
+      if (disposed || !mapContainer.current || mapRef.current) return;
+      try {
+        const map = new maplibre.Map({
+          container: mapContainer.current,
+          style: STREET_STYLE,
+          center: NYC_CENTER,
+          zoom: 10.6,
+          maxZoom: 18,
+          minZoom: 9,
+          attributionControl: false,
+          // A map that also rotates makes an events list harder to scan;
+          // pan and zoom are the gestures this product needs.
+          dragRotate: false,
+          pitchWithRotate: false,
+          touchPitch: false,
+          fadeDuration: 0,
+        });
+        map.touchZoomRotate.disableRotation();
+        map.on("load", () => {
+          if (!disposed) setMapReady(true);
+        });
+        mapRef.current = map;
+      } catch {
+        // No WebGL available: the location panel below still lists every
+        // filtered event, so the page stays usable.
+        if (!disposed) setMapFailed(true);
+      }
     })();
     return () => {
       disposed = true;
-      leafletMap.current?.remove();
-      leafletMap.current = null;
+      for (const marker of markersRef.current) marker.remove();
+      markersRef.current = [];
+      mapRef.current?.remove();
+      mapRef.current = null;
     };
   }, []);
 
@@ -95,160 +149,121 @@ export default function EventMap({ events, returnQuery = "" }: EventMapProps) {
     if (!mapReady) return;
     let disposed = false;
     (async () => {
-      const leaflet = (await import("leaflet")).default;
-      const map = leafletMap.current;
+      const maplibre = (await import("maplibre-gl")).default;
+      const map = mapRef.current;
       if (disposed || !map) return;
-      markerLayer.current?.remove();
-      const layer = leaflet.layerGroup();
-      for (const group of groups) {
+
+      for (const marker of markersRef.current) marker.remove();
+      markersRef.current = groups.map((group) => {
         const diameter = markerDiameter(group.events.length);
-        const icon = leaflet.divIcon({
-          className: styles.markerWrapper,
-          html:
-            `<button type="button" class="${styles.markerTarget}" ` +
-            `data-testid="map-marker" ` +
-            `data-location-key="${escapeAttribute(group.key)}" ` +
-            `data-diameter="${diameter}" ` +
-            `aria-label="${escapeAttribute(markerLabel(group))}">` +
-            `<span class="${styles.markerDot}" aria-hidden="true" ` +
-            `style="--marker-diameter:${diameter}px">` +
-            `${group.events.length}</span></button>`,
-          iconSize: [44, 44],
-          iconAnchor: [22, 22],
-        });
-        leaflet
-          .marker([group.latitude, group.longitude], {
-            icon,
-            interactive: true,
-            keyboard: false,
-            bubblingMouseEvents: false,
-          })
-          .on("click", () => selectLocation(group.key))
-          .addTo(layer);
-      }
-      layer.addTo(map);
-      markerLayer.current = layer;
+        const target = document.createElement("button");
+        target.type = "button";
+        target.className = styles.markerTarget;
+        target.dataset.testid = "map-marker";
+        target.dataset.locationKey = group.key;
+        target.dataset.diameter = String(diameter);
+        target.setAttribute("aria-label", markerLabel(group));
+        const dot = document.createElement("span");
+        dot.className = styles.markerDot;
+        dot.setAttribute("aria-hidden", "true");
+        dot.style.setProperty("--marker-diameter", `${diameter}px`);
+        dot.textContent = String(group.events.length);
+        target.append(dot);
+        target.addEventListener("click", () => selectRef.current(group.key));
+        return new maplibre.Marker({ element: target, anchor: "center" })
+          .setLngLat([group.longitude, group.latitude])
+          .addTo(map);
+      });
+
       if (groups.length > 0) {
-        map.fitBounds(
-          leaflet.latLngBounds(
-            groups.map((group) => [group.latitude, group.longitude]),
-          ),
-          { padding: [48, 48], maxZoom: 15, animate: false },
-        );
+        const bounds = new maplibre.LngLatBounds();
+        for (const group of groups) {
+          bounds.extend([group.longitude, group.latitude]);
+        }
+        const canvas = map.getContainer();
+        map.fitBounds(bounds, {
+          padding: fitPadding(canvas.clientWidth, canvas.clientHeight, view),
+          maxZoom: 15,
+          animate: false,
+        });
       }
     })();
     return () => {
       disposed = true;
     };
-  }, [groups, mapReady]);
+  }, [groups, mapReady, view]);
+
+  useEffect(() => {
+    for (const marker of markersRef.current) {
+      const element = marker.getElement();
+      element.dataset.selected = String(
+        element.dataset.locationKey === selectedKey,
+      );
+    }
+  }, [selectedKey, groups, mapReady]);
 
   function changeZoom(amount: 1 | -1) {
-    if (amount > 0) leafletMap.current?.zoomIn();
-    else leafletMap.current?.zoomOut();
-  }
-
-  function detailHref(event: ParkEvent): string {
-    return `/events/${encodeURIComponent(event.guid)}${returnQuery ? `?${returnQuery}` : ""}`;
+    if (amount > 0) mapRef.current?.zoomIn();
+    else mapRef.current?.zoomOut();
   }
 
   return (
     <section
-      className={styles.shell}
+      className={styles.layer}
       data-testid="event-map"
       data-map-status={status}
       aria-label="Map of filtered events"
     >
-      <div className={styles.mapStage}>
-        <div className={styles.mapSummary} role="status">
+      <div
+        ref={mapContainer}
+        className={styles.canvas}
+        data-testid="coordinate-map"
+        data-fit-bounds="true"
+        role="group"
+        aria-label="Street map of event locations. Select a marker for event links."
+      />
+      <div className={styles.veil} aria-hidden="true" />
+      <div
+        className={`${styles.zoomControls} glass`}
+        aria-label="Map zoom controls"
+      >
+        <button
+          type="button"
+          onClick={() => changeZoom(1)}
+          aria-label="Zoom in"
+        >
+          <span aria-hidden="true">+</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => changeZoom(-1)}
+          aria-label="Zoom out"
+        >
+          <span aria-hidden="true">−</span>
+        </button>
+      </div>
+      <p className={styles.attribution}>
+        <a
+          href="https://www.openstreetmap.org/copyright"
+          target="_blank"
+          rel="noreferrer"
+        >
+          © OpenStreetMap
+        </a>{" "}
+        contributors
+      </p>
+      {status === "error" ? (
+        <div className={`${styles.mapState} glass-strong`} role="status">
           <strong>
-            {groups.length} mapped{" "}
-            {groups.length === 1 ? "location" : "locations"}
+            {mapFailed
+              ? "The street map is unavailable"
+              : "No locations to map"}
           </strong>
           <span>
-            {events.length} filtered events · {unlocated.length} list-only
+            Every filtered event stays reachable in the list beside the map.
           </span>
         </div>
-        <div
-          ref={mapContainer}
-          className={styles.canvas}
-          data-testid="coordinate-map"
-          data-fit-bounds="true"
-          role="group"
-          aria-label="Street map of event locations. Select a marker for event links."
-        />
-        <div className={styles.zoomControls} aria-label="Map zoom controls">
-          <button
-            type="button"
-            onClick={() => changeZoom(1)}
-            aria-label="Zoom in"
-          >
-            +
-          </button>
-          <button
-            type="button"
-            onClick={() => changeZoom(-1)}
-            aria-label="Zoom out"
-          >
-            −
-          </button>
-        </div>
-        {status === "error" ? (
-          <div className={styles.mapState} role="alert">
-            <strong>No Locations To Map</strong>
-            <span>Filtered events remain available by location below.</span>
-          </div>
-        ) : null}
-      </div>
-
-      <aside
-        ref={detailPanel}
-        className={styles.locationPanel}
-        aria-label="Events at selected location"
-        tabIndex={-1}
-      >
-        {selected ? (
-          <>
-            <div className={styles.locationHeading}>
-              <div>
-                <p>
-                  {selected.accuracy === "exact"
-                    ? "Exact Source Location"
-                    : "Approximate Location"}
-                </p>
-                <h3>{selected.name}</h3>
-                <span>{selected.borough}</span>
-              </div>
-              <strong>{selected.events.length} events</strong>
-            </div>
-            <ul className={styles.locationEvents}>
-              {selected.events.map((event) => (
-                <li key={event.guid}>
-                  <Link href={detailHref(event)}>{event.title}</Link>
-                  <span>
-                    {event.date} · {event.time}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </>
-        ) : (
-          <p>No filtered events have a valid map location.</p>
-        )}
-        {unlocated.length ? (
-          <details className={styles.unlocated}>
-            <summary>
-              {unlocated.length} events are available in the list only
-            </summary>
-            <ul>
-              {unlocated.map((event) => (
-                <li key={event.guid}>
-                  <Link href={detailHref(event)}>{event.title}</Link>
-                </li>
-              ))}
-            </ul>
-          </details>
-        ) : null}
-      </aside>
+      ) : null}
     </section>
   );
 }
