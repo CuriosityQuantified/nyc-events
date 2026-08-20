@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Header from "@/app/components/Header";
 import SearchBar from "@/app/components/SearchBar";
 import FilterChips from "@/app/components/FilterChips";
@@ -9,10 +9,12 @@ import ListMapToggle from "@/app/components/ListMapToggle";
 import type { View } from "@/app/components/ListMapToggle";
 import EventCard from "@/app/components/EventCard";
 import EventMap from "@/app/components/EventMap";
+import LocationPanel from "@/app/components/LocationPanel";
 import BottomNav from "@/app/components/BottomNav";
 import DesktopSidebar from "@/app/components/DesktopSidebar";
 import { FreshnessBanner } from "@/app/components/TrustStatus";
 import type { EventPage, Freshness, ParkEvent } from "@/app/data/events";
+import { groupEventsByLocation } from "@/app/data/maps";
 import {
   EMPTY_FILTERS,
   describeFilters,
@@ -57,6 +59,7 @@ export default function EventExplorer({ initialFilters }: EventExplorerProps) {
   const [mapState, setMapState] = useState<
     "idle" | "loading" | "ready" | "error"
   >("idle");
+  const [selectedKey, setSelectedKey] = useState("");
   const requestVersion = useRef(0);
   const mapRequestVersion = useRef(0);
   const activeFilterDescriptions = describeFilters(filters);
@@ -65,6 +68,16 @@ export default function EventExplorer({ initialFilters }: EventExplorerProps) {
     filters,
   ).toString();
 
+  const groups = useMemo(() => groupEventsByLocation(mapEvents), [mapEvents]);
+  const unlocated = useMemo(() => {
+    const locatedGuids = new Set(
+      groups.flatMap((group) => group.events.map((event) => event.guid)),
+    );
+    return mapEvents.filter((event) => !locatedGuids.has(event.guid));
+  }, [mapEvents, groups]);
+  const selectedLocation =
+    groups.find((group) => group.key === selectedKey) ?? groups[0] ?? null;
+
   const load = useCallback(
     async (targetPage: number, replace: boolean) => {
       const requestId = ++requestVersion.current;
@@ -72,8 +85,9 @@ export default function EventExplorer({ initialFilters }: EventExplorerProps) {
         setState("loading");
         setFreshnessUnavailable(false);
       } else {
+        // The failure notice stays put until the retry resolves: clearing it
+        // mid-flight would shrink the panel and move the results being read.
         setLoadingMore(true);
-        setLoadMoreError(false);
         setLoadMoreMessage("Loading more events");
       }
 
@@ -122,6 +136,7 @@ export default function EventExplorer({ initialFilters }: EventExplorerProps) {
         setTotal(eventPage.total);
         setState("ready");
         if (!replace) {
+          setLoadMoreError(false);
           setFailedPage(null);
           setLoadMoreMessage("More events loaded");
         }
@@ -177,13 +192,18 @@ export default function EventExplorer({ initialFilters }: EventExplorerProps) {
       );
       setMapState("ready");
     } catch {
-      if (requestId === mapRequestVersion.current) setMapState("error");
+      if (requestId === mapRequestVersion.current) {
+        setMapEvents([]);
+        setMapState("error");
+      }
     }
   }, [filters]);
 
+  // The map is the page now, so it always carries the complete filtered set
+  // rather than waiting for a view switch.
   useEffect(() => {
-    if (view === "map") queueMicrotask(() => void loadMapEvents());
-  }, [loadMapEvents, view]);
+    queueMicrotask(() => void loadMapEvents());
+  }, [loadMapEvents]);
 
   useEffect(() => {
     function restoreFilters() {
@@ -224,6 +244,15 @@ export default function EventExplorer({ initialFilters }: EventExplorerProps) {
     setView(next);
   }
 
+  function selectLocation(key: string) {
+    setSelectedKey(key);
+    // A pin selection is a request to read that location, so the map view
+    // takes over the panel on phones where both cannot share the screen.
+    if (window.matchMedia("(max-width: 1023px)").matches && view !== "map") {
+      changeView("map");
+    }
+  }
+
   function retry() {
     void load(1, true);
   }
@@ -232,193 +261,185 @@ export default function EventExplorer({ initialFilters }: EventExplorerProps) {
     void load(failedPage ?? page + 1, false);
   }
 
+  const showList = view === "list";
+
   return (
-    <div className={styles.appLayout}>
+    <div className={styles.explore} data-view={view}>
       <a className="skip-link" href="#main-content">
         Skip to event results
       </a>
+      <EventMap
+        groups={groups}
+        selectedKey={selectedLocation?.key ?? ""}
+        view={view}
+        onSelectLocation={selectLocation}
+      />
       <DesktopSidebar />
-      <div className={styles.mainArea}>
-        <Header />
+      <Header />
+      <div className={styles.statusSlot}>
         <FreshnessBanner
           freshness={freshness}
           loading={state === "loading"}
           unavailable={freshnessUnavailable}
         />
-        <main
-          id="main-content"
-          className={styles.mainContent}
-          tabIndex={-1}
-          aria-busy={state === "loading" || loadingMore}
-        >
-          <SearchBar
-            query={filters.query}
-            onChange={(query) => changeFilters({ ...filters, query })}
-          />
-          <div className={styles.explorerWorkspace}>
-            {/* One grid child: the desktop workspace grid is sized for
-                exactly [filters column | results column]. */}
-            <div className={styles.filtersColumn}>
-              <FilterChips filters={filters} onChange={changeFilters} />
-              <FollowFacets filters={filters} />
-            </div>
-            <section
-              className={styles.resultsRegion}
-              aria-label="Filtered events"
-            >
-              <div className={styles.resultsHeader}>
-                <div>
-                  <h2>Events</h2>
-                  {state === "ready" || events.length > 0 ? (
-                    <p>
-                      {total} {total === 1 ? "event matches" : "events match"}
-                    </p>
-                  ) : null}
-                </div>
-                <ListMapToggle activeView={view} onViewChange={changeView} />
-              </div>
-              {state === "loading" && events.length === 0 ? (
-                <section
-                  className={styles.dataState}
-                  role="status"
-                  aria-live="polite"
-                >
-                  <h2>Loading Current Events…</h2>
-                  <p>Getting the latest NYC Parks event snapshot.</p>
-                </section>
-              ) : null}
-              {state === "error" ? (
-                <section className={styles.dataState} role="alert">
-                  <h2>Events Are Unavailable</h2>
-                  <p>Try the event service again.</p>
-                  <button type="button" onClick={retry}>
-                    Try Again
-                  </button>
-                </section>
-              ) : null}
-              {state === "ready" && events.length === 0 ? (
-                <section
-                  className={`${styles.dataState} ${styles.emptyFiltered}`}
-                  role="status"
-                  aria-live="polite"
-                  data-testid="filter-empty-state"
-                >
-                  <h2>
-                    {hasActiveFilters(filters)
-                      ? "No events match these filters"
-                      : "No Current Events"}
-                  </h2>
-                  {hasActiveFilters(filters) ? (
-                    <>
-                      <p>0 events match this combined view:</p>
-                      <ul>
-                        {activeFilterDescriptions.map((description) => (
-                          <li key={description}>{description}</li>
-                        ))}
-                      </ul>
-                      <p>Remove a filter or broaden the date range.</p>
-                      <button
-                        type="button"
-                        onClick={() => changeFilters(EMPTY_FILTERS)}
-                      >
-                        Clear all filters
-                      </button>
-                    </>
-                  ) : (
-                    <p>
-                      The latest successful snapshot contains no current events.
-                    </p>
-                  )}
-                </section>
-              ) : null}
-              {(state === "ready" || state === "loading") &&
-              events.length > 0 &&
-              view === "list" ? (
-                <>
-                  <p
-                    className={styles.resultsSummary}
-                    role="status"
-                    aria-live="polite"
-                  >
-                    {state === "loading"
-                      ? "Updating results…"
-                      : `Showing ${events.length} of ${total} matching events`}
-                  </p>
-                  <section
-                    className={styles.eventList}
-                    data-testid="event-list"
-                    aria-label="Event listings"
-                  >
-                    {events.map((event) => (
-                      <EventCard
-                        key={event.guid}
-                        event={event}
-                        returnQuery={returnQuery}
-                      />
-                    ))}
-                  </section>
-                  {loadMoreError ? (
-                    <p className={styles.loadMoreError} role="alert">
-                      The next page could not be loaded. Your place is
-                      preserved.
-                    </p>
-                  ) : null}
-                  {events.length < total || failedPage !== null ? (
-                    <button
-                      className={styles.loadMore}
-                      data-testid="load-more"
-                      type="button"
-                      disabled={loadingMore}
-                      onClick={(event) => {
-                        event.currentTarget.blur();
-                        loadMore();
-                      }}
-                    >
-                      {loadingMore
-                        ? "Loading More Events…"
-                        : loadMoreError
-                          ? "Try Loading More Again"
-                          : "Load More Events"}
-                    </button>
-                  ) : null}
-                  <p className={styles.liveStatus} aria-live="polite">
-                    {loadMoreMessage}
-                  </p>
-                </>
-              ) : null}
-              {state === "ready" && events.length > 0 && view === "map" ? (
-                <div className={styles.mapContainer}>
-                  {mapState === "loading" || mapState === "idle" ? (
-                    <section className={styles.dataState} role="status">
-                      <h2>Loading All Filtered Map Events…</h2>
-                      <p>The map waits for the complete bounded result set.</p>
-                    </section>
-                  ) : null}
-                  {mapState === "error" ? (
-                    <section className={styles.dataState} role="alert">
-                      <h2>Map Results Are Unavailable</h2>
-                      <p>
-                        The event list remains available. No partial map is
-                        shown.
-                      </p>
-                      <button
-                        type="button"
-                        onClick={() => void loadMapEvents()}
-                      >
-                        Try Map Again
-                      </button>
-                    </section>
-                  ) : null}
-                  {mapState === "ready" ? (
-                    <EventMap events={mapEvents} returnQuery={returnQuery} />
-                  ) : null}
-                </div>
-              ) : null}
-            </section>
-          </div>
-        </main>
-        <BottomNav />
       </div>
+      <main
+        id="main-content"
+        className={styles.workspace}
+        tabIndex={-1}
+        aria-busy={state === "loading" || loadingMore}
+      >
+        <div className={styles.sheetGrip} aria-hidden="true" />
+        <SearchBar
+          query={filters.query}
+          onChange={(query) => changeFilters({ ...filters, query })}
+        />
+        <div className={styles.filtersColumn}>
+          <FilterChips filters={filters} onChange={changeFilters} />
+          <FollowFacets filters={filters} />
+        </div>
+        <section
+          className={`${styles.resultsRegion} glass-strong`}
+          aria-label="Filtered events"
+        >
+          <div className={styles.resultsHeader}>
+            <div>
+              <h2>Events</h2>
+              {state === "ready" || events.length > 0 ? (
+                <p>
+                  {total} {total === 1 ? "event matches" : "events match"}
+                </p>
+              ) : null}
+            </div>
+            <ListMapToggle activeView={view} onViewChange={changeView} />
+          </div>
+          {state === "loading" && events.length === 0 ? (
+            <section
+              className={styles.dataState}
+              role="status"
+              aria-live="polite"
+            >
+              <h2>Loading Current Events…</h2>
+              <p>Getting the latest NYC Parks event snapshot.</p>
+            </section>
+          ) : null}
+          {state === "error" ? (
+            <section className={styles.dataState} role="alert">
+              <h2>Events Are Unavailable</h2>
+              <p>Try the event service again.</p>
+              <button type="button" onClick={retry}>
+                Try Again
+              </button>
+            </section>
+          ) : null}
+          {state === "ready" && events.length === 0 ? (
+            <section
+              className={`${styles.dataState} ${styles.emptyFiltered}`}
+              role="status"
+              aria-live="polite"
+              data-testid="filter-empty-state"
+            >
+              <h2>
+                {hasActiveFilters(filters)
+                  ? "No events match these filters"
+                  : "No Current Events"}
+              </h2>
+              {hasActiveFilters(filters) ? (
+                <>
+                  <p>0 events match this combined view:</p>
+                  <ul>
+                    {activeFilterDescriptions.map((description) => (
+                      <li key={description}>{description}</li>
+                    ))}
+                  </ul>
+                  <p>Remove a filter or broaden the date range.</p>
+                  <button
+                    type="button"
+                    onClick={() => changeFilters(EMPTY_FILTERS)}
+                  >
+                    Clear all filters
+                  </button>
+                </>
+              ) : (
+                <p>
+                  The latest successful snapshot contains no current events.
+                </p>
+              )}
+            </section>
+          ) : null}
+          {(state === "ready" || state === "loading") &&
+          events.length > 0 &&
+          showList ? (
+            <>
+              <p
+                className={styles.resultsSummary}
+                role="status"
+                aria-live="polite"
+              >
+                {state === "loading"
+                  ? "Updating results…"
+                  : `Showing ${events.length} of ${total} matching events`}
+              </p>
+              <section
+                className={styles.eventList}
+                data-testid="event-list"
+                aria-label="Event listings"
+              >
+                {events.map((event) => (
+                  <EventCard
+                    key={event.guid}
+                    event={event}
+                    returnQuery={returnQuery}
+                  />
+                ))}
+              </section>
+              {loadMoreError ? (
+                <p className={styles.loadMoreError} role="alert">
+                  The next page could not be loaded. Your place is preserved.
+                </p>
+              ) : null}
+              {events.length < total || failedPage !== null ? (
+                <button
+                  className={styles.loadMore}
+                  data-testid="load-more"
+                  type="button"
+                  disabled={loadingMore}
+                  onClick={(event) => {
+                    event.currentTarget.blur();
+                    loadMore();
+                  }}
+                >
+                  {loadingMore
+                    ? "Loading More Events…"
+                    : loadMoreError
+                      ? "Try Loading More Again"
+                      : "Load More Events"}
+                </button>
+              ) : null}
+              <p className={styles.liveStatus} aria-live="polite">
+                {loadMoreMessage}
+              </p>
+            </>
+          ) : null}
+          {!showList ? (
+            <p className={styles.mapHint} role="status">
+              {mapState === "loading" || mapState === "idle"
+                ? "Loading every filtered event onto the map…"
+                : mapState === "error"
+                  ? "Map results are unavailable. Switch back to List to keep browsing."
+                  : `${groups.length} mapped ${groups.length === 1 ? "location" : "locations"} · ${mapEvents.length} filtered events`}
+            </p>
+          ) : null}
+        </section>
+      </main>
+      <div className={styles.locationSlot} data-open={!showList}>
+        <LocationPanel
+          selected={selectedLocation}
+          unlocated={unlocated}
+          returnQuery={returnQuery}
+        />
+      </div>
+      <BottomNav />
     </div>
   );
 }

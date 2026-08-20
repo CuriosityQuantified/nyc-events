@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname, useRouter } from "next/navigation";
+import NavIcon from "@/app/components/NavIcon";
 import { coreNavItems } from "@/app/data/nav-items";
 import styles from "./BottomNav.module.css";
 
@@ -10,7 +11,7 @@ export default function BottomNav() {
 
   return (
     <nav
-      className={styles.nav}
+      className={`${styles.nav} glass`}
       data-testid="bottom-nav"
       aria-label="Main navigation"
     >
@@ -28,8 +29,8 @@ export default function BottomNav() {
                 aria-disabled={item.href === null || undefined}
                 type="button"
               >
-                <span className={styles.icon} aria-hidden="true">
-                  {item.icon}
+                <span className={styles.icon}>
+                  <NavIcon name={item.icon} />
                 </span>
                 <span>{item.label}</span>
               </button>

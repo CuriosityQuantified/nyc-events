@@ -68,7 +68,7 @@ export default function SavedView() {
     : [];
 
   return (
-    <div className={pageStyles.appLayout}>
+    <div className={`${pageStyles.appLayout} app-page`}>
       <a className="skip-link" href="#main-content">
         Skip to saved events
       </a>

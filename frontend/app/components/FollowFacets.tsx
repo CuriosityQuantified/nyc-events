@@ -80,57 +80,60 @@ export default function FollowFacets({ filters }: { filters: FilterState }) {
 
   return (
     <div
-      className={styles.wrapper}
+      className={`${styles.wrapper} glass`}
       role="group"
       aria-label="Follow these filters"
       data-testid="follow-facets"
       tabIndex={0}
     >
-      {facets.length === 0 ? (
-        <span className={styles.hint}>
-          Pick a borough, category, or registration filter, then follow it to
-          build Interests.
-        </span>
-      ) : null}
-      {facets.length >= 2 ? (
-        <button
-          type="button"
-          className={`${styles.follow} ${styles.combined} ${followed.has(combinationKey) ? styles.following : ""}`}
-          aria-pressed={followed.has(combinationKey)}
-          disabled={followed.has(combinationKey)}
-          onClick={() => void onFollowCombination()}
-        >
-          {followed.has(combinationKey)
-            ? `Following ${combinationLabel} ✓`
-            : `Follow ${combinationLabel} (combined)`}
-        </button>
-      ) : null}
-      {facets.map((facet) => {
-        const key = `${facet.facetType}:${facet.value}`;
-        const isFollowed = followed.has(key);
-        return (
+      <div className={styles.actions}>
+        {facets.length === 0 ? (
+          <span className={styles.hint}>
+            Pick a borough, category, or registration filter, then follow it to
+            build Interests.
+          </span>
+        ) : null}
+        {facets.length >= 2 ? (
           <button
-            key={key}
             type="button"
-            className={`${styles.follow} ${isFollowed ? styles.following : ""}`}
-            aria-pressed={isFollowed}
-            disabled={isFollowed}
-            onClick={() => void onFollow(facet)}
+            className={`${styles.follow} ${styles.combined} ${followed.has(combinationKey) ? styles.following : ""}`}
+            aria-pressed={followed.has(combinationKey)}
+            disabled={followed.has(combinationKey)}
+            onClick={() => void onFollowCombination()}
           >
-            {isFollowed
-              ? `Following ${facet.label} ✓`
-              : `Follow ${facet.label}`}
+            {followed.has(combinationKey)
+              ? `Following ${combinationLabel} ✓`
+              : `Follow ${combinationLabel} (combined)`}
           </button>
-        );
-      })}
-      <span className={styles.hint}>
-        Followed filters become Interests — manage them in Profile.
-      </span>
+        ) : null}
+        {facets.map((facet) => {
+          const key = `${facet.facetType}:${facet.value}`;
+          const isFollowed = followed.has(key);
+          return (
+            <button
+              key={key}
+              type="button"
+              className={`${styles.follow} ${isFollowed ? styles.following : ""}`}
+              aria-pressed={isFollowed}
+              disabled={isFollowed}
+              onClick={() => void onFollow(facet)}
+            >
+              {isFollowed
+                ? `Following ${facet.label} ✓`
+                : `Follow ${facet.label}`}
+            </button>
+          );
+        })}
+      </div>
       {failed ? (
         <span role="alert" className={styles.error}>
           {failed}
         </span>
-      ) : null}
+      ) : (
+        <span className={styles.note}>
+          Followed filters become Interests — manage them in Profile.
+        </span>
+      )}
     </div>
   );
 }

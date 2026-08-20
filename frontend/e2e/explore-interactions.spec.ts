@@ -100,7 +100,7 @@ test.describe("Explore layout stability and interactions", () => {
   }) => {
     test.skip(
       test.info().project.name !== "desktop",
-      "grid layout is desktop-only",
+      "the floating control column is desktop-only",
     );
     await installRoutes(page);
     await page.goto("/");
@@ -109,21 +109,24 @@ test.describe("Explore layout stability and interactions", () => {
     const results = page.locator('section[aria-label="Filtered events"]');
     const before = await results.boundingBox();
     expect(before).not.toBeNull();
-    // The results column must sit beside the filters column, not under it.
-    expect(before!.x).toBeGreaterThan(300);
+    // The results panel floats over the map, clear of the navigation rail.
+    expect(before!.x).toBeGreaterThan(240);
+    expect(before!.x + before!.width).toBeLessThan(
+      page.viewportSize()!.width / 2,
+    );
 
     await page.getByRole("button", { name: "Add Borough: Queens" }).click();
     await expect(page.getByTestId("event-card")).toHaveCount(1);
 
-    // Follow controls appear inside the filters column without displacing
-    // or resizing the results column.
+    // Follow controls appear above the results panel without displacing or
+    // resizing it.
     const follow = page.getByTestId("follow-facets");
     await expect(follow).toBeVisible();
     const followBox = await follow.boundingBox();
     const after = await results.boundingBox();
     expect(after!.x).toBe(before!.x);
     expect(after!.width).toBe(before!.width);
-    expect(followBox!.x + followBox!.width).toBeLessThanOrEqual(after!.x + 1);
+    expect(followBox!.y + followBox!.height).toBeLessThanOrEqual(after!.y + 1);
   });
 
   test("filtering updates in place without swapping to a loading screen", async ({

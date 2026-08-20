@@ -83,7 +83,7 @@ export default function FilterChips({ filters, onChange }: FilterChipsProps) {
   return (
     <section
       ref={wrapperRef}
-      className={styles.wrapper}
+      className={`${styles.wrapper} glass`}
       data-testid="filter-chips"
       aria-labelledby="filters-title"
     >

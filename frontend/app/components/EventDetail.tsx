@@ -140,11 +140,13 @@ function DetailShell({
           <small>NYC Parks event explorer</small>
         </Link>
       </header>
-      <FreshnessBanner
-        freshness={freshness}
-        loading={freshnessLoading}
-        unavailable={freshnessUnavailable}
-      />
+      <div className={styles.freshnessSlot}>
+        <FreshnessBanner
+          freshness={freshness}
+          loading={freshnessLoading}
+          unavailable={freshnessUnavailable}
+        />
+      </div>
       <main id="event-detail" className={styles.page} tabIndex={-1}>
         <Link className={styles.backLink} href={returnHref}>
           <span aria-hidden="true">←</span> Back to filtered events
