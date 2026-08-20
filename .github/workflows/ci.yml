@@ -182,7 +182,9 @@ jobs:
           path: |
             backend/coverage.xml
             artifacts/backend-container/
-          if-no-files-found: error
+          # The backend step already fails closed. Missing evidence after an
+          # early setup failure is diagnostic, not a second independent error.
+          if-no-files-found: warn
 
   frontend:
     runs-on: ubuntu-latest
