@@ -54,6 +54,14 @@ export type Freshness = {
   isStale: boolean;
 };
 
+export function uniqueEventsByGuid(events: ParkEvent[]): ParkEvent[] {
+  const unique = new Map<string, ParkEvent>();
+  for (const event of events) {
+    if (!unique.has(event.guid)) unique.set(event.guid, event);
+  }
+  return [...unique.values()];
+}
+
 export type Provenance = "Stated" | "Derived" | "Not listed";
 
 export type ApiFact<T> = {
@@ -340,8 +348,10 @@ export async function getEvent(guid: string): Promise<ApiEvent> {
 export async function getEvents(page = 1, pageSize = 12): Promise<EventPage> {
   const response = await apiFetch(`/events?page=${page}&page_size=${pageSize}`);
   const data = parseEventsResponse(await response.json());
+  const mapped = data.events.map(apiToUiEvent);
+  const events = uniqueEventsByGuid(mapped);
   return {
-    events: data.events.map(apiToUiEvent),
+    events,
     page: data.page,
     pageSize: data.page_size,
     total: data.total,
@@ -369,11 +379,10 @@ export async function getFilteredEvents(
   for (let sourcePage = 2; sourcePage <= first.totalPages; sourcePage += 1) {
     remaining.push(await getEvents(sourcePage, sourcePageSize));
   }
-  const filtered = applyEventFilters(
+  const sourceEvents = uniqueEventsByGuid(
     [first, ...remaining].flatMap((result) => result.events),
-    filters,
-    now,
   );
+  const filtered = applyEventFilters(sourceEvents, filters, now);
   const start = (page - 1) * pageSize;
   return {
     events: filtered.slice(start, start + pageSize),

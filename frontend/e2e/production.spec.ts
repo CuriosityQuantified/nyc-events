@@ -96,6 +96,23 @@ test("live Snapshot reaches the API proxy and rendered list", async ({
   const apiPage = await apiResponse.json();
   expect(apiPage.total).toBeGreaterThan(0);
   expect(apiPage.events.length).toBeGreaterThan(0);
+  const apiGuids = apiPage.events.map((event: { guid: string }) => event.guid);
+  expect(new Set(apiGuids).size).toBe(apiGuids.length);
+  const dateCodedEvents = apiPage.events
+    .map((event: { officialUrl: string | null; startDate: string | null }) => ({
+      event,
+      match: event.officialUrl?.match(/\/events\/(\d{4})\/(\d{2})\/(\d{2})\//),
+    }))
+    .filter(
+      (entry: {
+        event: { officialUrl: string | null; startDate: string | null };
+        match: RegExpMatchArray | null | undefined;
+      }) => entry.match,
+    );
+  expect(dateCodedEvents.length).toBeGreaterThan(0);
+  for (const { event, match } of dateCodedEvents) {
+    expect(event.startDate).toBe(`${match![1]}-${match![2]}-${match![3]}`);
+  }
   const guid = apiPage.events[0].guid;
   expect(guid).toBeTruthy();
 
@@ -106,6 +123,12 @@ test("live Snapshot reaches the API proxy and rendered list", async ({
   expect(freshness.isStale).toBe(false);
 
   await page.goto("/", { waitUntil: "networkidle" });
+  const renderedGuids = await page
+    .getByTestId("event-card")
+    .evaluateAll((cards) =>
+      cards.map((card) => card.getAttribute("data-event-guid")),
+    );
+  expect(new Set(renderedGuids).size).toBe(renderedGuids.length);
   const firstCard = page.getByTestId("event-card").first();
   await expect(firstCard).toHaveAttribute("data-event-guid", guid);
   await expect(firstCard.getByRole("heading", { level: 2 })).toHaveText(

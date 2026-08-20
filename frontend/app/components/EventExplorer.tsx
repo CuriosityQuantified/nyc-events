@@ -13,7 +13,12 @@ import LocationPanel from "@/app/components/LocationPanel";
 import BottomNav from "@/app/components/BottomNav";
 import DesktopSidebar from "@/app/components/DesktopSidebar";
 import { FreshnessBanner } from "@/app/components/TrustStatus";
-import type { EventPage, Freshness, ParkEvent } from "@/app/data/events";
+import {
+  uniqueEventsByGuid,
+  type EventPage,
+  type Freshness,
+  type ParkEvent,
+} from "@/app/data/events";
 import { groupEventsByLocation } from "@/app/data/maps";
 import {
   EMPTY_FILTERS,
@@ -26,9 +31,7 @@ import {
 import styles from "@/app/page.module.css";
 
 function mergeWithoutDuplicates(current: ParkEvent[], incoming: ParkEvent[]) {
-  const merged = new Map(current.map((event) => [event.guid, event]));
-  for (const event of incoming) merged.set(event.guid, event);
-  return [...merged.values()];
+  return uniqueEventsByGuid([...current, ...incoming]);
 }
 
 function eventsPath(filters: FilterState, page: number, pageSize = 12): string {
@@ -49,6 +52,7 @@ export default function EventExplorer({ initialFilters }: EventExplorerProps) {
   const [freshness, setFreshness] = useState<Freshness | null>(null);
   const [freshnessUnavailable, setFreshnessUnavailable] = useState(false);
   const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const [total, setTotal] = useState(0);
   const [state, setState] = useState<"loading" | "ready" | "error">("loading");
   const [loadingMore, setLoadingMore] = useState(false);
@@ -127,12 +131,14 @@ export default function EventExplorer({ initialFilters }: EventExplorerProps) {
 
         if (!eventsResponse.ok) throw new Error("Event data is unavailable");
         const eventPage = (await eventsResponse.json()) as EventPage;
+        const uniquePageEvents = uniqueEventsByGuid(eventPage.events);
         setEvents((current) =>
           replace
-            ? eventPage.events
-            : mergeWithoutDuplicates(current, eventPage.events),
+            ? uniquePageEvents
+            : mergeWithoutDuplicates(current, uniquePageEvents),
         );
         setPage(eventPage.page);
+        setTotalPages(eventPage.totalPages);
         setTotal(eventPage.total);
         setState("ready");
         if (!replace) {
@@ -398,7 +404,7 @@ export default function EventExplorer({ initialFilters }: EventExplorerProps) {
                   The next page could not be loaded. Your place is preserved.
                 </p>
               ) : null}
-              {events.length < total || failedPage !== null ? (
+              {page < totalPages || failedPage !== null ? (
                 <button
                   className={styles.loadMore}
                   data-testid="load-more"

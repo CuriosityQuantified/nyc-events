@@ -142,6 +142,26 @@ def test_date_only_and_fully_missing_values_do_not_invent_datetimes_or_dates() -
 
 
 @requires_docker
+async def test_recurring_live_rows_keep_unique_guids_and_distinct_calendar_dates(
+    client, db_session
+) -> None:
+    rows = load_fixture("live_recurring_iso_dates.json")
+    await ingest_rows(db_session, rows)
+
+    response = await client.get("/events", params={"page_size": 100})
+
+    assert response.status_code == 200
+    events = response.json()["events"]
+    guids = [event["guid"] for event in events]
+    assert guids == ["2196457", "2196709"]
+    assert len(guids) == len(set(guids))
+    assert [event["start_date"]["value"] for event in events] == [
+        "2026-08-22",
+        "2026-08-29",
+    ]
+
+
+@requires_docker
 async def test_current_events_fallback_is_consistent_across_api_and_consumers(
     client, db_session
 ) -> None:

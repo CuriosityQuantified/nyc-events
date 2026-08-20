@@ -150,6 +150,33 @@ test.describe("EventMatch NYC Walking Skeleton", () => {
     );
   });
 
+  test("an initial API page renders each source guid once", async ({
+    page,
+  }) => {
+    await page.unroute("**/api/events?*");
+    await page.route("**/api/events?*", (route) =>
+      route.fulfill({
+        json: {
+          events: [firstPage[0], firstPage[0], firstPage[1]],
+          page: 1,
+          pageSize: 12,
+          total: 3,
+          totalPages: 1,
+        },
+      }),
+    );
+
+    await page.reload();
+
+    const cards = page.getByTestId("event-card");
+    await expect(cards).toHaveCount(2);
+    const guids = await cards.evaluateAll((items) =>
+      items.map((item) => item.getAttribute("data-event-guid")),
+    );
+    expect(guids).toEqual([firstPage[0].guid, firstPage[1].guid]);
+    await expect(page.getByTestId("load-more")).toHaveCount(0);
+  });
+
   test("load more preserves position and removes duplicate guids", async ({
     page,
   }) => {
