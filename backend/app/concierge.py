@@ -1,6 +1,7 @@
 """Constrained LangChain Deep Agent for current Event discovery and saving."""
 
 import json
+from collections.abc import Sequence
 from dataclasses import dataclass
 from datetime import date
 from typing import Annotated, Any, Literal
@@ -226,6 +227,7 @@ def create_concierge_agent(
     checkpointer: BaseCheckpointSaver[Any],
     profile_key: str,
     fallback_model: BaseChatModel | None = None,
+    fallback_models: Sequence[BaseChatModel] = (),
 ) -> Any:
     """Build the two-tool Deep Agent around an injected model/checkpointer."""
     _register_concierge_profile(profile_key)
@@ -237,8 +239,12 @@ def create_concierge_agent(
             tool_name="save_event", run_limit=4, exit_behavior="end"
         ),
     ]
+    ordered_fallbacks = list(fallback_models)
     if fallback_model is not None:
-        middleware.append(ModelFallbackMiddleware(fallback_model))
+        # Preserve the original singular argument for provider-free callers.
+        ordered_fallbacks.insert(0, fallback_model)
+    if ordered_fallbacks:
+        middleware.append(ModelFallbackMiddleware(*ordered_fallbacks))
     return create_deep_agent(
         model=model,
         tools=[search_current_events_tool, save_event_tool],
@@ -261,28 +267,24 @@ def create_concierge_agent(
 def create_default_concierge_agent(
     checkpointer: BaseCheckpointSaver[Any],
 ) -> Any:
-    """Build the production OpenRouter-backed concierge with a fallback model."""
+    """Build the production OpenRouter-backed concierge with ordered fallbacks."""
     settings = get_concierge_settings()
     if not settings.openrouter_api_key:
         raise RuntimeError("OPENROUTER_API_KEY is required for the concierge")
 
-    primary = ChatOpenAI(
-        model=settings.concierge_model_primary,
-        api_key=SecretStr(settings.openrouter_api_key),
-        base_url=settings.openrouter_base_url,
-        temperature=0,
-        max_retries=0,
-    )
-    fallback = ChatOpenAI(
-        model=settings.concierge_model_fallback,
-        api_key=SecretStr(settings.openrouter_api_key),
-        base_url=settings.openrouter_base_url,
-        temperature=0,
-        max_retries=0,
-    )
+    def openrouter_model(model_name: str) -> ChatOpenAI:
+        return ChatOpenAI(
+            model=model_name,
+            api_key=SecretStr(settings.openrouter_api_key),
+            base_url=settings.openrouter_base_url,
+            temperature=0,
+            max_retries=0,
+        )
+
+    models = [openrouter_model(model_name) for model_name in settings.model_chain]
     return create_concierge_agent(
-        model=primary,
-        fallback_model=fallback,
+        model=models[0],
+        fallback_models=models[1:],
         checkpointer=checkpointer,
         # ChatOpenAI resolves as the ``openai`` provider even when its base URL
         # points at OpenRouter. Register the provider-level profile because
