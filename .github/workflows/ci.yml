@@ -377,6 +377,9 @@ jobs:
           if git grep -nIE 'SOCRATA_(API_KEY_SECRET|APP_TOKEN)[[:space:]]*=[[:space:]]*[^[:space:]$]' -- ':!*.example' ':!.github/*'; then
             echo "::error::a Socrata credential appears to be hardcoded"; exit 1
           fi
+          if git grep -nIE 'CLERK_SECRET_KEY[[:space:]]*=[[:space:]]*[^[:space:]$]' -- ':!*.example' ':!.github/*'; then
+            echo "::error::CLERK_SECRET_KEY appears to be hardcoded"; exit 1
+          fi
           if git grep -nIE '(BEGIN (RSA|OPENSSH|EC) PRIVATE KEY|gh[pousr]_[A-Za-z0-9]{30,}|sk-[A-Za-z0-9]{32,})' -- ':!.github/workflows/ci.yml'; then
             echo "::error::a private key or provider token appears to be committed"; exit 1
           fi
