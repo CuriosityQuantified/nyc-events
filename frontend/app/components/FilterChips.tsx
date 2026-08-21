@@ -5,6 +5,7 @@ import {
   EMPTY_FILTERS,
   FILTER_OPTIONS,
   hasActiveFilters,
+  isValidIsoDate,
   type FilterKey,
   type FilterState,
 } from "@/app/data/filters";
@@ -54,16 +55,35 @@ export default function FilterChips({ filters, onChange }: FilterChipsProps) {
   }, [filters]);
 
   function toggle(key: FilterKey, value: string) {
-    onChange({
+    const next = {
       ...filters,
       [key]: filters[key] === value ? null : value,
-    } as FilterState);
+    } as FilterState;
+    // A preset date range and exact dates would silently intersect; the
+    // last choice wins instead.
+    if (key === "date" && next.date) {
+      next.dateFrom = null;
+      next.dateTo = null;
+    }
+    onChange(next);
+  }
+
+  function setExactDate(bound: "dateFrom" | "dateTo", value: string) {
+    onChange({
+      ...filters,
+      [bound]: value && isValidIsoDate(value) ? value : null,
+      date: null,
+    });
+  }
+
+  function toggleFreeOnly() {
+    onChange({ ...filters, freeOnly: !filters.freeOnly });
   }
 
   return (
     <section
       ref={wrapperRef}
-      className={styles.wrapper}
+      className={`${styles.wrapper} glass`}
       data-testid="filter-chips"
       aria-labelledby="filters-title"
     >
@@ -109,6 +129,69 @@ export default function FilterChips({ filters, onChange }: FilterChipsProps) {
             </ul>
           </fieldset>
         ))}
+        <fieldset className={styles.group}>
+          <legend>Cost</legend>
+          <ul className={styles.list}>
+            <li>
+              <button
+                className={`${styles.chip} ${filters.freeOnly ? styles.chipActive : ""}`}
+                onClick={toggleFreeOnly}
+                aria-label={`${filters.freeOnly ? "Remove" : "Add"} Cost: Free events`}
+                aria-pressed={filters.freeOnly}
+                type="button"
+              >
+                Free events
+                {filters.freeOnly ? (
+                  <span className={styles.remove} aria-hidden="true">
+                    ×
+                  </span>
+                ) : null}
+              </button>
+            </li>
+          </ul>
+        </fieldset>
+        <fieldset className={styles.group}>
+          <legend>Exact dates</legend>
+          <div className={styles.dateInputs} data-testid="exact-date-filter">
+            <label className={styles.dateLabel}>
+              From
+              <input
+                type="date"
+                className={styles.dateInput}
+                autoComplete="off"
+                value={filters.dateFrom ?? ""}
+                max={filters.dateTo ?? undefined}
+                onChange={(changeEvent) =>
+                  setExactDate("dateFrom", changeEvent.target.value)
+                }
+              />
+            </label>
+            <label className={styles.dateLabel}>
+              To
+              <input
+                type="date"
+                className={styles.dateInput}
+                autoComplete="off"
+                value={filters.dateTo ?? ""}
+                min={filters.dateFrom ?? undefined}
+                onChange={(changeEvent) =>
+                  setExactDate("dateTo", changeEvent.target.value)
+                }
+              />
+            </label>
+            {filters.dateFrom || filters.dateTo ? (
+              <button
+                type="button"
+                className={styles.clearDates}
+                onClick={() =>
+                  onChange({ ...filters, dateFrom: null, dateTo: null })
+                }
+              >
+                Clear dates
+              </button>
+            ) : null}
+          </div>
+        </fieldset>
       </div>
     </section>
   );

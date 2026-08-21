@@ -45,14 +45,47 @@ test("live Snapshot reaches the API proxy and rendered list", async ({
 }, testInfo) => {
   const consoleErrors: string[] = [];
   const failedRequests: string[] = [];
+  const thumbnailRequests: string[] = [];
+  const loadedStreetTiles: string[] = [];
+  page.on("request", (request) => {
+    if (new URL(request.url()).pathname === "/api/maps/thumbnail") {
+      thumbnailRequests.push(request.url());
+    }
+  });
   page.on("console", (message) => {
     if (message.type() === "error") consoleErrors.push(message.text());
   });
   page.on("pageerror", (error) => consoleErrors.push(error.message));
-  page.on("requestfailed", (failed) =>
-    failedRequests.push(`${failed.method()} ${failed.url()}`),
-  );
+  page.on("requestfailed", (failed) => {
+    // Next.js cancels in-flight same-origin RSC prefetches when the view
+    // changes (List → Map); those aborts are not transport failures. Leaflet
+    // likewise cancels obsolete OpenStreetMap image requests when fitBounds
+    // replaces its initial zoom-11 tile set. Real HTTP errors on both origins
+    // are still caught by the >=400 response listener below, and the test
+    // separately requires at least one successfully loaded street tile.
+    const errorText = failed.failure()?.errorText ?? "unknown";
+    const url = new URL(failed.url());
+    const isCancelledSameOriginPrefetch =
+      errorText === "net::ERR_ABORTED" &&
+      url.origin === new URL(baseURL).origin &&
+      url.searchParams.has("_rsc");
+    const isObsoleteStreetTile =
+      errorText === "net::ERR_ABORTED" &&
+      failed.method() === "GET" &&
+      failed.resourceType() === "image" &&
+      url.hostname === "tile.openstreetmap.org";
+    if (isCancelledSameOriginPrefetch || isObsoleteStreetTile) return;
+    failedRequests.push(`${failed.method()} ${failed.url()} (${errorText})`);
+  });
   page.on("response", (response) => {
+    const url = new URL(response.url());
+    if (
+      url.hostname === "tile.openstreetmap.org" &&
+      response.status() >= 200 &&
+      response.status() < 300
+    ) {
+      loadedStreetTiles.push(response.url());
+    }
     if (response.status() >= 400) {
       failedRequests.push(`${response.status()} ${response.url()}`);
     }
@@ -63,6 +96,23 @@ test("live Snapshot reaches the API proxy and rendered list", async ({
   const apiPage = await apiResponse.json();
   expect(apiPage.total).toBeGreaterThan(0);
   expect(apiPage.events.length).toBeGreaterThan(0);
+  const apiGuids = apiPage.events.map((event: { guid: string }) => event.guid);
+  expect(new Set(apiGuids).size).toBe(apiGuids.length);
+  const dateCodedEvents = apiPage.events
+    .map((event: { officialUrl: string | null; startDate: string | null }) => ({
+      event,
+      match: event.officialUrl?.match(/\/events\/(\d{4})\/(\d{2})\/(\d{2})\//),
+    }))
+    .filter(
+      (entry: {
+        event: { officialUrl: string | null; startDate: string | null };
+        match: RegExpMatchArray | null | undefined;
+      }) => entry.match,
+    );
+  expect(dateCodedEvents.length).toBeGreaterThan(0);
+  for (const { event, match } of dateCodedEvents) {
+    expect(event.startDate).toBe(`${match![1]}-${match![2]}-${match![3]}`);
+  }
   const guid = apiPage.events[0].guid;
   expect(guid).toBeTruthy();
 
@@ -73,20 +123,44 @@ test("live Snapshot reaches the API proxy and rendered list", async ({
   expect(freshness.isStale).toBe(false);
 
   await page.goto("/", { waitUntil: "networkidle" });
+  const renderedGuids = await page
+    .getByTestId("event-card")
+    .evaluateAll((cards) =>
+      cards.map((card) => card.getAttribute("data-event-guid")),
+    );
+  expect(new Set(renderedGuids).size).toBe(renderedGuids.length);
   const firstCard = page.getByTestId("event-card").first();
   await expect(firstCard).toHaveAttribute("data-event-guid", guid);
   await expect(firstCard.getByRole("heading", { level: 2 })).toHaveText(
     apiPage.events[0].title,
   );
-
-  const accessibility = await new AxeBuilder({ page }).analyze();
-  expect(accessibility.violations).toEqual([]);
+  expect(thumbnailRequests, "Static Maps thumbnails are deferred").toEqual([]);
 
   await page.keyboard.press("Tab");
   const skipLink = page.getByRole("link", { name: "Skip to event results" });
   await expect(skipLink).toBeFocused();
   await page.keyboard.press("Enter");
   await expect(page.locator("#main-content")).toBeFocused();
+
+  await page
+    .getByTestId("list-map-toggle")
+    .getByRole("button", { name: "Map", exact: true })
+    .click();
+  const map = page.getByTestId("event-map");
+  await expect(map).toHaveAttribute("data-map-status", "ready", {
+    timeout: 20_000,
+  });
+  await expect
+    .poll(() => loadedStreetTiles.length, {
+      message: "the live street map must load an OpenStreetMap tile",
+      timeout: 20_000,
+    })
+    .toBeGreaterThan(0);
+  expect(new URL(page.url()).searchParams.get("view")).toBe("map");
+  expect(thumbnailRequests, "map view must not request thumbnails").toEqual([]);
+
+  const accessibility = await new AxeBuilder({ page }).analyze();
+  expect(accessibility.violations).toEqual([]);
 
   const header = page.getByTestId("header");
   const toggle = page.getByTestId("list-map-toggle");

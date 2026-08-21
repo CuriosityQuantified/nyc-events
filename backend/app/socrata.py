@@ -49,7 +49,7 @@ _RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 504}
 # Pagination
 _DEFAULT_PAGE_SIZE = 1000
 _ALLOWED_SOCRATA_HOST = "data.cityofnewyork.us"
-_SOCRATA_QUERY = "SELECT * ORDER BY startdate ASC, starttime ASC"
+_SOCRATA_QUERY = "SELECT * ORDER BY startdate ASC, starttime ASC, guid ASC"
 
 _CANCELLED_VALUES = {"cancelled", "canceled"}
 
@@ -236,11 +236,16 @@ class SocrataClient:
 
 
 def _parse_date(raw: str | None) -> str | None:
-    """Convert MM/DD/YYYY to ISO date string, or return None."""
+    """Normalize supported Socrata calendar-date shapes to an ISO date."""
     if not raw:
         return None
+    value = raw.strip()
     try:
-        return datetime.strptime(raw.strip(), "%m/%d/%Y").date().isoformat()
+        return datetime.strptime(value, "%m/%d/%Y").date().isoformat()
+    except ValueError:
+        pass
+    try:
+        return datetime.fromisoformat(value.replace("Z", "+00:00")).date().isoformat()
     except ValueError:
         return None
 
@@ -255,6 +260,17 @@ def _parse_datetime(raw: str | None) -> datetime | None:
         )
     except ValueError:
         return None
+
+
+def _apply_calendar_date(
+    event_datetime: datetime | None, calendar_date: str | None
+) -> datetime | None:
+    """Apply the explicit event date to Socrata's time-bearing timestamp."""
+    if event_datetime is None or calendar_date is None:
+        return event_datetime
+    return datetime.combine(
+        date.fromisoformat(calendar_date), event_datetime.time(), tzinfo=_NY_TZ
+    )
 
 
 def _parse_coordinates(
@@ -471,6 +487,14 @@ def parse_event(row: dict[str, Any]) -> dict[str, Any]:
     )
     free_evidence = explicit_free_evidence(row)
     access_evidence = accessibility_evidence(row)
+    parsed_start_date = _parse_date(start_date)
+    parsed_end_date = _parse_date(end_date)
+    parsed_start_datetime = _apply_calendar_date(
+        _parse_datetime(start_time), parsed_start_date
+    )
+    parsed_end_datetime = _apply_calendar_date(
+        _parse_datetime(end_time), parsed_end_date
+    )
 
     return {
         "guid": guid,
@@ -480,10 +504,10 @@ def parse_event(row: dict[str, Any]) -> dict[str, Any]:
         "location_key": _location_key(location_id, coordinates_list),
         "location_id": location_id,
         "location_name": location_name,
-        "start_date": _parse_date(start_date),
-        "end_date": _parse_date(end_date),
-        "start_datetime": _parse_datetime(start_time),
-        "end_datetime": _parse_datetime(end_time),
+        "start_date": parsed_start_date,
+        "end_date": parsed_end_date,
+        "start_datetime": parsed_start_datetime,
+        "end_datetime": parsed_end_datetime,
         "categories": _parse_categories(categories),
         "latitude": lat,
         "longitude": lon,

@@ -48,6 +48,9 @@ class TestPagination:
             {"pageNumber": 2, "pageSize": 2},
             {"pageNumber": 3, "pageSize": 2},
         ]
+        assert {request["query"] for request in transport.requests} == {
+            "SELECT * ORDER BY startdate ASC, starttime ASC, guid ASC"
+        }
 
     async def test_pagination_stops_on_empty_page(self):
         """The client must stop when an empty page is returned."""
@@ -259,6 +262,21 @@ class TestParseEvent:
         parsed_b = parse_event(row_b)
         assert parsed_b["borough"] == "Brooklyn"
         assert parsed_b["registration_status"] == "required"
+
+    def test_parse_event_accepts_live_socrata_iso_calendar_dates(self):
+        """Live ISO date-times must win over the source's placeholder time date."""
+        rows = load_fixture("live_recurring_iso_dates.json")
+
+        first = parse_event(rows[0])
+        second = parse_event(rows[1])
+
+        assert first["guid"] != second["guid"]
+        assert first["start_date"] == "2026-08-22"
+        assert second["start_date"] == "2026-08-29"
+        assert first["end_date"] == "2026-08-22"
+        assert second["end_date"] == "2026-08-29"
+        assert first["start_datetime"].date().isoformat() == "2026-08-22"
+        assert second["start_datetime"].date().isoformat() == "2026-08-29"
 
     def test_parse_event_not_listed(self):
         """Absent fields must return None / Not listed equivalents."""

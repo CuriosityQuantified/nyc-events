@@ -28,7 +28,12 @@ export default function DateStrip() {
   const [selected, setSelected] = useState(days[0].dateStr);
 
   return (
-    <div className={styles.wrapper} data-testid="date-strip" role="group" aria-label="Select date">
+    <div
+      className={styles.wrapper}
+      data-testid="date-strip"
+      role="group"
+      aria-label="Select date"
+    >
       <ul className={styles.list}>
         {days.map((day) => (
           <li key={day.dateStr}>

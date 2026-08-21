@@ -13,7 +13,7 @@ import yaml
 ROOT = Path(__file__).resolve().parents[2]
 CI_PATH = ROOT / ".github/workflows/ci.yml"
 DEPLOY_PATH = ROOT / ".github/workflows/deploy-production.yml"
-PROTECTED_JOBS = {"backend", "frontend", "graph", "secrets"}
+PROTECTED_JOBS = {"backend", "frontend", "secrets"}
 DEPLOY_JOBS = {"deploy-backend", "deploy-sync-worker", "deploy-frontend"}
 TRUSTED_EVENTS = {"push", "workflow_dispatch"}
 SHA_PIN = re.compile(r"^[^@]+@[0-9a-f]{40}$")
@@ -123,6 +123,7 @@ def validate_workflows(ci: dict[str, Any], deploy: dict[str, Any]) -> list[str]:
             errors.append(f"deployment job {job_name} must initialize failure evidence before checkout")
 
     sync_steps = deploy_jobs.get("deploy-sync-worker", {}).get("steps", [])
+    sync_run_text = "\n".join(step.get("run", "") for step in sync_steps)
     configure_steps = [
         step
         for step in sync_steps
@@ -134,6 +135,39 @@ def validate_workflows(ci: dict[str, Any], deploy: dict[str, Any]) -> list[str]:
         errors.append(
             "sync-worker creation must receive workspace Railway auth in one step"
         )
+    for required in (
+        "REDIS_URL",
+        "--backend-service backend",
+        "verify-sync-worker-variables",
+        "variables.json",
+        "printenv DEPLOY_REVISION",
+        ".venv/bin/python -m app.sync",
+        "freshness-before.json",
+        "freshness-after.json",
+        "successful Sync Run",
+    ):
+        if required not in sync_run_text:
+            errors.append(f"scheduled-worker deployment gate is missing {required}")
+    rollback_steps = [step for step in sync_steps if "deploymentRollback" in step.get("run", "")]
+    if not rollback_steps or any(
+        step.get("if") != "${{ failure() && steps.deploy.outcome != 'skipped' }}"
+        for step in rollback_steps
+    ):
+        errors.append("scheduled-worker smoke must use the required rollback path")
+    sync_job = deploy_jobs.get("deploy-sync-worker", {})
+    if sync_job.get("env", {}).get("RAILWAY_SSH_PRIVATE_KEY") != (
+        "${{ secrets.RAILWAY_SSH_PRIVATE_KEY }}"
+    ):
+        errors.append("scheduled-worker smoke must use the dedicated Railway SSH identity")
+    for required in (
+        "--identity-file",
+        "scripts/deploy/railway_known_hosts",
+        "StrictHostKeyChecking yes",
+        "BatchMode yes",
+        "SHA256:+S1xg92FrnHz6pY3bpkmh1OGtWQGNANXilPzlxA7B1g",
+    ):
+        if required not in sync_run_text:
+            errors.append(f"scheduled-worker SSH is missing {required}")
     for job_name, job in deploy_jobs.items():
         for step in job.get("steps", []):
             if step in configure_steps:

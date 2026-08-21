@@ -1,0 +1,138 @@
+.calendar {
+  padding: var(--space-4);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  background-color: var(--glass);
+  backdrop-filter: var(--glass-filter);
+  -webkit-backdrop-filter: var(--glass-filter);
+  box-shadow: var(--glass-highlight), var(--shadow-glass);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  margin-bottom: var(--space-3);
+}
+
+.monthTitle {
+  margin: 0;
+  font-size: var(--text-lg);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--color-foreground);
+}
+
+.controls {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.control {
+  min-width: var(--touch-min);
+  min-height: 40px;
+  padding: 0 var(--space-3);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-full);
+  background: var(--glass-soft);
+  color: var(--color-foreground);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.control:hover {
+  background: var(--glass-strong);
+  color: var(--color-accent-strong);
+}
+
+.weekdays,
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--space-1);
+}
+
+.weekday {
+  text-align: center;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-foreground-secondary);
+  padding: var(--space-1) 0;
+}
+
+.blank {
+  min-height: var(--touch-min);
+}
+
+.day {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  min-height: 52px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  background: var(--glass-soft);
+  color: var(--color-foreground);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  transition:
+    background-color 0.15s var(--ease-glass),
+    border-color 0.15s var(--ease-glass);
+}
+
+.day:hover {
+  background: var(--glass-strong);
+  border-color: color-mix(in srgb, var(--color-accent) 45%, transparent);
+}
+
+.dayToday {
+  border: 2px solid var(--color-accent);
+  font-weight: 700;
+}
+
+.daySelected,
+.daySelected:hover {
+  background: var(--color-accent);
+  border-color: transparent;
+  color: var(--color-accent-foreground);
+}
+
+.daySelected .count {
+  background: var(--color-accent-foreground);
+  color: var(--color-accent-strong);
+}
+
+.dayHasEvents {
+  background: color-mix(in srgb, var(--color-accent) 14%, transparent);
+  font-weight: 650;
+}
+
+.daySelected.dayHasEvents {
+  background: var(--color-accent);
+}
+
+.dayNumber {
+  line-height: 1;
+}
+
+.count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: var(--radius-full);
+  background: var(--color-accent);
+  color: var(--color-accent-foreground);
+  font-size: 10px;
+  font-weight: 800;
+}

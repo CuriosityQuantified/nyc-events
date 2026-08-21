@@ -11,16 +11,32 @@
   --detail-note-background: oklch(0.955 0.015 82);
 
   min-height: 100dvh;
-  background: var(--detail-background);
   color: var(--detail-ink);
+  background:
+    radial-gradient(
+      40rem 26rem at 8% -4%,
+      color-mix(in srgb, var(--color-accent) 20%, transparent),
+      transparent 68%
+    ),
+    radial-gradient(
+      34rem 24rem at 100% 6%,
+      color-mix(in srgb, var(--color-registration) 16%, transparent),
+      transparent 70%
+    ),
+    var(--detail-background);
 }
 
 .header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
   min-height: 76px;
   display: flex;
   align-items: center;
-  border-bottom: 1px solid var(--color-border);
-  background: color-mix(in oklch, var(--color-background) 92%, transparent);
+  border-bottom: 1px solid var(--glass-border);
+  background: var(--glass);
+  backdrop-filter: var(--glass-filter);
+  -webkit-backdrop-filter: var(--glass-filter);
 }
 
 .brand {
@@ -42,6 +58,11 @@
   font-size: 0.62rem;
   letter-spacing: 0.09em;
   text-transform: uppercase;
+}
+
+.freshnessSlot {
+  width: min(1240px, calc(100% - 40px));
+  margin: var(--space-4) auto 0;
 }
 
 .page {
@@ -151,12 +172,14 @@
 
 .decisionCard {
   position: sticky;
-  top: var(--space-6);
+  top: calc(76px + var(--space-4));
   padding: var(--space-5);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface-raised);
-  box-shadow: 0 14px 42px color-mix(in oklch, var(--detail-ink) 9%, transparent);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  background: var(--glass-strong);
+  backdrop-filter: var(--glass-filter);
+  -webkit-backdrop-filter: var(--glass-filter);
+  box-shadow: var(--glass-highlight), var(--shadow-glass);
 }
 
 .factRow {
@@ -287,9 +310,11 @@
 
 .missingPanel {
   padding: var(--space-6);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background: var(--detail-note-background);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  background: var(--glass);
+  backdrop-filter: var(--glass-filter-sm);
+  -webkit-backdrop-filter: var(--glass-filter-sm);
 }
 
 .missingPanel ul {
@@ -304,8 +329,12 @@
 
 .verifyPanel {
   padding: var(--space-5);
+  border: 1px solid var(--glass-border);
   border-top: 3px solid var(--detail-ink);
-  background: var(--color-surface-raised);
+  border-radius: 3px 3px var(--radius-xl) var(--radius-xl);
+  background: var(--glass);
+  backdrop-filter: var(--glass-filter-sm);
+  -webkit-backdrop-filter: var(--glass-filter-sm);
 }
 
 .verifyPanel h2 {
@@ -342,11 +371,11 @@
 }
 
 .freshness {
-  background: var(--color-accent-subtle);
+  background: color-mix(in srgb, var(--color-accent) 16%, transparent);
 }
 
 .stale {
-  background: var(--detail-neutral-background);
+  background: color-mix(in srgb, var(--color-paid) 16%, transparent);
 }
 
 @media (prefers-color-scheme: dark) {
@@ -368,9 +397,12 @@
 .dataState {
   max-width: 720px;
   padding: var(--space-8);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius-lg);
-  background: var(--color-surface-raised);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-xl);
+  background: var(--glass-strong);
+  backdrop-filter: var(--glass-filter);
+  -webkit-backdrop-filter: var(--glass-filter);
+  box-shadow: var(--glass-highlight), var(--shadow-glass);
 }
 
 .dataState h1 {
@@ -387,6 +419,7 @@
   }
 
   .brand,
+  .freshnessSlot,
   .page {
     width: calc(100% - 36px);
   }

@@ -102,6 +102,17 @@ class TestIngestionWithDb:
         assert event is not None
         assert event.title == "Updated Title"
 
+    async def test_repeated_guid_in_one_snapshot_fails_closed(self, db_session):
+        """A source Snapshot must never contain the same Event identity twice."""
+        row = load_fixture("snapshot_a.json")[0]
+
+        with pytest.raises(SocrataError, match="repeats guid"):
+            await ingest_rows(db_session, [row, dict(row)])
+
+        assert (
+            await db_session.scalar(select(func.count()).select_from(CurrentEvent)) == 0
+        )
+
     async def test_invalid_row_rolls_back_the_whole_snapshot(self, db_session):
         """A malformed row must not leave a partially ingested Snapshot."""
         valid = load_fixture("snapshot_a.json")[0]

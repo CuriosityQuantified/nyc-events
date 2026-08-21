@@ -1,5 +1,13 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
+
+const routerPush = vi.fn();
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: routerPush }),
+  usePathname: () => "/",
+  useSearchParams: () => new URLSearchParams(),
+}));
+
 import BottomNav from "./BottomNav";
 import EventCard from "./EventCard";
 import FilterChips from "./FilterChips";
@@ -33,7 +41,7 @@ const event: ParkEvent = {
 };
 
 describe("FilterChips", () => {
-  it("exposes all four filter groups and reports a removable selection", () => {
+  it("exposes the filter groups, including free events, and reports a removable selection", () => {
     const onChange = vi.fn();
     render(<FilterChips filters={EMPTY_FILTERS} onChange={onChange} />);
 
@@ -41,6 +49,7 @@ describe("FilterChips", () => {
     expect(screen.getByRole("group", { name: "Category" })).toBeTruthy();
     expect(screen.getByRole("group", { name: "Date range" })).toBeTruthy();
     expect(screen.getByRole("group", { name: "Registration" })).toBeTruthy();
+    expect(screen.getByRole("group", { name: "Cost" })).toBeTruthy();
 
     fireEvent.click(
       screen.getByRole("button", { name: "Add Borough: Queens" }),
@@ -48,6 +57,19 @@ describe("FilterChips", () => {
     expect(onChange).toHaveBeenCalledWith({
       ...EMPTY_FILTERS,
       borough: "Queens",
+    });
+  });
+
+  it("toggles the free events filter", () => {
+    const onChange = vi.fn();
+    render(<FilterChips filters={EMPTY_FILTERS} onChange={onChange} />);
+
+    fireEvent.click(
+      screen.getByRole("button", { name: "Add Cost: Free events" }),
+    );
+    expect(onChange).toHaveBeenCalledWith({
+      ...EMPTY_FILTERS,
+      freeOnly: true,
     });
   });
 
@@ -92,14 +114,13 @@ describe("EventCard", () => {
       screen.getByRole("heading", { level: 2, name: event.title }),
     ).toBeTruthy();
     expect(screen.getByText("Venue or park: Long Meadow")).toBeTruthy();
-    expect(screen.getByText("Neighborhood: Not listed")).toBeTruthy();
+    expect(screen.queryByText(/Neighborhood/)).toBeNull();
     expect(screen.getByText("Borough: Brooklyn")).toBeTruthy();
     expect(screen.getByText("Address: Not listed")).toBeTruthy();
     expect(screen.getByText("Aug 16, 2026 · 7:30 AM")).toBeTruthy();
     expect(screen.getByText("Free")).toBeTruthy();
-    expect(screen.getByRole("status").textContent).toContain(
-      "Map Image Is Loading",
-    );
+    expect(screen.queryByTestId("map-thumbnail")).toBeNull();
+    expect(screen.queryByTestId("map-thumbnail-fallback")).toBeNull();
     expect(screen.getByText(event.registration)).toBeTruthy();
     expect(screen.getByText(event.accessibility)).toBeTruthy();
     expect(
@@ -108,10 +129,8 @@ describe("EventCard", () => {
         .getAttribute("href"),
     ).toBe("/events/test-event?borough=Brooklyn");
     expect(
-      screen.getByRole("link", {
-        name: "Official event details (opens in a new tab)",
-      }),
-    ).toBeTruthy();
+      screen.queryByRole("link", { name: /Official event details/ }),
+    ).toBeNull();
   });
 
   it("labels facts and links that the source did not provide", () => {
@@ -130,14 +149,11 @@ describe("EventCard", () => {
     expect(
       screen.getByText("Accessibility information not listed"),
     ).toBeTruthy();
-    expect(screen.getByText("Official event link not listed")).toBeTruthy();
-    expect(
-      screen.queryByRole("link", { name: /Official event details/ }),
-    ).toBeNull();
+    expect(screen.queryByText("Official event link not listed")).toBeNull();
     expect(screen.getByRole("link", { name: /View details/ })).toBeTruthy();
   });
 
-  it("does not request a map for an invalid source location", () => {
+  it("does not render a thumbnail for an invalid source location", () => {
     render(
       <EventCard
         event={{
@@ -148,24 +164,43 @@ describe("EventCard", () => {
       />,
     );
 
-    expect(
-      screen.getByText("Map Image Unavailable", { selector: "strong" }),
-    ).toBeTruthy();
+    expect(screen.queryByTestId("map-thumbnail")).toBeNull();
+    expect(screen.queryByTestId("map-thumbnail-fallback")).toBeNull();
     expect(screen.queryByRole("img")).toBeNull();
     expect(screen.queryByRole("link", { name: /Google Maps/ })).toBeNull();
   });
 });
 
 describe("BottomNav", () => {
-  it("moves aria-current when a navigation item is selected", () => {
+  it("marks the current route and navigates to Saved on click", () => {
     render(<BottomNav />);
 
     const explore = screen.getByRole("button", { name: /Explore/ });
-    const saved = screen.getByRole("button", { name: /Saved/ });
+    const saved = screen.getByRole("button", { name: /^Saved/ });
     expect(explore.getAttribute("aria-current")).toBe("page");
+    expect(saved.hasAttribute("aria-current")).toBe(false);
 
     fireEvent.click(saved);
-    expect(explore.hasAttribute("aria-current")).toBe(false);
-    expect(saved.getAttribute("aria-current")).toBe("page");
+    expect(routerPush).toHaveBeenCalledWith("/saved");
+  });
+
+  it("keeps Explore, Saved, Concierge, Profile in order with no Calendar tab", () => {
+    render(<BottomNav />);
+    const labels = screen
+      .getAllByRole("button")
+      .map((button) => button.textContent);
+    expect(labels).toHaveLength(4);
+    expect(labels[0]).toContain("Explore");
+    expect(labels[1]).toContain("Saved");
+    expect(labels[2]).toContain("Concierge");
+    expect(labels[3]).toContain("Profile");
+    expect(labels.join(" ")).not.toContain("Calendar");
+  });
+
+  it("navigates to the Concierge destination", () => {
+    render(<BottomNav />);
+
+    fireEvent.click(screen.getByRole("button", { name: /Concierge/ }));
+    expect(routerPush).toHaveBeenCalledWith("/concierge");
   });
 });

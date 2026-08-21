@@ -1,22 +1,39 @@
+export type NavIconName = "explore" | "saved" | "concierge" | "profile";
+
 export interface NavItem {
   id: string;
   label: string;
-  icon: string;
+  icon: NavIconName;
+  /** Route the item navigates to; null items are placeholders for now. */
+  href: string | null;
 }
 
-/** Core navigation items shared between mobile bottom-nav and desktop sidebar */
+/**
+ * Primary navigation order per issue #20: Explore → Saved → Concierge →
+ * Profile, with no separate Calendar destination — the calendar lives inside
+ * the Saved tab.
+ */
 export const coreNavItems: NavItem[] = [
-  { id: "explore", label: "Explore", icon: "🔍" },
-  { id: "saved", label: "Saved", icon: "♥" },
-  { id: "calendar", label: "Calendar", icon: "📅" },
-  { id: "profile", label: "Profile", icon: "👤" },
+  { id: "explore", label: "Explore", icon: "explore", href: "/" },
+  { id: "saved", label: "Saved", icon: "saved", href: "/saved" },
+  {
+    id: "concierge",
+    label: "Concierge",
+    icon: "concierge",
+    href: "/concierge",
+  },
+  { id: "profile", label: "Profile", icon: "profile", href: "/profile" },
 ];
 
-/** Desktop sidebar has additional items and longer labels */
+/** Desktop sidebar shares the same destinations with longer labels */
 export const sidebarNavItems: NavItem[] = [
-  { id: "explore", label: "Explore", icon: "🔍" },
-  { id: "saved", label: "Saved Events", icon: "♥" },
-  { id: "calendar", label: "Calendar", icon: "📅" },
-  { id: "profile", label: "Profile", icon: "👤" },
-  { id: "settings", label: "Settings", icon: "⚙️" },
+  { id: "explore", label: "Explore", icon: "explore", href: "/" },
+  { id: "saved", label: "Saved Events", icon: "saved", href: "/saved" },
+  {
+    id: "concierge",
+    label: "Concierge",
+    icon: "concierge",
+    href: "/concierge",
+  },
+  { id: "profile", label: "Profile", icon: "profile", href: "/profile" },
 ];

@@ -38,26 +38,54 @@ describe("Issue #26 location identity and marker rules", () => {
     expect(locationKey(null, coordinate)).toBe("40.712346,-73.912346");
   });
 
-  it("aggregates shared locations without merging conflicting identities", () => {
+  it("merges events sharing a location name into one place marker", () => {
     const coordinate = { latitude: 40.75, longitude: -73.98 };
     const groups = groupEventsByLocation([
-      event({ guid: "a", locationId: "M1", coordinates: [coordinate] }),
-      event({ guid: "b", locationId: "M1", coordinates: [coordinate] }),
-      event({ guid: "c", locationId: "M2", coordinates: [coordinate] }),
+      event({ guid: "a", location: "Central Park", coordinates: [coordinate] }),
       event({
-        guid: "d",
-        locationId: "M1",
+        guid: "b",
+        location: "central park ",
         coordinates: [{ latitude: 40.751, longitude: -73.98 }],
+      }),
+      event({
+        guid: "c",
+        location: "Prospect Park",
+        coordinates: [{ latitude: 40.66, longitude: -73.97 }],
       }),
     ]);
 
-    expect(groups).toHaveLength(3);
-    expect(
-      groups.find((group) => group.key.startsWith("M1|40.750000"))?.events,
-    ).toHaveLength(2);
+    expect(groups).toHaveLength(2);
+    const central = groups.find((group) => group.name === "Central Park");
+    expect(central?.events.map((item) => item.guid)).toEqual(["a", "b"]);
+    expect(central?.latitude).toBeCloseTo(40.7505, 4);
+    expect(central?.accuracy).toBe("approximate");
   });
 
-  it("places multi-location events once at each unique valid location", () => {
+  it("maps a coordinate-less event through its shared location name", () => {
+    const coordinate = { latitude: 40.75, longitude: -73.98 };
+    const groups = groupEventsByLocation([
+      event({ guid: "a", location: "Central Park", coordinates: [coordinate] }),
+      event({
+        guid: "no-coords",
+        location: "Central Park",
+        coordinates: [{ latitude: 0, longitude: 0 }],
+        positionAccuracy: "not-listed",
+      }),
+      event({
+        guid: "nothing",
+        location: "Location not listed",
+        coordinates: [],
+      }),
+    ]);
+
+    expect(groups).toHaveLength(1);
+    expect(groups[0].events.map((item) => item.guid)).toEqual([
+      "a",
+      "no-coords",
+    ]);
+  });
+
+  it("collapses a multi-coordinate event to one centroid marker", () => {
     const one = { latitude: 40.7, longitude: -73.9 };
     const two = { latitude: 40.8, longitude: -73.8 };
     const source = event({
@@ -66,7 +94,10 @@ describe("Issue #26 location identity and marker rules", () => {
     });
 
     expect(validEventCoordinates(source)).toEqual([one, two]);
-    expect(groupEventsByLocation([source])).toHaveLength(2);
+    const groups = groupEventsByLocation([source]);
+    expect(groups).toHaveLength(1);
+    expect(groups[0].latitude).toBeCloseTo(40.75, 6);
+    expect(groups[0].longitude).toBeCloseTo(-73.85, 6);
   });
 
   it("uses the strict bounded marker formula", () => {

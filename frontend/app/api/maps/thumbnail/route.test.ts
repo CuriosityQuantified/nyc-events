@@ -38,10 +38,11 @@ describe("Issue #26 server-only Static Maps endpoint", () => {
   it("uses only validated coordinates and a fixed rendering variant", async () => {
     const fetchMock = vi.fn<
       (input: string | URL | Request) => Promise<Response>
-    >(async () =>
-      new Response(new Uint8Array([1, 2, 3]), {
-        headers: { "content-type": "image/png" },
-      }),
+    >(
+      async () =>
+        new Response(new Uint8Array([1, 2, 3]), {
+          headers: { "content-type": "image/png" },
+        }),
     );
     vi.stubGlobal("fetch", fetchMock);
 
@@ -94,10 +95,11 @@ describe("Issue #26 server-only Static Maps endpoint", () => {
   it("indexes the same validated, de-duplicated coordinates as the browser", async () => {
     const fetchMock = vi.fn<
       (input: string | URL | Request) => Promise<Response>
-    >(async () =>
-      new Response(new Uint8Array([1, 2, 3]), {
-        headers: { "content-type": "image/png" },
-      }),
+    >(
+      async () =>
+        new Response(new Uint8Array([1, 2, 3]), {
+          headers: { "content-type": "image/png" },
+        }),
     );
     vi.stubGlobal("fetch", fetchMock);
     getEvent.mockResolvedValue({
@@ -112,19 +114,13 @@ describe("Issue #26 server-only Static Maps endpoint", () => {
     });
 
     expect(
-      (
-        await GET(request("guid=event-1&variant=detail&location=0"))
-      ).status,
+      (await GET(request("guid=event-1&variant=detail&location=0"))).status,
     ).toBe(200);
     expect(
-      (
-        await GET(request("guid=event-1&variant=detail&location=1"))
-      ).status,
+      (await GET(request("guid=event-1&variant=detail&location=1"))).status,
     ).toBe(200);
     expect(
-      (
-        await GET(request("guid=event-1&variant=detail&location=2"))
-      ).status,
+      (await GET(request("guid=event-1&variant=detail&location=2"))).status,
     ).toBe(404);
     expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(
@@ -138,8 +134,9 @@ describe("Issue #26 server-only Static Maps endpoint", () => {
   it("fails once without reflecting credentials or upstream details", async () => {
     const fetchMock = vi.fn<
       (input: string | URL | Request) => Promise<Response>
-    >(async () =>
-      new Response("rate limited: server-secret-key", { status: 429 }),
+    >(
+      async () =>
+        new Response("rate limited: server-secret-key", { status: 429 }),
     );
     vi.stubGlobal("fetch", fetchMock);
 

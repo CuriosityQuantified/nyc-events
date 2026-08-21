@@ -5,7 +5,6 @@ import eventList from "../../contracts/golden/events-list.json";
 import { apiToUiEvent } from "../app/data/events";
 
 const fixtureEvent = apiToUiEvent(eventList.events[0]);
-type FilterKey = "borough" | "category" | "date" | "registration";
 
 type AuditedPage = Page & { __errors?: string[] };
 
@@ -23,6 +22,11 @@ async function installContractRoutes(page: Page): Promise<void> {
       },
     });
   });
+  await page.route("**/api/profile/saved**", (route) =>
+    route.fulfill({
+      json: { events: [], page: 1, pageSize: 100, total: 0 },
+    }),
+  );
   await page.route("**/api/freshness", (route) =>
     route.fulfill({
       json: {
@@ -36,7 +40,7 @@ async function installContractRoutes(page: Page): Promise<void> {
 
 async function expectFilterQuery(
   page: Page,
-  expected: Partial<Record<FilterKey, string | null>>,
+  expected: Partial<Record<string, string | null>>,
 ): Promise<void> {
   await expect
     .poll(() => {
@@ -118,6 +122,8 @@ test.describe("Issue #12 shareable filter state", () => {
       category: "Nature",
       date: "today",
       registration: "required",
+      date_from: null,
+      date_to: null,
     };
     await expectFilterQuery(page, combined);
     for (const [group, label] of [
@@ -203,6 +209,8 @@ test.describe("Issue #12 shareable filter state", () => {
       category: null,
       date: null,
       registration: null,
+      date_from: null,
+      date_to: null,
     });
     await expect(page.getByTestId("event-card")).toHaveCount(1);
   });

@@ -11,6 +11,8 @@
 
 ## State
 
+> Superseded for MVP by Issue #51 recovery: Google Maps JavaScript and Static Maps thumbnails are deferred. EventCard and EventDetail no longer render thumbnails. List/Map uses a credential-free coordinate plot with the existing Location aggregation, accessible markers, synchronized event panel, and URL/filter state. The dormant Static Maps route and component are not part of the MVP render path and require no production secret.
+
 Implementation, required Open Design runs, specialist reviews, and local gates are complete. The PR is intentionally blocked because fullstack Issue #51 has `in-progress`; the lane contract permits concurrent frontend work only for Issue #12 while #51 is active. Do not enable auto-merge or merge PR #67 until #51 is closed and no fullstack work is active.
 
 This recovery had no live Claude child or useful Claude result file. The dedicated Hermes frontend profile continued directly, merged current `origin/main` into `frontend` without rebase or force-push, regenerated the graph, and reran the complete frontend gate suite.

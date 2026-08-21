@@ -54,6 +54,11 @@ class TestListEvents:
         assert first.json()["total"] == 3
         assert len(second.json()["events"]) == 1
         assert second.json()["total"] == 3
+        first_guids = {event["guid"] for event in first.json()["events"]}
+        second_guids = {event["guid"] for event in second.json()["events"]}
+        assert len(first_guids) == len(first.json()["events"])
+        assert len(second_guids) == len(second.json()["events"])
+        assert first_guids.isdisjoint(second_guids)
         assert invalid.status_code == 422
 
 

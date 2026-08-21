@@ -23,6 +23,7 @@ from app.routes.profiles import (
 from app.services.profile_preferences import (
     PreferenceValidationError,
     remove_interest,
+    set_manual_composite_interest,
     set_manual_interest,
 )
 
@@ -30,21 +31,46 @@ router = APIRouter(prefix="/profile")
 InterestId = Annotated[UUID, Path()]
 
 
-class InterestRequest(BaseModel):
-    """One repeatable Event Facet and its notification preference."""
+class FacetMember(BaseModel):
+    """One Facet inside a combined Interest."""
 
     model_config = ConfigDict(extra="forbid")
 
     facet_type: Literal["borough", "category", "registration"]
     facet_value: Annotated[str, Field(min_length=1, max_length=100)]
+
+
+class InterestRequest(BaseModel):
+    """One Facet — or a combination of Facets — and its alert preference."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    facet_type: Literal["borough", "category", "registration"] | None = None
+    facet_value: Annotated[str, Field(min_length=1, max_length=100)] | None = None
+    facets: Annotated[list[FacetMember], Field(min_length=2, max_length=3)] | None = (
+        None
+    )
     alert_enabled: bool = True
 
 
 def _interest_contract(interest: Interest) -> dict[str, Any]:
+    facets = interest.facets or [
+        {
+            "facet_type": interest.facet_type,
+            "facet_value": interest.facet_value,
+        }
+    ]
     return {
         "id": str(interest.id),
         "facet_type": interest.facet_type,
         "facet_value": interest.facet_value,
+        "facets": [
+            {
+                "facet_type": member["facet_type"],
+                "facet_value": member["facet_value"],
+            }
+            for member in facets
+        ],
         "alert_enabled": interest.alert_enabled,
         "origin": interest.origin,
     }
@@ -83,13 +109,30 @@ async def follow_interest(
     async with session_factory() as session:
         try:
             profile = await _get_or_create_profile(session, x_device_token)
-            interest = await set_manual_interest(
-                session,
-                profile_id=profile.id,
-                facet_type=preference.facet_type,
-                facet_value=preference.facet_value,
-                alert_enabled=preference.alert_enabled,
-            )
+            if preference.facets is not None:
+                interest = await set_manual_composite_interest(
+                    session,
+                    profile_id=profile.id,
+                    facets=[
+                        (member.facet_type, member.facet_value)
+                        for member in preference.facets
+                    ],
+                    alert_enabled=preference.alert_enabled,
+                )
+            elif preference.facet_type and preference.facet_value:
+                interest = await set_manual_interest(
+                    session,
+                    profile_id=profile.id,
+                    facet_type=preference.facet_type,
+                    facet_value=preference.facet_value,
+                    alert_enabled=preference.alert_enabled,
+                )
+            else:
+                await session.rollback()
+                raise HTTPException(
+                    status_code=422,
+                    detail="Provide facet_type and facet_value, or facets",
+                )
             await session.commit()
             await session.refresh(interest)
         except PreferenceValidationError as error:

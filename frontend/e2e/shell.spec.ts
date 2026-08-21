@@ -59,6 +59,20 @@ test.describe("EventMatch NYC Walking Skeleton", () => {
         },
       });
     });
+    await page.route("https://tile.openstreetmap.org/**", (route) =>
+      route.fulfill({
+        body: Buffer.from(
+          "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+          "base64",
+        ),
+        contentType: "image/png",
+      }),
+    );
+    await page.route("**/api/profile/saved**", (route) =>
+      route.fulfill({
+        json: { events: [], page: 1, pageSize: 100, total: 0 },
+      }),
+    );
     await page.route("**/api/freshness", (route) =>
       route.fulfill({
         json: {
@@ -97,9 +111,25 @@ test.describe("EventMatch NYC Walking Skeleton", () => {
   }) => {
     const header = page.getByTestId("header");
     await expect(header).toBeVisible();
-    await expect(header.getByRole("heading", { level: 1 })).toHaveText(
-      "EventMatch NYC",
-    );
+
+    // The brand renders exactly once per viewport: the sidebar owns it on
+    // desktop, the header owns it on phone. Hidden elements expose no
+    // accessible role, so each viewport reads only its own brand.
+    const isDesktop = (page.viewportSize()?.width ?? 0) >= 1024;
+    if (isDesktop) {
+      const sidebar = page.getByTestId("desktop-sidebar");
+      await expect(sidebar).toBeVisible();
+      await expect(sidebar.getByRole("heading", { level: 1 })).toHaveText(
+        "EventMatch NYC",
+      );
+      await expect(page.getByTestId("header-brand")).toBeHidden();
+    } else {
+      await expect(header.getByRole("heading", { level: 1 })).toHaveText(
+        "EventMatch NYC",
+      );
+      await expect(page.getByTestId("desktop-sidebar")).toBeHidden();
+    }
+
     await expect(page).toHaveTitle("EventMatch NYC");
     await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
       "href",
@@ -118,6 +148,33 @@ test.describe("EventMatch NYC Walking Skeleton", () => {
       "data-event-guid",
       firstPage[1].guid,
     );
+  });
+
+  test("an initial API page renders each source guid once", async ({
+    page,
+  }) => {
+    await page.unroute("**/api/events?*");
+    await page.route("**/api/events?*", (route) =>
+      route.fulfill({
+        json: {
+          events: [firstPage[0], firstPage[0], firstPage[1]],
+          page: 1,
+          pageSize: 12,
+          total: 3,
+          totalPages: 1,
+        },
+      }),
+    );
+
+    await page.reload();
+
+    const cards = page.getByTestId("event-card");
+    await expect(cards).toHaveCount(2);
+    const guids = await cards.evaluateAll((items) =>
+      items.map((item) => item.getAttribute("data-event-guid")),
+    );
+    expect(guids).toEqual([firstPage[0].guid, firstPage[1].guid]);
+    await expect(page.getByTestId("load-more")).toHaveCount(0);
   });
 
   test("load more preserves position and removes duplicate guids", async ({
@@ -300,24 +357,28 @@ test.describe("EventMatch NYC Walking Skeleton", () => {
     const toggle = page.getByTestId("list-map-toggle");
     await expect(toggle).toBeVisible();
 
-    // Initially list view is active, event cards visible
+    // The map is the surface Explore is built on, so it is always present;
+    // the toggle decides whether the results list covers it.
     const eventList = page.getByTestId("event-list");
+    const eventMap = page.getByTestId("event-map");
     await expect(eventList).toBeVisible();
+    await expect(eventMap).toBeVisible();
+    await expect(eventMap).toHaveAttribute("data-map-status", "ready");
 
-    // Click Map button
+    // Map view hands the screen back to the map.
     const mapButton = toggle.getByRole("button", { name: "Map" });
     await mapButton.click();
-
-    // Event list should be hidden and the complete filtered map should load.
     await expect(eventList).not.toBeVisible();
-    const eventMap = page.getByTestId("event-map");
     await expect(eventMap).toBeVisible();
+    await expect(
+      page.getByRole("complementary", { name: "Events at selected location" }),
+    ).toBeVisible();
 
     // Click List button to switch back
     const listButton = toggle.getByRole("button", { name: "List" });
     await listButton.click();
     await expect(eventList).toBeVisible();
-    await expect(eventMap).not.toBeVisible();
+    await expect(eventMap).toBeVisible();
   });
 
   test("list/map toggle works with the keyboard", async ({ page }) => {
@@ -334,6 +395,7 @@ test.describe("EventMatch NYC Walking Skeleton", () => {
     await page.keyboard.press("Space");
     await expect(listButton).toHaveAttribute("aria-pressed", "true");
     await expect(page.getByTestId("event-list")).toBeVisible();
+    await expect(page.getByTestId("event-map")).toBeVisible();
   });
 
   test("key shell controls intersect the viewport and screenshot cleanly", async ({
@@ -412,6 +474,14 @@ test.describe("Mobile viewport (390x844)", () => {
     await expect(bottomNav).toBeVisible();
   });
 
+  test("the header carries the only brand on phone", async ({ page }) => {
+    await page.goto("/");
+    await expect(
+      page.getByTestId("header").getByRole("heading", { level: 1 }),
+    ).toHaveText("EventMatch NYC");
+    await expect(page.getByTestId("desktop-sidebar")).toBeHidden();
+  });
+
   test("bottom nav buttons have at least 44px touch targets", async ({
     page,
   }) => {
@@ -444,5 +514,13 @@ test.describe("Desktop viewport (1440x900)", () => {
     await page.goto("/");
     const sidebar = page.getByTestId("desktop-sidebar");
     await expect(sidebar).toBeVisible();
+  });
+
+  test("the sidebar carries the only brand on desktop", async ({ page }) => {
+    await page.goto("/");
+    await expect(
+      page.getByTestId("desktop-sidebar").getByRole("heading", { level: 1 }),
+    ).toHaveText("EventMatch NYC");
+    await expect(page.getByTestId("header-brand")).toBeHidden();
   });
 });

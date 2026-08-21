@@ -4,13 +4,14 @@ from __future__ import annotations
 
 import json
 import os
-import subprocess
 from pathlib import Path
 from typing import Any
 
 import httpx
 import pytest
 import pytest_asyncio
+
+from tests.docker_probe import probe_docker
 
 _docker_available = None
 _in_ci = os.environ.get("CI", "").lower() == "true"
@@ -21,15 +22,10 @@ FIXTURES_DIR = Path(__file__).parent / "fixtures"
 def _check_docker() -> bool:
     global _docker_available
     if _docker_available is None:
-        try:
-            result = subprocess.run(
-                ["docker", "info"],
-                capture_output=True,
-                timeout=5,
-            )
-            _docker_available = result.returncode == 0
-        except (FileNotFoundError, subprocess.TimeoutExpired):
-            _docker_available = False
+        _docker_available = probe_docker(
+            attempts=6 if _in_ci else 1,
+            retry_delay=2 if _in_ci else 0,
+        )
     return _docker_available
 
 

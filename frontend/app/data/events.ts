@@ -25,6 +25,10 @@ export type ParkEvent = {
   imageAlt: string;
   officialUrl: string | null;
   lifecycleStatus?: EventLifecycleStatus | null;
+  description?: string | null;
+  startDateTime?: string | null;
+  endDateTime?: string | null;
+  endDate?: string | null;
 };
 
 export type EventLifecycleStatus =
@@ -49,6 +53,14 @@ export type Freshness = {
   snapshotRowCount: number | null;
   isStale: boolean;
 };
+
+export function uniqueEventsByGuid(events: ParkEvent[]): ParkEvent[] {
+  const unique = new Map<string, ParkEvent>();
+  for (const event of events) {
+    if (!unique.has(event.guid)) unique.set(event.guid, event);
+  }
+  return [...unique.values()];
+}
 
 export type Provenance = "Stated" | "Derived" | "Not listed";
 
@@ -94,7 +106,7 @@ type ApiFreshness = {
   is_stale: ApiFact<boolean>;
 };
 
-function apiBaseUrl(): string {
+export function apiBaseUrl(): string {
   const configured = process.env.API_BASE_URL?.replace(/\/$/, "");
   if (!configured) {
     if (process.env.NODE_ENV === "production") {
@@ -304,6 +316,10 @@ export function apiToUiEvent(event: ApiEvent): ParkEvent {
     imageAlt: `${category} event at ${location}`,
     officialUrl: safeOfficialUrl(event.official_event_url.value),
     lifecycleStatus: eventLifecycleStatus(event),
+    description: event.description.value,
+    startDateTime: event.start_datetime.value,
+    endDateTime: event.end_datetime.value,
+    endDate: event.end_date.value?.slice(0, 10) ?? null,
   };
 }
 
@@ -332,8 +348,10 @@ export async function getEvent(guid: string): Promise<ApiEvent> {
 export async function getEvents(page = 1, pageSize = 12): Promise<EventPage> {
   const response = await apiFetch(`/events?page=${page}&page_size=${pageSize}`);
   const data = parseEventsResponse(await response.json());
+  const mapped = data.events.map(apiToUiEvent);
+  const events = uniqueEventsByGuid(mapped);
   return {
-    events: data.events.map(apiToUiEvent),
+    events,
     page: data.page,
     pageSize: data.page_size,
     total: data.total,
@@ -361,11 +379,10 @@ export async function getFilteredEvents(
   for (let sourcePage = 2; sourcePage <= first.totalPages; sourcePage += 1) {
     remaining.push(await getEvents(sourcePage, sourcePageSize));
   }
-  const filtered = applyEventFilters(
+  const sourceEvents = uniqueEventsByGuid(
     [first, ...remaining].flatMap((result) => result.events),
-    filters,
-    now,
   );
+  const filtered = applyEventFilters(sourceEvents, filters, now);
   const start = (page - 1) * pageSize;
   return {
     events: filtered.slice(start, start + pageSize),
