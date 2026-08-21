@@ -26,6 +26,23 @@ class Profile(Base):
     )
 
 
+class ProfileDeviceAlias(Base):
+    """A merged device-token digest mapped directly to one canonical Profile."""
+
+    __tablename__ = "profile_device_aliases"
+
+    device_token_hash: Mapped[str] = mapped_column(String(64), primary_key=True)
+    profile_id: Mapped[UUID] = mapped_column(
+        Uuid,
+        ForeignKey("profiles.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now(), nullable=False
+    )
+
+
 class SavedEvent(Base):
     """An Event deliberately kept by one Profile."""
 
