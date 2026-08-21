@@ -1,4 +1,7 @@
 import type { Metadata } from "next";
+import AuthProvider from "@/app/components/AuthProvider";
+import SavedProvider from "@/app/components/SavedProvider";
+import { clerkPublishableKey } from "@/app/data/clerk";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -14,7 +17,11 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body>
+        <AuthProvider publishableKey={clerkPublishableKey()}>
+          <SavedProvider>{children}</SavedProvider>
+        </AuthProvider>
+      </body>
     </html>
   );
 }

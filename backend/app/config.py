@@ -20,6 +20,8 @@ class Settings(BaseSettings):
     socrata_api_key_id: str = ""
     socrata_api_key_secret: str = ""
     socrata_app_token: str = ""
+
+    clerk_secret_key: str = ""
     socrata_dataset_id: str = "w3wp-dpdi"
     socrata_query_endpoint: str = (
         "https://data.cityofnewyork.us/api/v3/views/w3wp-dpdi/query.json"

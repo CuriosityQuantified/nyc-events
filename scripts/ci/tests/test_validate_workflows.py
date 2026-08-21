@@ -33,7 +33,7 @@ class WorkflowPolicyTests(unittest.TestCase):
 
     def test_missing_protected_context_is_rejected(self) -> None:
         broken = copy.deepcopy(self.ci)
-        del broken["jobs"]["graph"]
+        del broken["jobs"]["secrets"]
         errors = validate_workflows(broken, self.deploy)
         self.assertTrue(any("protected job names" in error for error in errors))
 
@@ -139,6 +139,33 @@ class WorkflowPolicyTests(unittest.TestCase):
         creation_step.pop("env")
         errors = validate_workflows(self.ci, broken)
         self.assertTrue(any("workspace Railway auth" in error for error in errors))
+
+    def test_sync_worker_requires_redis_binding_and_smoke_evidence(self) -> None:
+        for required in (
+            "REDIS_URL",
+            "--backend-service backend",
+            "verify-sync-worker-variables",
+            ".venv/bin/python -m app.sync",
+            "freshness-after.json",
+            "successful Sync Run",
+        ):
+            with self.subTest(required=required):
+                broken = copy.deepcopy(self.deploy)
+                for step in broken["jobs"]["deploy-sync-worker"]["steps"]:
+                    if "run" in step:
+                        step["run"] = step["run"].replace(required, "removed-gate")
+                errors = validate_workflows(self.ci, broken)
+                self.assertTrue(any(required in error for error in errors))
+
+    def test_sync_worker_rejects_the_wrong_redis_reference_service(self) -> None:
+        broken = copy.deepcopy(self.deploy)
+        for step in broken["jobs"]["deploy-sync-worker"]["steps"]:
+            if "run" in step:
+                step["run"] = step["run"].replace(
+                    "--backend-service backend", "--backend-service redis"
+                )
+        errors = validate_workflows(self.ci, broken)
+        self.assertTrue(any("--backend-service backend" in error for error in errors))
 
     def test_workspace_auth_is_rejected_outside_sync_creation(self) -> None:
         broken = copy.deepcopy(self.deploy)

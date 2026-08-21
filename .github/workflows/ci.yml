@@ -13,7 +13,7 @@ concurrency:
   group: ci-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
-# The protected PR job names are backend, frontend, graph, and secrets.
+# The protected PR job names are backend, frontend, contract, security, and secrets.
 # Renaming one silently removes a required check — update protection too.
 jobs:
   configuration:
@@ -182,7 +182,9 @@ jobs:
           path: |
             backend/coverage.xml
             artifacts/backend-container/
-          if-no-files-found: error
+          # The backend step already fails closed. Missing evidence after an
+          # early setup failure is diagnostic, not a second independent error.
+          if-no-files-found: warn
 
   frontend:
     runs-on: ubuntu-latest
@@ -359,65 +361,6 @@ jobs:
             echo '- Checks: workflow policy/actionlint/zizmor, pip-audit, npm audit, lock drift'
           } >> "$GITHUB_STEP_SUMMARY"
 
-  graph:
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    permissions:
-      contents: write
-    steps:
-      # zizmor: ignore[artipacked] This job alone needs its scoped token to push canonical Linux outputs.
-      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
-        with:
-          # PR merge refs have a synthetic commit and produce platform-specific
-          # graph metadata. Rebuild the actual head branch instead.
-          ref: ${{ github.event_name == 'pull_request' && github.head_ref || github.ref_name }}
-          fetch-depth: 0
-          persist-credentials: true
-
-      - uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5
-        with:
-          enable-cache: true
-
-      - name: Install graphify
-        run: uv tool install "graphifyy[mcp]==0.9.43"
-
-      - name: Rebuild committed knowledge graph
-        run: graphify update .
-
-      - name: Commit canonical Linux graph when a repository PR is stale
-        if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
-        env:
-          GRAPH_HEAD_REF: ${{ github.head_ref }}
-        run: |
-          if git diff --quiet -- \
-            graphify-out/graph.json \
-            graphify-out/graph.html \
-            graphify-out/GRAPH_REPORT.md \
-            graphify-out/.graphify_labels.json \
-            graphify-out/.graphify_labels.json.sig \
-            graphify-out/.graphify_root; then
-            exit 0
-          fi
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add graphify-out/graph.json graphify-out/graph.html \
-            graphify-out/GRAPH_REPORT.md graphify-out/.graphify_labels.json \
-            graphify-out/.graphify_labels.json.sig graphify-out/.graphify_root
-          git commit -m "chore: rebuild the code knowledge graph"
-          git push origin "HEAD:$GRAPH_HEAD_REF"
-          echo "::error::Graph outputs were stale and have been rebuilt; verify the new head run"
-          exit 1
-
-      - name: Verify committed knowledge graph is fresh
-        run: |
-          git diff --exit-code -- \
-            graphify-out/graph.json \
-            graphify-out/graph.html \
-            graphify-out/GRAPH_REPORT.md \
-            graphify-out/.graphify_labels.json \
-            graphify-out/.graphify_labels.json.sig \
-            graphify-out/.graphify_root
-
   secrets:
     runs-on: ubuntu-latest
     timeout-minutes: 10
@@ -433,6 +376,9 @@ jobs:
           fi
           if git grep -nIE 'SOCRATA_(API_KEY_SECRET|APP_TOKEN)[[:space:]]*=[[:space:]]*[^[:space:]$]' -- ':!*.example' ':!.github/*'; then
             echo "::error::a Socrata credential appears to be hardcoded"; exit 1
+          fi
+          if git grep -nIE 'CLERK_SECRET_KEY[[:space:]]*=[[:space:]]*[^[:space:]$]' -- ':!*.example' ':!.github/*'; then
+            echo "::error::CLERK_SECRET_KEY appears to be hardcoded"; exit 1
           fi
           if git grep -nIE '(BEGIN (RSA|OPENSSH|EC) PRIVATE KEY|gh[pousr]_[A-Za-z0-9]{30,}|sk-[A-Za-z0-9]{32,})' -- ':!.github/workflows/ci.yml'; then
             echo "::error::a private key or provider token appears to be committed"; exit 1

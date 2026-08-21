@@ -12,7 +12,12 @@ export default function ListMapToggle({
   onViewChange,
 }: ListMapToggleProps) {
   return (
-    <div className={styles.wrapper} data-testid="list-map-toggle" role="group" aria-label="View mode">
+    <div
+      className={styles.wrapper}
+      data-testid="list-map-toggle"
+      role="group"
+      aria-label="View mode"
+    >
       <div className={styles.toggle}>
         <button
           className={`${styles.button} ${activeView === "list" ? styles.buttonActive : ""}`}

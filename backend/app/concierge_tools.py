@@ -9,7 +9,7 @@ from sqlalchemy import or_, select
 
 from app.database import get_session_factory
 from app.models.event import CurrentEvent
-from app.routes.events import _event_to_contract, get_freshness
+from app.routes.events import _event_date_expression, _event_to_contract, get_freshness
 
 
 class CurrentEventSearch(BaseModel):
@@ -34,7 +34,9 @@ async def search_current_events(criteria: CurrentEventSearch) -> dict[str, Any]:
     if criteria.category:
         query = query.where(CurrentEvent.categories.contains([criteria.category]))
     query = query.order_by(
-        CurrentEvent.start_datetime.asc().nullslast(), CurrentEvent.guid
+        _event_date_expression(CurrentEvent).asc().nullslast(),
+        CurrentEvent.start_datetime.asc().nullslast(),
+        CurrentEvent.guid,
     ).limit(criteria.limit)
 
     async with get_session_factory()() as session:

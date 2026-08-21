@@ -8,13 +8,14 @@
 - PR: #67 — https://github.com/CuriosityQuantified/nyc-events/pull/67
 - Latest implementation commit: `66a50f0`
 - Main synchronization merge: `bbc5d78`
-- Merged revision: `d6fd245`
 
 ## State
 
-Implementation, required Open Design runs, specialist reviews, local gates, exact-head PR CI, and main CI completed. GitHub auto-merged PR #67 as merge commit `d6fd245`. Production deployment run `31950268463` verified the exact cutover revision, but its Playwright journeys timed out at both required viewports because `page.goto("/", { waitUntil: "networkidle" })` never reached network idle after the map-thumbnail change. The workflow rolled the frontend back; the public revision then reported `287979e`. Issue #26 was reopened.
+> Superseded for MVP by Issue #51 recovery: Google Maps JavaScript and Static Maps thumbnails are deferred. EventCard and EventDetail no longer render thumbnails. List/Map uses a credential-free coordinate plot with the existing Location aggregation, accessible markers, synchronized event panel, and URL/filter state. The dormant Static Maps route and component are not part of the MVP render path and require no production secret.
 
-Fullstack Issue #51 remains `in-progress`. Its exception permits concurrent frontend work only for Issue #12, so Issue #26 must remain paused and unclaimed. This recovery had no live Claude child or useful Claude result file; the dedicated Hermes frontend profile updated this handoff directly without changing application code.
+Implementation, required Open Design runs, specialist reviews, and local gates are complete. The PR is intentionally blocked because fullstack Issue #51 has `in-progress`; the lane contract permits concurrent frontend work only for Issue #12 while #51 is active. Do not enable auto-merge or merge PR #67 until #51 is closed and no fullstack work is active.
+
+This recovery had no live Claude child or useful Claude result file. The dedicated Hermes frontend profile continued directly, merged current `origin/main` into `frontend` without rebase or force-push, regenerated the graph, and reran the complete frontend gate suite.
 
 ## Completed acceptance areas
 
@@ -51,22 +52,18 @@ Fullstack Issue #51 remains `in-progress`. Its exception permits concurrent fron
 | Browser map and thumbnail journeys | `CI=true npm run test:e2e` / `frontend` | filter/view desynchronization, dead keyboard markers, inaccessible labels, geometry/overflow/attribution/fallback regressions, console/page errors | 56/56 local |
 | Production build and types | `npm run build`, `npm run typecheck` / `frontend` | route, server/client boundary, generated type, and optimized build regressions | passed local |
 | Graph freshness | `graphify update .` / `graph` | stale tracked graph output | refreshed locally |
-| Exact-head PR CI | PR workflow run `31950097718` | protected and supplemental integration regressions | passed |
-| Main CI | push workflow run `31950268416` | post-merge integration drift | passed for `d6fd245` |
-| Production browser | production run `31950268463` | exact-revision cutover and live phone/desktop regressions | failed at 390×844 and 1440×900; rollback restored `287979e` |
 
 ## Remaining ordered actions
 
-1. Wait until Issue #51 is closed and confirm no fullstack issue, PR, worktree, or active fullstack process remains.
+1. Wait until Issue #51 is closed and confirm no fullstack issue, PR, worktree, or ahead/uncommitted coordinator work is active.
 2. Reclaim Issue #26 with `in-progress` and comment the recovery.
-3. Diagnose run `31950268463`; distinguish a production-only thumbnail retry/request loop from an unsuitable navigation readiness condition. Preserve fail-closed console, page-error, failed-request, geometry, axe, keyboard, screenshot, and exact-revision checks.
-4. Add a deterministic regression that reproduces the production failure at 390×844 and 1440×900. Do not weaken the production browser gate.
-5. Run required Open Design polish/audit if the remediation changes visible behavior, then run the full frontend, production-browser, security, and graph freshness gates.
-6. Remove this handoff, commit and push normally on persistent `frontend`, and create exactly one follow-up PR to `main` with `Closes #26` and the complete CI/CD delta.
-7. Verify pull-request CI auto-enqueues for the exact head within 2 minutes, require every protected and supplemental check to succeed, and enable GraphQL auto-merge with method `MERGE`.
-8. Require the merged revision's main CI and production deployment—including both live Playwright viewports and exact-revision evidence—to succeed before closing Issue #26.
-9. Fetch, fast-forward `frontend` to `origin/main`, push `frontend`, and verify `main`/`frontend` alignment and a clean worktree.
+3. Remove this handoff, run `graphify update .`, commit, and push normally on `frontend`.
+4. Verify the PR-triggered CI run automatically enqueues for the exact pushed SHA within 2 minutes.
+5. Require every protected and supplemental check for the exact head to report success; fix failures without rebase, force-push, squash, or branch deletion.
+6. Update PR #67's CI/CD table with exact GitHub results and any production evidence required at that point.
+7. Enable GitHub auto-merge through GraphQL `enablePullRequestAutoMerge` with merge method `MERGE`; never invoke a direct merge endpoint.
+8. After GitHub merges, verify Issue #26 closed, fetch, fast-forward `frontend` to `origin/main`, push `frontend`, and verify both refs align and the worktree is clean.
 
 ## Blocker
 
-Fullstack Issue #51 is open with `in-progress`, with an active fullstack worktree/process. The frontend lane exception applies only to Issue #12. Issue #26 has no `in-progress` label while paused.
+Fullstack Issue #51 is open with `in-progress`. The frontend lane exception applies only to Issue #12. Remove Issue #26's `in-progress` label while paused.

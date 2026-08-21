@@ -1,0 +1,28 @@
+[
+  {
+    "guid": "2196457",
+    "title": "Summer Sports Experience: Basketball Seasonal Clinics at Faber Recreation Center",
+    "startdate": "2026-08-22T00:00:00.000",
+    "enddate": "2026-08-22T00:00:00.000",
+    "starttime": "2026-08-20 12:00:00",
+    "endtime": "2026-08-20 14:00:00",
+    "link": {
+      "url": "http://www.nycgovparks.org/events/2026/08/22/summer-sports-experience-basketball-seasonal-clinics-at-faber-recreation-center"
+    },
+    "location": "Multi-Use Room B (in Faber Pool and Park)",
+    "parkids": "R008"
+  },
+  {
+    "guid": "2196709",
+    "title": "Summer Sports Experience: Basketball Seasonal Clinics at Faber Recreation Center",
+    "startdate": "2026-08-29T00:00:00.000",
+    "enddate": "2026-08-29T00:00:00.000",
+    "starttime": "2026-08-20 12:00:00",
+    "endtime": "2026-08-20 14:00:00",
+    "link": {
+      "url": "http://www.nycgovparks.org/events/2026/08/29/summer-sports-experience-basketball-seasonal-clinics-at-faber-recreation-center"
+    },
+    "location": "Multi-Use Room B (in Faber Pool and Park)",
+    "parkids": "R008"
+  }
+]

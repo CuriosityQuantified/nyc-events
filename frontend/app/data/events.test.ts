@@ -5,6 +5,7 @@ import freshness from "../../../contracts/golden/freshness.json";
 import {
   apiToUiEvent,
   getEvent,
+  getEvents,
   getFilteredEvents,
   parseEventsResponse,
   parseFreshnessResponse,
@@ -36,6 +37,26 @@ describe("live Event API mapping", () => {
   it("keeps unknown cost explicit instead of inventing free or paid", () => {
     const event = apiToUiEvent(parseEventsResponse(eventList).events[0]);
     expect(event.costType).toBe("Not listed");
+  });
+
+  it("deduplicates an API page by source guid before UI rendering", async () => {
+    const fetchMock = vi.fn(async () =>
+      Response.json({
+        ...eventList,
+        events: [eventList.events[0], eventList.events[0], eventList.events[1]],
+        total: 3,
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await getEvents(1, 12);
+
+    expect(result.events.map((event) => event.guid)).toEqual([
+      eventList.events[0].guid,
+      eventList.events[1].guid,
+    ]);
+    expect(result.total).toBe(3);
+    expect(result.totalPages).toBe(1);
   });
 
   it("maps only allowlisted lifecycle classifications", () => {

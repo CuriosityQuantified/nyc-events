@@ -149,8 +149,8 @@ async def test_browser_preflight_allows_only_the_profile_write_contract(client):
         "/profile/saved/example",
         headers={
             "Origin": origin,
-            "Access-Control-Request-Method": "POST",
-            "Access-Control-Request-Headers": "Authorization",
+            "Access-Control-Request-Method": "PATCH",
+            "Access-Control-Request-Headers": "X-Device-Token",
         },
     )
 

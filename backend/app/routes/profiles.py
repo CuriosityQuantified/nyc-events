@@ -1,21 +1,29 @@
-"""Anonymous Profile and Saved Events API."""
+"""Anonymous Profile, Saved Events, and Clerk claim/merge API."""
 
 from __future__ import annotations
 
 import hashlib
 from typing import Annotated, Any, NoReturn
-from uuid import uuid4
+from uuid import UUID, uuid4
 
 from fastapi import APIRouter, Header, HTTPException, Path, Query, Response, status
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy.exc import SQLAlchemyError
+from sqlalchemy.exc import IntegrityError, SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.auth import ClerkTokenPayload, get_clerk_verifier
 from app.database import get_session_factory
-from app.models.event import CurrentEvent, EventRepository
-from app.models.profile import Profile, SavedEvent
-from app.routes.events import _event_to_contract
+from app.models.event import EventRepository
+from app.models.profile import (
+    Interest,
+    MatchedEvent,
+    PreferenceAudit,
+    Profile,
+    SavedEvent,
+)
+from app.routes.events import _event_date_expression, _event_to_contract
+from app.services.saved_events import EventNotCurrentError, save_current_event
 
 router = APIRouter(prefix="/profile")
 
@@ -29,6 +37,8 @@ DeviceToken = Annotated[
     ),
 ]
 
+OptionalBearer = Annotated[str | None, Header(alias="Authorization")]
+
 
 def _token_digest(token: str) -> str:
     """Return a non-reversible lookup key for a high-entropy device token."""
@@ -38,10 +48,9 @@ def _token_digest(token: str) -> str:
 async def _get_or_create_profile(session: AsyncSession, token: str) -> Profile:
     """Return the token's Profile, creating it atomically on first use."""
     token_hash = _token_digest(token)
-    new_id = uuid4()
     await session.execute(
         insert(Profile)
-        .values(id=new_id, device_token_hash=token_hash, user_id=None)
+        .values(id=uuid4(), device_token_hash=token_hash, user_id=None)
         .on_conflict_do_nothing(index_elements=[Profile.device_token_hash])
     )
     profile = await session.scalar(
@@ -65,17 +74,221 @@ async def _database_unavailable(
     ) from error
 
 
+def _extract_bearer(authorization: str | None) -> str | None:
+    """Extract the raw token from an ``Authorization: Bearer <token>`` header."""
+    if authorization is None:
+        return None
+    parts = authorization.split(" ", maxsplit=1)
+    if len(parts) != 2 or parts[0].lower() != "bearer":
+        return None
+    return parts[1]
+
+
+async def _verify_bearer(authorization: str | None) -> ClerkTokenPayload:
+    """Verify a Bearer token, raising 401 on any failure."""
+    raw = _extract_bearer(authorization)
+    if raw is None:
+        raise HTTPException(status_code=401, detail="Missing or malformed Bearer token")
+    try:
+        return await get_clerk_verifier()(raw)
+    except ValueError as exc:
+        raise HTTPException(status_code=401, detail="Invalid Clerk token") from exc
+
+
 @router.get("")
-async def get_profile(x_device_token: DeviceToken) -> dict[str, Any]:
-    """Create or return the anonymous Profile for this device token."""
+async def get_profile(
+    x_device_token: DeviceToken,
+    authorization: OptionalBearer = None,
+) -> dict[str, Any]:
+    """Create or return the anonymous Profile for this device token.
+
+    When a valid ``Authorization: Bearer <clerk_token>`` is also provided,
+    the Profile is looked up by ``user_id`` first -- enabling cross-device
+    access after claiming.
+    """
     session_factory = get_session_factory()
     async with session_factory() as session:
         try:
+            # Cross-device: if a Bearer token is present, look up by user_id.
+            if _extract_bearer(authorization) is not None:
+                try:
+                    payload = await _verify_bearer(authorization)
+                    account_profile = await session.scalar(
+                        select(Profile).where(Profile.user_id == payload.user_id)
+                    )
+                    if account_profile is not None:
+                        return _profile_contract(account_profile)
+                except HTTPException:
+                    pass  # Fall through to device-token lookup
+
             profile = await _get_or_create_profile(session, x_device_token)
             await session.commit()
         except SQLAlchemyError as error:
             await _database_unavailable(session, error)
         return _profile_contract(profile)
+
+
+async def _merge_profiles(
+    session: AsyncSession,
+    *,
+    source_id: UUID,
+    target_id: UUID,
+) -> None:
+    """Move all child records from *source* profile to *target*, then delete source.
+
+    Duplicates are skipped via ``ON CONFLICT DO NOTHING`` for SavedEvent /
+    MatchedEvent, and by a check-then-move strategy for Interest rows.
+    """
+    # -- SavedEvents --
+    source_saved = (
+        await session.scalars(
+            select(SavedEvent).where(SavedEvent.profile_id == source_id)
+        )
+    ).all()
+    for saved in source_saved:
+        await session.execute(
+            insert(SavedEvent)
+            .values(
+                profile_id=target_id,
+                event_guid=saved.event_guid,
+                saved_at=saved.saved_at,
+            )
+            .on_conflict_do_nothing(
+                index_elements=[SavedEvent.profile_id, SavedEvent.event_guid]
+            )
+        )
+    await session.execute(delete(SavedEvent).where(SavedEvent.profile_id == source_id))
+
+    # -- MatchedEvents --
+    source_matches = (
+        await session.scalars(
+            select(MatchedEvent).where(MatchedEvent.profile_id == source_id)
+        )
+    ).all()
+    for matched in source_matches:
+        await session.execute(
+            insert(MatchedEvent)
+            .values(
+                profile_id=target_id,
+                event_guid=matched.event_guid,
+                status=matched.status,
+                matched_at=matched.matched_at,
+            )
+            .on_conflict_do_nothing(
+                index_elements=[MatchedEvent.profile_id, MatchedEvent.event_guid]
+            )
+        )
+    await session.execute(
+        delete(MatchedEvent).where(MatchedEvent.profile_id == source_id)
+    )
+
+    # -- Interests --
+    source_interests = (
+        await session.scalars(select(Interest).where(Interest.profile_id == source_id))
+    ).all()
+
+    for interest in source_interests:
+        existing = await session.scalar(
+            select(Interest).where(
+                Interest.profile_id == target_id,
+                Interest.facet_type == interest.facet_type,
+                Interest.normalized_value == interest.normalized_value,
+            )
+        )
+        if existing is None:
+            interest.profile_id = target_id
+            if interest.origin_idempotency_key is not None:
+                interest.origin_idempotency_key = (
+                    f"merged-{uuid4().hex[:8]}-{interest.origin_idempotency_key}"
+                )
+        else:
+            await session.delete(interest)
+
+    # -- PreferenceAudits --
+    # Interests that stayed on source (duplicate, deleted above) still have
+    # audit rows referencing them; delete those before removing the profile.
+    duplicate_interest_ids = {
+        i.id for i in source_interests if i.profile_id != target_id
+    }
+    if duplicate_interest_ids:
+        await session.execute(
+            delete(PreferenceAudit).where(
+                PreferenceAudit.interest_id.in_(duplicate_interest_ids)
+            )
+        )
+    await session.execute(
+        update(PreferenceAudit)
+        .where(PreferenceAudit.profile_id == source_id)
+        .values(profile_id=target_id)
+    )
+
+    await session.execute(delete(Profile).where(Profile.id == source_id))
+
+
+@router.post("/claim")
+async def claim_profile(
+    x_device_token: DeviceToken,
+    authorization: OptionalBearer = None,
+) -> dict[str, Any]:
+    """Claim an anonymous Profile for a signed-in Clerk user.
+
+    If the user_id already owns a different Profile (from another device),
+    the anonymous Profile's Saved Events, Interests, and Matches are merged
+    into the account Profile — nothing is lost.
+    """
+    clerk_payload = await _verify_bearer(authorization)
+
+    session_factory = get_session_factory()
+    async with session_factory() as session:
+        try:
+            anon_profile = await _get_or_create_profile(session, x_device_token)
+
+            # Idempotent: already claimed by the same user
+            if anon_profile.user_id == clerk_payload.user_id:
+                await session.commit()
+                return _profile_contract(anon_profile)
+
+            # Reject: profile already claimed by a different user
+            if anon_profile.user_id is not None:
+                await session.rollback()
+                raise HTTPException(
+                    status_code=409,
+                    detail="Profile is already claimed by another account",
+                )
+
+            # Check if this user_id already owns another profile (second device)
+            account_profile = await session.scalar(
+                select(Profile).where(
+                    Profile.user_id == clerk_payload.user_id,
+                    Profile.id != anon_profile.id,
+                )
+            )
+
+            if account_profile is not None:
+                await _merge_profiles(
+                    session,
+                    source_id=anon_profile.id,
+                    target_id=account_profile.id,
+                )
+                await session.commit()
+                return _profile_contract(account_profile)
+
+            # First claim: attach user_id to the anonymous profile
+            anon_profile.user_id = clerk_payload.user_id
+            await session.commit()
+            return _profile_contract(anon_profile)
+
+        except IntegrityError:
+            await session.rollback()
+            raise HTTPException(
+                status_code=409,
+                detail="Profile claim conflict — retry the request",
+            ) from None
+        except SQLAlchemyError as error:
+            await _database_unavailable(session, error)
+
+    # Unreachable but keeps mypy happy
+    raise RuntimeError("claim_profile fell through")  # pragma: no cover
 
 
 @router.get("/saved")
@@ -102,6 +315,7 @@ async def list_saved_events(
                     .join(SavedEvent, SavedEvent.event_guid == EventRepository.guid)
                     .where(profile_filter)
                     .order_by(
+                        _event_date_expression(EventRepository).asc().nullslast(),
                         EventRepository.start_datetime.asc().nullslast(),
                         SavedEvent.saved_at,
                         EventRepository.guid,
@@ -132,19 +346,11 @@ async def save_event(
     async with session_factory() as session:
         try:
             profile = await _get_or_create_profile(session, x_device_token)
-            event_exists = await session.scalar(
-                select(CurrentEvent.guid).where(CurrentEvent.guid == guid)
-            )
-            if event_exists is None:
+            try:
+                await save_current_event(session, profile_id=profile.id, event_id=guid)
+            except EventNotCurrentError:
                 await session.rollback()
-                raise HTTPException(status_code=404, detail="Event not found")
-            await session.execute(
-                insert(SavedEvent)
-                .values(profile_id=profile.id, event_guid=guid)
-                .on_conflict_do_nothing(
-                    index_elements=[SavedEvent.profile_id, SavedEvent.event_guid]
-                )
-            )
+                raise HTTPException(status_code=404, detail="Event not found") from None
             await session.commit()
         except SQLAlchemyError as error:
             await _database_unavailable(session, error)

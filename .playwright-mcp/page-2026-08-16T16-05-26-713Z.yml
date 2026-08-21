@@ -1,0 +1,159 @@
+- generic [ref=f2e1]:
+  - alert [ref=f2e2]
+  - generic [ref=f2e3]:
+    - link "Skip to saved events" [ref=f2e4] [cursor=pointer]:
+      - /url: "#main-content"
+    - complementary "Desktop navigation" [ref=f2e5]:
+      - generic [ref=f2e6]:
+        - generic [ref=f2e7]: PM
+        - generic [ref=f2e8]: ParkMatch
+      - navigation "Sidebar navigation" [ref=f2e9]:
+        - list [ref=f2e10]:
+          - listitem [ref=f2e11]:
+            - button "Explore" [ref=f2e12] [cursor=pointer]:
+              - generic [ref=f2e13]: 🔍
+          - listitem [ref=f2e15]:
+            - button "Saved Events" [ref=f2e16] [cursor=pointer]:
+              - generic [ref=f2e17]: ♥
+          - listitem [ref=f2e19]:
+            - button "Concierge" [disabled] [ref=f2e20] [cursor=pointer]:
+              - generic [ref=f2e21]: 💬
+          - listitem [ref=f2e23]:
+            - button "Profile" [disabled] [ref=f2e24] [cursor=pointer]:
+              - generic [ref=f2e25]: 👤
+    - generic [ref=f2e27]:
+      - banner [ref=f2e28]:
+        - generic [ref=f2e29]:
+          - generic [ref=f2e30]: EM
+          - heading "EventMatch NYC" [level=1] [ref=f2e31]
+        - generic [ref=f2e32]:
+          - generic [ref=f2e33]: Select borough
+          - combobox "Select borough" [ref=f2e34] [cursor=pointer]:
+            - option "All Boroughs" [selected]
+            - option "Manhattan"
+            - option "Brooklyn"
+            - option "Queens"
+            - option "Bronx"
+            - option "Staten Island"
+      - main [ref=f2e35]:
+        - generic [ref=f2e36]:
+          - generic [ref=f2e37]:
+            - heading "Saved" [level=2] [ref=f2e38]
+            - paragraph [ref=f2e39]: Your plans, saved on this device — no account needed.
+          - group "Saved view mode" [ref=f2e40]:
+            - button "List" [ref=f2e41] [cursor=pointer]
+            - button "Calendar" [pressed] [ref=f2e42] [cursor=pointer]
+        - region "Saved events calendar" [ref=f2e43]:
+          - generic [ref=f2e44]:
+            - generic [ref=f2e45]:
+              - heading "August 2026" [level=2] [ref=f2e46]
+              - generic [ref=f2e47]:
+                - button "Previous month" [ref=f2e48] [cursor=pointer]: ‹
+                - button "Today" [ref=f2e49] [cursor=pointer]
+                - button "Next month" [ref=f2e50] [cursor=pointer]: ›
+            - generic [ref=f2e51]:
+              - generic [ref=f2e52]: Sun
+              - generic [ref=f2e53]: Mon
+              - generic [ref=f2e54]: Tue
+              - generic [ref=f2e55]: Wed
+              - generic [ref=f2e56]: Thu
+              - generic [ref=f2e57]: Fri
+              - generic [ref=f2e58]: Sat
+            - generic [ref=f2e59]:
+              - button "Saturday, August 1, 2026, 0 saved events" [ref=f2e66] [cursor=pointer]:
+                - generic [ref=f2e67]: "1"
+              - button "Sunday, August 2, 2026, 0 saved events" [ref=f2e68] [cursor=pointer]:
+                - generic [ref=f2e69]: "2"
+              - button "Monday, August 3, 2026, 0 saved events" [ref=f2e70] [cursor=pointer]:
+                - generic [ref=f2e71]: "3"
+              - button "Tuesday, August 4, 2026, 0 saved events" [ref=f2e72] [cursor=pointer]:
+                - generic [ref=f2e73]: "4"
+              - button "Wednesday, August 5, 2026, 0 saved events" [ref=f2e74] [cursor=pointer]:
+                - generic [ref=f2e75]: "5"
+              - button "Thursday, August 6, 2026, 0 saved events" [ref=f2e76] [cursor=pointer]:
+                - generic [ref=f2e77]: "6"
+              - button "Friday, August 7, 2026, 0 saved events" [ref=f2e78] [cursor=pointer]:
+                - generic [ref=f2e79]: "7"
+              - button "Saturday, August 8, 2026, 0 saved events" [ref=f2e80] [cursor=pointer]:
+                - generic [ref=f2e81]: "8"
+              - button "Sunday, August 9, 2026, 0 saved events" [ref=f2e82] [cursor=pointer]:
+                - generic [ref=f2e83]: "9"
+              - button "Monday, August 10, 2026, 0 saved events" [ref=f2e84] [cursor=pointer]:
+                - generic [ref=f2e85]: "10"
+              - button "Tuesday, August 11, 2026, 0 saved events" [ref=f2e86] [cursor=pointer]:
+                - generic [ref=f2e87]: "11"
+              - button "Wednesday, August 12, 2026, 0 saved events" [ref=f2e88] [cursor=pointer]:
+                - generic [ref=f2e89]: "12"
+              - button "Thursday, August 13, 2026, 0 saved events" [ref=f2e90] [cursor=pointer]:
+                - generic [ref=f2e91]: "13"
+              - button "Friday, August 14, 2026, 0 saved events" [ref=f2e92] [cursor=pointer]:
+                - generic [ref=f2e93]: "14"
+              - button "Saturday, August 15, 2026, 0 saved events" [ref=f2e94] [cursor=pointer]:
+                - generic [ref=f2e95]: "15"
+              - button "Sunday, August 16, 2026, 1 saved event" [active] [pressed] [ref=f2e96] [cursor=pointer]:
+                - generic [ref=f2e97]: "16"
+                - generic [ref=f2e98]: "1"
+              - button "Monday, August 17, 2026, 0 saved events" [ref=f2e99] [cursor=pointer]:
+                - generic [ref=f2e100]: "17"
+              - button "Tuesday, August 18, 2026, 0 saved events" [ref=f2e101] [cursor=pointer]:
+                - generic [ref=f2e102]: "18"
+              - button "Wednesday, August 19, 2026, 0 saved events" [ref=f2e103] [cursor=pointer]:
+                - generic [ref=f2e104]: "19"
+              - button "Thursday, August 20, 2026, 0 saved events" [ref=f2e105] [cursor=pointer]:
+                - generic [ref=f2e106]: "20"
+              - button "Friday, August 21, 2026, 0 saved events" [ref=f2e107] [cursor=pointer]:
+                - generic [ref=f2e108]: "21"
+              - button "Saturday, August 22, 2026, 0 saved events" [ref=f2e109] [cursor=pointer]:
+                - generic [ref=f2e110]: "22"
+              - button "Sunday, August 23, 2026, 0 saved events" [ref=f2e111] [cursor=pointer]:
+                - generic [ref=f2e112]: "23"
+              - button "Monday, August 24, 2026, 0 saved events" [ref=f2e113] [cursor=pointer]:
+                - generic [ref=f2e114]: "24"
+              - button "Tuesday, August 25, 2026, 0 saved events" [ref=f2e115] [cursor=pointer]:
+                - generic [ref=f2e116]: "25"
+              - button "Wednesday, August 26, 2026, 0 saved events" [ref=f2e117] [cursor=pointer]:
+                - generic [ref=f2e118]: "26"
+              - button "Thursday, August 27, 2026, 0 saved events" [ref=f2e119] [cursor=pointer]:
+                - generic [ref=f2e120]: "27"
+              - button "Friday, August 28, 2026, 0 saved events" [ref=f2e121] [cursor=pointer]:
+                - generic [ref=f2e122]: "28"
+              - button "Saturday, August 29, 2026, 0 saved events" [ref=f2e123] [cursor=pointer]:
+                - generic [ref=f2e124]: "29"
+              - button "Sunday, August 30, 2026, 0 saved events" [ref=f2e125] [cursor=pointer]:
+                - generic [ref=f2e126]: "30"
+              - button "Monday, August 31, 2026, 0 saved events" [ref=f2e127] [cursor=pointer]:
+                - generic [ref=f2e128]: "31"
+          - list [ref=f2e130]:
+            - listitem [ref=f2e131]:
+              - article [ref=f2e132]:
+                - generic [ref=f2e133]:
+                  - generic [ref=f2e134]:
+                    - generic [ref=f2e135]: Cost not listed
+                    - generic [ref=f2e136]:
+                      - button "Remove Bring a Friend Friday at Ocean Breeze Athletic Complex from Saved" [pressed] [ref=f2e137] [cursor=pointer]:
+                        - generic [ref=f2e138]: ♥
+                      - generic [ref=f2e139]: Saved
+                  - paragraph [ref=f2e140]: Fitness
+                  - heading "Bring a Friend Friday at Ocean Breeze Athletic Complex" [level=2] [ref=f2e141]
+                  - generic [ref=f2e142]:
+                    - paragraph [ref=f2e143]:
+                      - generic [ref=f2e144]: 📍
+                      - generic [ref=f2e145]: "Venue or park: Ocean Breeze Track & Field Athletic Complex (in Ocean Breeze Park)"
+                    - paragraph [ref=f2e146]: "Neighborhood: Not listed"
+                    - paragraph [ref=f2e147]: "Borough: Staten Island"
+                    - paragraph [ref=f2e148]: "Address: Not listed"
+                    - paragraph [ref=f2e149]:
+                      - generic [ref=f2e150]: 🕐
+                      - generic [ref=f2e151]: Aug 16, 2026 · 6:30 AM
+                    - paragraph [ref=f2e152]: Registration not listed
+                    - paragraph [ref=f2e153]: Accessibility information not listed
+                - generic [ref=f2e154]:
+                  - link "View details for Bring a Friend Friday at Ocean Breeze Athletic Complex" [ref=f2e155] [cursor=pointer]:
+                    - /url: /events/2173984
+                    - text: View event details
+                  - link "Official event details (opens in a new tab)" [ref=f2e156] [cursor=pointer]:
+                    - /url: http://www.nycgovparks.org/events/2026/08/28/bring-a-friend-friday-at-ocean-breeze-athletic-complex
+              - group [ref=f2e157]:
+                - generic "Add to calendar" [ref=f2e158] [cursor=pointer]:
+                  - generic [ref=f2e159]: 📆
+                  - text: Add to calendar
