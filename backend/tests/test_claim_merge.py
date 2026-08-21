@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import asyncio
 import hashlib
 from uuid import UUID, uuid4
 
-from sqlalchemy import func, select
+from sqlalchemy import func, select, text
 from sqlalchemy.dialects.postgresql import insert
 
 from app.auth import (
@@ -26,6 +27,7 @@ from tests.conftest import ingest_rows, load_fixture, requires_docker
 
 DEVICE_TOKEN_A = "device-claim-A-abcdefghijklmnopqrstuvwxyz_1234"
 DEVICE_TOKEN_B = "device-claim-B-abcdefghijklmnopqrstuvwxyz_1234"
+DEVICE_TOKEN_C = "device-claim-C-abcdefghijklmnopqrstuvwxyz_1234"
 CLERK_USER_ID = "user_clerk_test_12345"
 CLERK_EMAIL = "testuser@example.com"
 
@@ -149,6 +151,41 @@ async def _add_audit(
     )
     await db_session.commit()
     return aid
+
+
+async def _install_claim_update_delay(db_session) -> None:
+    """Hold first-claim updates briefly so both requests reach the race window."""
+    await db_session.execute(
+        text(
+            """
+            CREATE OR REPLACE FUNCTION test_delay_profile_claim()
+            RETURNS trigger AS $$
+            BEGIN
+                PERFORM pg_sleep(0.2);
+                RETURN NEW;
+            END;
+            $$ LANGUAGE plpgsql
+            """
+        )
+    )
+    await db_session.execute(
+        text(
+            """
+            CREATE TRIGGER test_delay_profile_claim
+            BEFORE UPDATE OF user_id ON profiles
+            FOR EACH ROW
+            WHEN (OLD.user_id IS NULL AND NEW.user_id IS NOT NULL)
+            EXECUTE FUNCTION test_delay_profile_claim()
+            """
+        )
+    )
+    await db_session.commit()
+
+
+async def _remove_claim_update_delay(db_session) -> None:
+    await db_session.execute(text("DROP TRIGGER test_delay_profile_claim ON profiles"))
+    await db_session.execute(text("DROP FUNCTION test_delay_profile_claim()"))
+    await db_session.commit()
 
 
 @requires_docker
@@ -430,6 +467,267 @@ async def test_cross_device_returns_same_saved_and_matches(client, db_session):
         assert profile_b.json()["claimed"] is True
     finally:
         reset_clerk_verifier()
+
+
+@requires_docker
+async def test_merged_device_tokens_share_saved_interests_and_matches(
+    client, db_session
+):
+    """Both raw device tokens resolve to one Profile after a merge."""
+    rows = load_fixture("snapshot_a.json")
+    await ingest_rows(db_session, rows)
+    guids = [row["guid"] for row in rows]
+
+    pid_a = await _create_profile(db_session, DEVICE_TOKEN_A)
+    await _add_saved_event(db_session, pid_a, guids[0])
+    await _add_interest(db_session, pid_a, facet_value="Music", normalized="music")
+    await _add_matched_event(db_session, pid_a, guids[0])
+
+    pid_b = await _create_profile(db_session, DEVICE_TOKEN_B, user_id=CLERK_USER_ID)
+    await _add_saved_event(db_session, pid_b, guids[1])
+    await _add_interest(
+        db_session,
+        pid_b,
+        facet_type="borough",
+        facet_value="Brooklyn",
+        normalized="brooklyn",
+    )
+    await _add_matched_event(db_session, pid_b, guids[1])
+
+    set_clerk_verifier(_fake_verifier)
+    try:
+        claim = await client.post(
+            "/profile/claim", headers=_claim_headers(DEVICE_TOKEN_A)
+        )
+        repeated = await client.post(
+            "/profile/claim", headers=_claim_headers(DEVICE_TOKEN_A)
+        )
+        assert claim.status_code == repeated.status_code == 200
+        assert claim.json() == repeated.json()
+        assert claim.json()["id"] == str(pid_b)
+
+        for path, expected_total in (
+            ("/profile/saved", 2),
+            ("/profile/interests", 2),
+            ("/profile/matches", 2),
+        ):
+            from_a = await client.get(path, headers=_device_headers(DEVICE_TOKEN_A))
+            from_b = await client.get(path, headers=_device_headers(DEVICE_TOKEN_B))
+            assert from_a.status_code == from_b.status_code == 200
+            assert (
+                from_a.json()["profile_id"] == from_b.json()["profile_id"] == str(pid_b)
+            )
+            assert from_a.json()["total"] == from_b.json()["total"] == expected_total
+
+        saved_by_a = await client.put(
+            f"/profile/saved/{guids[2]}", headers=_device_headers(DEVICE_TOKEN_A)
+        )
+        interest_by_b = await client.put(
+            "/profile/interests",
+            headers=_device_headers(DEVICE_TOKEN_B),
+            json={"facet_type": "category", "facet_value": "Fitness"},
+        )
+        dismissed_by_a = await client.delete(
+            f"/profile/matches/{guids[0]}",
+            headers=_device_headers(DEVICE_TOKEN_A),
+        )
+        assert saved_by_a.status_code == interest_by_b.status_code == 200
+        assert dismissed_by_a.status_code == 204
+
+        saved_from_b = await client.get(
+            "/profile/saved", headers=_device_headers(DEVICE_TOKEN_B)
+        )
+        interests_from_a = await client.get(
+            "/profile/interests", headers=_device_headers(DEVICE_TOKEN_A)
+        )
+        matches_from_b = await client.get(
+            "/profile/matches", headers=_device_headers(DEVICE_TOKEN_B)
+        )
+        assert saved_from_b.json()["total"] == 3
+        assert interests_from_a.json()["total"] == 3
+        assert matches_from_b.json()["total"] == 1
+
+        alias_rows = (
+            await db_session.execute(
+                text(
+                    "SELECT profile_id FROM profile_device_aliases "
+                    "WHERE device_token_hash = :token_hash"
+                ),
+                {"token_hash": _token_hash(DEVICE_TOKEN_A)},
+            )
+        ).all()
+        assert alias_rows == [(pid_b,)]
+    finally:
+        reset_clerk_verifier()
+
+    set_clerk_verifier(_fake_verifier_alt)
+    try:
+        stolen = await client.post(
+            "/profile/claim", headers=_claim_headers(DEVICE_TOKEN_A)
+        )
+        assert stolen.status_code == 409
+    finally:
+        reset_clerk_verifier()
+
+
+@requires_docker
+async def test_concurrent_different_token_first_claims_share_all_data(
+    client, db_session
+):
+    """Concurrent first claims for one user converge without an external retry."""
+    rows = load_fixture("snapshot_a.json")
+    await ingest_rows(db_session, rows)
+    guids = [row["guid"] for row in rows]
+
+    pid_a = await _create_profile(db_session, DEVICE_TOKEN_A)
+    await _add_saved_event(db_session, pid_a, guids[0])
+    await _add_interest(db_session, pid_a, facet_value="Music", normalized="music")
+    await _add_matched_event(db_session, pid_a, guids[0])
+
+    pid_b = await _create_profile(db_session, DEVICE_TOKEN_B)
+    await _add_saved_event(db_session, pid_b, guids[1])
+    await _add_interest(
+        db_session,
+        pid_b,
+        facet_type="borough",
+        facet_value="Brooklyn",
+        normalized="brooklyn",
+    )
+    await _add_matched_event(db_session, pid_b, guids[1])
+    await _install_claim_update_delay(db_session)
+
+    set_clerk_verifier(_fake_verifier)
+    try:
+        first, second = await asyncio.gather(
+            client.post("/profile/claim", headers=_claim_headers(DEVICE_TOKEN_A)),
+            client.post("/profile/claim", headers=_claim_headers(DEVICE_TOKEN_B)),
+        )
+    finally:
+        reset_clerk_verifier()
+        await _remove_claim_update_delay(db_session)
+
+    assert first.status_code == second.status_code == 200
+    assert first.json() == second.json()
+    canonical_id = first.json()["id"]
+    assert canonical_id in {str(pid_a), str(pid_b)}
+
+    for path in ("/profile/saved", "/profile/interests", "/profile/matches"):
+        from_a = await client.get(path, headers=_device_headers(DEVICE_TOKEN_A))
+        from_b = await client.get(path, headers=_device_headers(DEVICE_TOKEN_B))
+        assert from_a.status_code == from_b.status_code == 200
+        assert from_a.json()["profile_id"] == canonical_id
+        assert from_b.json()["profile_id"] == canonical_id
+        assert from_a.json()["total"] == from_b.json()["total"] == 2
+
+    account_count = await db_session.scalar(
+        select(func.count())
+        .select_from(Profile)
+        .where(Profile.user_id == CLERK_USER_ID)
+    )
+    assert account_count == 1
+
+
+@requires_docker
+async def test_concurrent_different_token_claims_merge_into_existing_account(
+    client, db_session
+):
+    """Different-token claims serialize and preserve an existing account's data."""
+    rows = load_fixture("snapshot_a.json")
+    await ingest_rows(db_session, rows)
+    guids = [row["guid"] for row in rows]
+
+    pid_a = await _create_profile(db_session, DEVICE_TOKEN_A)
+    await _add_saved_event(db_session, pid_a, guids[0])
+    await _add_interest(db_session, pid_a, facet_value="Music", normalized="music")
+    await _add_matched_event(db_session, pid_a, guids[0])
+
+    pid_b = await _create_profile(db_session, DEVICE_TOKEN_B)
+    await _add_saved_event(db_session, pid_b, guids[1])
+    await _add_interest(
+        db_session,
+        pid_b,
+        facet_type="borough",
+        facet_value="Brooklyn",
+        normalized="brooklyn",
+    )
+    await _add_matched_event(db_session, pid_b, guids[1])
+
+    account_id = await _create_profile(
+        db_session, DEVICE_TOKEN_C, user_id=CLERK_USER_ID
+    )
+    await _add_saved_event(db_session, account_id, guids[2])
+    await _add_interest(
+        db_session,
+        account_id,
+        facet_type="registration",
+        facet_value="Required",
+        normalized="required",
+    )
+    await _add_matched_event(db_session, account_id, guids[2])
+
+    set_clerk_verifier(_fake_verifier)
+    try:
+        first, second = await asyncio.gather(
+            client.post("/profile/claim", headers=_claim_headers(DEVICE_TOKEN_A)),
+            client.post("/profile/claim", headers=_claim_headers(DEVICE_TOKEN_B)),
+        )
+    finally:
+        reset_clerk_verifier()
+
+    expected = {"id": str(account_id), "claimed": True}
+    assert first.status_code == second.status_code == 200
+    assert first.json() == second.json() == expected
+
+    for path in ("/profile/saved", "/profile/interests", "/profile/matches"):
+        for token in (DEVICE_TOKEN_A, DEVICE_TOKEN_B, DEVICE_TOKEN_C):
+            response = await client.get(path, headers=_device_headers(token))
+            assert response.status_code == 200
+            assert response.json()["profile_id"] == str(account_id)
+            assert response.json()["total"] == 3
+
+    aliases = (
+        await db_session.execute(
+            text(
+                "SELECT device_token_hash, profile_id FROM profile_device_aliases "
+                "WHERE device_token_hash IN (:token_a, :token_b)"
+            ),
+            {
+                "token_a": _token_hash(DEVICE_TOKEN_A),
+                "token_b": _token_hash(DEVICE_TOKEN_B),
+            },
+        )
+    ).all()
+    assert set(aliases) == {
+        (_token_hash(DEVICE_TOKEN_A), account_id),
+        (_token_hash(DEVICE_TOKEN_B), account_id),
+    }
+
+
+@requires_docker
+async def test_concurrent_repeated_merge_claim_is_idempotent(client, db_session):
+    """Concurrent claims for one token both resolve to the canonical Profile."""
+    await _create_profile(db_session, DEVICE_TOKEN_A)
+    pid_b = await _create_profile(db_session, DEVICE_TOKEN_B, user_id=CLERK_USER_ID)
+
+    set_clerk_verifier(_fake_verifier)
+    try:
+        first, second = await asyncio.gather(
+            client.post("/profile/claim", headers=_claim_headers(DEVICE_TOKEN_A)),
+            client.post("/profile/claim", headers=_claim_headers(DEVICE_TOKEN_A)),
+        )
+    finally:
+        reset_clerk_verifier()
+
+    assert first.status_code == second.status_code == 200
+    assert first.json() == second.json() == {"id": str(pid_b), "claimed": True}
+    alias_count = await db_session.scalar(
+        text(
+            "SELECT count(*) FROM profile_device_aliases "
+            "WHERE device_token_hash = :token_hash"
+        ),
+        {"token_hash": _token_hash(DEVICE_TOKEN_A)},
+    )
+    assert alias_count == 1
 
 
 @requires_docker
