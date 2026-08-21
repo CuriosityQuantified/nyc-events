@@ -143,6 +143,7 @@ async def db_session():
         MatchedEvent,
         PreferenceAudit,
         Profile,
+        ProfileDeviceAlias,
         SavedEvent,
     )
 
@@ -153,6 +154,7 @@ async def db_session():
         await session.execute(delete(MatchedEvent))
         await session.execute(delete(Interest))
         await session.execute(delete(SavedEvent))
+        await session.execute(delete(ProfileDeviceAlias))
         await session.execute(delete(Profile))
         await session.execute(delete(CurrentEvent))
         await session.execute(delete(EventRepository))
@@ -164,6 +166,7 @@ async def db_session():
         await session.execute(delete(MatchedEvent))
         await session.execute(delete(Interest))
         await session.execute(delete(SavedEvent))
+        await session.execute(delete(ProfileDeviceAlias))
         await session.execute(delete(Profile))
         await session.execute(delete(CurrentEvent))
         await session.execute(delete(EventRepository))

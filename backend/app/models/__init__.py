@@ -13,5 +13,6 @@ from app.models.profile import (  # noqa: E402, F401
     MatchedEvent,
     PreferenceAudit,
     Profile,
+    ProfileDeviceAlias,
     SavedEvent,
 )

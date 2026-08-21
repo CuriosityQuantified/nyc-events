@@ -20,6 +20,7 @@ from app.models.profile import (
     MatchedEvent,
     PreferenceAudit,
     Profile,
+    ProfileDeviceAlias,
     SavedEvent,
 )
 from app.routes.events import _event_date_expression, _event_to_contract
@@ -45,9 +46,37 @@ def _token_digest(token: str) -> str:
     return hashlib.sha256(token.encode()).hexdigest()
 
 
+def _advisory_lock_id(domain: str, value: str) -> int:
+    """Return a stable, domain-separated signed Postgres advisory-lock key."""
+    digest_prefix = hashlib.sha256(f"{domain}\0{value}".encode()).digest()[:8]
+    return int.from_bytes(digest_prefix, byteorder="big", signed=True)
+
+
+def _token_lock_id(token: str) -> int:
+    """Return the advisory-lock key for one device token."""
+    return _advisory_lock_id("profile-device-token:v1", token)
+
+
+def _clerk_user_lock_id(user_id: str) -> int:
+    """Return the advisory-lock key for one Clerk user."""
+    return _advisory_lock_id("profile-clerk-user:v1", user_id)
+
+
 async def _get_or_create_profile(session: AsyncSession, token: str) -> Profile:
-    """Return the token's Profile, creating it atomically on first use."""
+    """Return the token's canonical Profile, creating it atomically on first use."""
+    # Serialize resolution with claim/merge for this token. This prevents a request
+    # from using a source Profile while that Profile becomes an alias.
+    await session.execute(select(func.pg_advisory_xact_lock(_token_lock_id(token))))
     token_hash = _token_digest(token)
+    aliased_profile = await session.scalar(
+        select(Profile)
+        .join(ProfileDeviceAlias, ProfileDeviceAlias.profile_id == Profile.id)
+        .where(ProfileDeviceAlias.device_token_hash == token_hash)
+    )
+    if aliased_profile is not None:
+        # Direct mapping, not an alias chain: resolution is one bounded query.
+        return aliased_profile
+
     await session.execute(
         insert(Profile)
         .values(id=uuid4(), device_token_hash=token_hash, user_id=None)
@@ -134,7 +163,7 @@ async def _merge_profiles(
     source_id: UUID,
     target_id: UUID,
 ) -> None:
-    """Move all child records from *source* profile to *target*, then delete source.
+    """Move source children and retain its device token as a target alias.
 
     Duplicates are skipped via ``ON CONFLICT DO NOTHING`` for SavedEvent /
     MatchedEvent, and by a check-then-move strategy for Interest rows.
@@ -222,6 +251,15 @@ async def _merge_profiles(
         .values(profile_id=target_id)
     )
 
+    source_profile = await session.get(Profile, source_id)
+    if source_profile is None:  # pragma: no cover - transaction invariant guard
+        raise RuntimeError("Merge source Profile does not exist")
+    await session.execute(
+        insert(ProfileDeviceAlias).values(
+            device_token_hash=source_profile.device_token_hash,
+            profile_id=target_id,
+        )
+    )
     await session.execute(delete(Profile).where(Profile.id == source_id))
 
 
@@ -243,6 +281,18 @@ async def claim_profile(
         try:
             anon_profile = await _get_or_create_profile(session, x_device_token)
 
+            # Lock order for every claim is: device token, Clerk user, then Profile
+            # row. Domain-separated advisory keys keep token and user inputs in
+            # separate namespaces. The user lock serializes simultaneous first claims
+            # before either transaction queries for the canonical account Profile.
+            await session.execute(
+                select(
+                    func.pg_advisory_xact_lock(
+                        _clerk_user_lock_id(clerk_payload.user_id)
+                    )
+                )
+            )
+
             # Idempotent: already claimed by the same user
             if anon_profile.user_id == clerk_payload.user_id:
                 await session.commit()
@@ -258,10 +308,12 @@ async def claim_profile(
 
             # Check if this user_id already owns another profile (second device)
             account_profile = await session.scalar(
-                select(Profile).where(
+                select(Profile)
+                .where(
                     Profile.user_id == clerk_payload.user_id,
                     Profile.id != anon_profile.id,
                 )
+                .with_for_update()
             )
 
             if account_profile is not None:
