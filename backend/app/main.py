@@ -37,7 +37,7 @@ app.add_middleware(
     allow_origins=[get_settings().frontend_origin],
     allow_credentials=False,
     allow_methods=["GET", "POST", "PUT", "DELETE"],
-    allow_headers=["Accept", "Content-Type", "X-Device-Token"],
+    allow_headers=["Accept", "Authorization", "Content-Type", "X-Device-Token"],
 )
 app.include_router(events_router)
 app.include_router(profiles_router)
