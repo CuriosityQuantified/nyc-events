@@ -8,6 +8,7 @@ from typing import Any
 
 from jsonschema import Draft202012Validator, FormatChecker
 
+from app.models.subway import SubwayStop
 from tests.conftest import ingest_rows, load_fixture, requires_docker
 
 CONTRACTS_DIR = Path(__file__).resolve().parent.parent.parent / "contracts"
@@ -69,3 +70,30 @@ class TestContractValidation:
 
         validator = _build_validator("#/components/schemas/Event")
         validator.validate(body)
+
+    async def test_filtered_subway_response_validates_against_openapi_schema(
+        self, client, db_session
+    ):
+        station = await db_session.get(SubwayStop, "101")
+        assert station is not None
+        row = dict(
+            load_fixture("snapshot_a.json")[0],
+            coordinates=f"{station.latitude},{station.longitude}",
+        )
+        await ingest_rows(db_session, [row])
+
+        response = await client.get("/events", params={"subway_line": "1"})
+
+        assert response.status_code == 200
+        _build_validator("#/components/schemas/EventListResponse").validate(
+            response.json()
+        )
+
+    async def test_unknown_subway_line_error_validates_against_openapi_schema(
+        self, client
+    ):
+        response = await client.get("/events", params={"subway_line": "NOPE"})
+
+        assert response.status_code == 400
+        assert response.json() == {"error": "Unknown subway line"}
+        _build_validator("#/components/schemas/Error").validate(response.json())

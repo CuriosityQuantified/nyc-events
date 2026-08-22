@@ -16,6 +16,7 @@
           {"$ref": "#/components/parameters/CategoryFacet"},
           {"$ref": "#/components/parameters/RegistrationFacet"},
           {"$ref": "#/components/parameters/LocationFacet"},
+          {"$ref": "#/components/parameters/SubwayLineFacet"},
           {"$ref": "#/components/parameters/DateFrom"},
           {"$ref": "#/components/parameters/DateTo"},
           {"$ref": "#/components/parameters/Page"},
@@ -72,6 +73,7 @@
       "CategoryFacet": {"name": "category", "in": "query", "description": "Filter by category Facet.", "schema": {"type": "string"}},
       "RegistrationFacet": {"name": "registration", "in": "query", "description": "Filter by registration-state Facet.", "schema": {"type": "string", "enum": ["required", "not_required", "closed", "not_listed"]}},
       "LocationFacet": {"name": "location", "in": "query", "description": "Filter by stable source Location identifier.", "schema": {"type": "string"}},
+      "SubwayLineFacet": {"name": "subway_line", "in": "query", "description": "Include Events strictly less than 0.5 miles straight-line distance from a stop served by this stable MTA route identifier.", "schema": {"type": "string", "minLength": 1, "maxLength": 8}},
       "DateFrom": {"name": "date_from", "in": "query", "description": "Include Events on or after this date.", "schema": {"type": "string", "format": "date"}},
       "DateTo": {"name": "date_to", "in": "query", "description": "Include Events on or before this date.", "schema": {"type": "string", "format": "date"}},
       "Page": {"name": "page", "in": "query", "schema": {"type": "integer", "minimum": 1, "default": 1}},
@@ -208,7 +210,34 @@
           "registration_status": {"$ref": "#/components/schemas/RegistrationFact"},
           "registration_description": {"$ref": "#/components/schemas/TextFact"},
           "is_free_explicit": {"$ref": "#/components/schemas/BooleanFact"},
-          "accessibility_mentioned": {"$ref": "#/components/schemas/BooleanFact"}
+          "accessibility_mentioned": {"$ref": "#/components/schemas/BooleanFact"},
+          "subway_proximity": {"$ref": "#/components/schemas/SubwayProximity"}
+        }
+      },
+      "SubwayProximity": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["line_id", "nearest_stop", "straight_line_distance_miles"],
+        "properties": {
+          "line_id": {"type": "string"},
+          "nearest_stop": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["id", "name"],
+            "properties": {"id": {"type": "string"}, "name": {"type": "string"}}
+          },
+          "straight_line_distance_miles": {"type": "number", "minimum": 0, "exclusiveMaximum": 0.5}
+        }
+      },
+      "TransitSource": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "attribution", "source_url", "last_updated"],
+        "properties": {
+          "id": {"type": "string"},
+          "attribution": {"type": "string"},
+          "source_url": {"type": "string", "format": "uri"},
+          "last_updated": {"type": "string", "format": "date-time"}
         }
       },
       "EventListResponse": {
@@ -220,7 +249,8 @@
           "page": {"type": "integer", "minimum": 1},
           "page_size": {"type": "integer", "minimum": 1, "maximum": 100},
           "total": {"type": "integer", "minimum": 0},
-          "applied_facets": {"type": "object", "additionalProperties": {"type": "array", "items": {"type": "string"}}}
+          "applied_facets": {"type": "object", "additionalProperties": {"type": "array", "items": {"type": "string"}}},
+          "transit_source": {"$ref": "#/components/schemas/TransitSource"}
         }
       },
       "FreshnessResponse": {

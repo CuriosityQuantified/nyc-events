@@ -7,6 +7,7 @@ from typing import Any, Literal
 from zoneinfo import ZoneInfo
 
 from fastapi import APIRouter, HTTPException, Path, Query
+from fastapi.responses import JSONResponse
 from sqlalchemy import Date as SQLDate
 from sqlalchemy import cast, func, select
 from sqlalchemy.exc import SQLAlchemyError
@@ -14,7 +15,9 @@ from sqlalchemy.exc import SQLAlchemyError
 from app.config import get_settings
 from app.database import get_session_factory
 from app.models.event import CurrentEvent, EventRepository, SyncRun
+from app.models.subway import SubwayRoute, SubwaySource
 from app.provenance import accessibility_evidence, explicit_free_evidence
+from app.services.subway import apply_subway_filter
 
 router = APIRouter()
 _NEW_YORK = ZoneInfo("America/New_York")
@@ -255,9 +258,10 @@ async def list_events(
     date_to: date | None = None,
     registration: Literal["required", "not_required", "closed", "not_listed"]
     | None = Query(default=None),
+    subway_line: str | None = Query(default=None, min_length=1, max_length=8),
     page: int = Query(default=1, ge=1),
     page_size: int = Query(default=20, ge=1, le=100),
-) -> dict[str, Any]:
+) -> Any:
     """Return a paginated list of events with optional filters."""
     if date_from is not None and date_to is not None and date_from > date_to:
         raise HTTPException(
@@ -293,14 +297,31 @@ async def list_events(
             filters.append(CurrentEvent.registration_status.is_(None))
         else:
             filters.append(CurrentEvent.registration_status == registration)
+    normalized_line = subway_line.strip().upper() if subway_line is not None else None
+    if normalized_line is not None:
+        applied_facets["subway_line"] = [normalized_line]
 
     session_factory = get_session_factory()
     async with session_factory() as session:
         try:
             query = select(CurrentEvent).where(*filters)
-            count_query = select(func.count()).select_from(query.subquery())
-            total_result = await session.execute(count_query)
-            total = total_result.scalar() or 0
+            nearest = None
+            transit_source = None
+            if normalized_line is not None:
+                transit_source = await session.scalar(
+                    select(SubwaySource)
+                    .join(SubwayRoute, SubwayRoute.source_id == SubwaySource.source_id)
+                    .where(SubwayRoute.route_id == normalized_line)
+                )
+                if transit_source is None:
+                    return JSONResponse(
+                        status_code=400, content={"error": "Unknown subway line"}
+                    )
+                query, nearest = apply_subway_filter(query, normalized_line)
+            total = (
+                await session.scalar(select(func.count()).select_from(query.subquery()))
+                or 0
+            )
             offset = (page - 1) * page_size
             query = query.order_by(
                 event_date.asc().nullslast(),
@@ -308,20 +329,44 @@ async def list_events(
                 CurrentEvent.guid,
             )
             query = query.offset(offset).limit(page_size)
+            if nearest is not None:
+                query = query.add_columns(
+                    nearest.c.stop_id,
+                    nearest.c.stop_name,
+                    nearest.c.distance_miles,
+                )
             result = await session.execute(query)
-            events = result.scalars().all()
+            rows = result.all()
         except SQLAlchemyError as error:
             raise HTTPException(
                 status_code=503, detail="Event database unavailable"
             ) from error
 
-        return {
-            "events": [_event_to_contract(e) for e in events],
+        events = []
+        for row in rows:
+            event_contract = _event_to_contract(row[0])
+            if nearest is not None:
+                event_contract["subway_proximity"] = {
+                    "line_id": normalized_line,
+                    "nearest_stop": {"id": row[1], "name": row[2]},
+                    "straight_line_distance_miles": row[3],
+                }
+            events.append(event_contract)
+        response = {
+            "events": events,
             "page": page,
             "page_size": page_size,
             "total": total,
             "applied_facets": applied_facets,
         }
+        if transit_source is not None:
+            response["transit_source"] = {
+                "id": transit_source.source_id,
+                "attribution": transit_source.attribution,
+                "source_url": transit_source.source_url,
+                "last_updated": transit_source.updated_at.isoformat(),
+            }
+        return response
 
 
 @router.get("/events/{guid}")

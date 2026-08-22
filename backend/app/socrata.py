@@ -20,6 +20,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
 from app.models.event import CurrentEvent, EventRepository, SyncRun
+from app.models.subway import CurrentEventLocation
 from app.provenance import accessibility_evidence, explicit_free_evidence
 
 logger = logging.getLogger(__name__)
@@ -302,6 +303,21 @@ def _parse_coordinates(
     return None, None, []
 
 
+def _unique_matchable_coordinates(
+    coordinates: list[dict[str, float]],
+) -> list[dict[str, float]]:
+    """Keep unique valid locations and reject the null-island sentinel."""
+    unique: list[dict[str, float]] = []
+    seen: set[tuple[float, float]] = set()
+    for coordinate in coordinates:
+        key = (coordinate["latitude"], coordinate["longitude"])
+        if key == (0, 0) or key in seen:
+            continue
+        seen.add(key)
+        unique.append(coordinate)
+    return unique
+
+
 def _derive_borough(parkids: str | None) -> str | None:
     """Derive borough name from the first character of parkids."""
     if not parkids or not parkids.strip():
@@ -518,6 +534,7 @@ def parse_event(row: dict[str, Any]) -> dict[str, Any]:
         "accessibility_mentioned": True if access_evidence is not None else None,
         "raw_data": row,
         "content_hash": _content_hash(row),
+        "_locations": _unique_matchable_coordinates(coordinates_list),
     }
 
 
@@ -527,10 +544,12 @@ async def ingest_events(session: AsyncSession, rows: list[dict[str, Any]]) -> in
         raise SocrataError("Socrata returned an empty Snapshot")
 
     parsed: list[dict[str, Any]] = []
+    event_locations: dict[str, list[dict[str, float]]] = {}
     seen: set[str] = set()
     snapshot_at = datetime.now(UTC)
     for row in rows:
         values = parse_event(row)
+        event_locations[values["guid"]] = values.pop("_locations")
         if values["guid"] in seen:
             raise SocrataError(f"Socrata Snapshot repeats guid {values['guid']!r}")
         seen.add(values["guid"])
@@ -579,6 +598,18 @@ async def ingest_events(session: AsyncSession, rows: list[dict[str, Any]]) -> in
             insert(CurrentEvent),
             [{**values, "snapshot_at": snapshot_at} for values in parsed],
         )
+        location_rows = [
+            {
+                "event_guid": guid,
+                "ordinal": ordinal,
+                "latitude": coordinate["latitude"],
+                "longitude": coordinate["longitude"],
+            }
+            for guid, coordinates in event_locations.items()
+            for ordinal, coordinate in enumerate(coordinates)
+        ]
+        if location_rows:
+            await session.execute(insert(CurrentEventLocation), location_rows)
         from app.services.profile_preferences import match_new_events
 
         await match_new_events(session)
