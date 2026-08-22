@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+import asyncio
 import subprocess
 import sys
 from uuid import uuid4
 
 from sqlalchemy import text
+from sqlalchemy.ext.asyncio import create_async_engine
 
 from tests.conftest import requires_docker
 
@@ -29,7 +31,7 @@ def test_events_migration_upgrade_and_idempotency(postgres_url):
         _alembic("upgrade", "head")
         _alembic("upgrade", "head")
         current = _alembic("current")
-        assert "0008 (head)" in current.stdout
+        assert "0009 (head)" in current.stdout
     finally:
         _alembic("upgrade", "head")
 
@@ -39,6 +41,66 @@ def test_migration_history_has_exactly_one_head():
     heads = [line for line in _alembic("heads").stdout.splitlines() if line.strip()]
     assert len(heads) == 1
     assert heads[0].endswith("(head)")
+
+
+@requires_docker
+def test_0009_backfills_existing_events_after_downgrade_and_reupgrade(postgres_url):
+    async def execute(statement: str):
+        engine = create_async_engine(postgres_url)
+        try:
+            async with engine.begin() as connection:
+                result = await connection.execute(text(statement))
+                return result.fetchall() if result.returns_rows else []
+        finally:
+            await engine.dispose()
+
+    async def filtered_guids() -> list[str]:
+        from httpx import ASGITransport, AsyncClient
+
+        from app.database import reset_engine
+        from app.main import app
+
+        await reset_engine()
+        async with AsyncClient(
+            transport=ASGITransport(app=app), base_url="http://testserver"
+        ) as client:
+            response = await client.get("/events", params={"subway_line": "1"})
+        await reset_engine()
+        assert response.status_code == 200
+        return [event["guid"] for event in response.json()["events"]]
+
+    raw_data = (
+        '{"coordinates": "40.889248,-73.898583;40.889248,-73.898583;'
+        'bad;40.2,-73.2;0,0"}'
+    )
+    try:
+        _alembic("downgrade", "0008")
+        asyncio.run(
+            execute(
+                "INSERT INTO current_events "
+                "(guid, title, raw_data, content_hash, lifecycle_status, snapshot_at) "
+                "VALUES ('migration-backfill', 'backfill', "
+                f"'{raw_data}'::jsonb, "
+                f"'{('0' * 64)}', 'unchanged', now())"
+            )
+        )
+
+        for _ in range(2):
+            _alembic("upgrade", "0009")
+            assert asyncio.run(
+                execute(
+                    "SELECT ordinal, latitude, longitude "
+                    "FROM current_event_locations "
+                    "WHERE event_guid = 'migration-backfill' ORDER BY ordinal"
+                )
+            ) == [(1, 40.889248, -73.898583), (4, 40.2, -73.2)]
+            assert asyncio.run(filtered_guids()) == ["migration-backfill"]
+            _alembic("downgrade", "0008")
+    finally:
+        _alembic("upgrade", "head")
+        asyncio.run(
+            execute("DELETE FROM current_events WHERE guid = 'migration-backfill'")
+        )
 
 
 @requires_docker

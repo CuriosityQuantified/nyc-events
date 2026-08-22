@@ -16,3 +16,10 @@ from app.models.profile import (  # noqa: E402, F401
     ProfileDeviceAlias,
     SavedEvent,
 )
+from app.models.subway import (  # noqa: E402, F401
+    CurrentEventLocation,
+    SubwayRoute,
+    SubwayRouteStop,
+    SubwaySource,
+    SubwayStop,
+)
