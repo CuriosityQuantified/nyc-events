@@ -1,11 +1,8 @@
-import HeaderAuth from "./HeaderAuth";
-import { clerkPublishableKey } from "@/app/data/clerk";
 import styles from "./Header.module.css";
 
 /**
- * The floating top tile. On phones it carries the brand and the account
- * control; on desktop the sidebar owns the brand, so only the account control
- * floats in the top-right corner.
+ * The floating top tile. Account controls live only in the canonical Profile
+ * destination, so the header remains a brand and source-trust surface.
  */
 export default function Header() {
   return (
@@ -20,9 +17,6 @@ export default function Header() {
         </h1>
       </div>
       <p className={styles.tagline}>Official NYC Parks events, mapped live</p>
-      <div className={styles.actions}>
-        {clerkPublishableKey() ? <HeaderAuth /> : null}
-      </div>
     </header>
   );
 }

@@ -14,7 +14,7 @@ export default defineConfig({
       ]
     : "list",
   outputDir: "test-results/local",
-  testIgnore: "production.spec.ts",
+  testIgnore: ["production.spec.ts", "profile-auth.spec.ts"],
   use: {
     baseURL: "http://localhost:3000",
     trace: "retain-on-failure",
@@ -37,9 +37,10 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "npm run build && npm run start",
+    command:
+      "EVENTMATCH_DISABLE_CLERK=1 sh -c 'npm run build && npm run start'",
     url: "http://localhost:3000",
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: false,
     timeout: 120000,
   },
 });

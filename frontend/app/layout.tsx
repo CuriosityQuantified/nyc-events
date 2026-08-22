@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
+import { connection } from "next/server";
 import AuthProvider from "@/app/components/AuthProvider";
 import SavedProvider from "@/app/components/SavedProvider";
-import { clerkPublishableKey } from "@/app/data/clerk";
+import { clerkConfiguration } from "@/app/data/clerk";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -9,16 +10,20 @@ export const metadata: Metadata = {
   title: "EventMatch NYC",
   description:
     "Discover parks, events, and outdoor activities across all five boroughs of New York City.",
-  alternates: {
-    canonical: "/",
-  },
+  alternates: { canonical: "/" },
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  await connection();
+  const clerk = clerkConfiguration();
   return (
     <html lang="en">
       <body>
-        <AuthProvider publishableKey={clerkPublishableKey()}>
+        <AuthProvider
+          publishableKey={
+            clerk.status === "configured" ? clerk.publishableKey : undefined
+          }
+        >
           <SavedProvider>{children}</SavedProvider>
         </AuthProvider>
       </body>

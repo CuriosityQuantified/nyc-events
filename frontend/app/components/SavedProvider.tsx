@@ -16,6 +16,7 @@ import {
   saveEventRemote,
   unsaveEventRemote,
 } from "@/app/data/saved";
+import { onProfileChanged } from "@/app/data/profile-sync";
 
 export type SavedContextValue = {
   status: "loading" | "ready" | "error";
@@ -58,9 +59,14 @@ export default function SavedProvider({ children }: { children: ReactNode }) {
   const [loadCount, setLoadCount] = useState(0);
 
   const reload = useCallback(() => {
+    loadVersion.current += 1;
+    setEvents([]);
+    setPendingGuids(new Set());
     setStatus("loading");
     setLoadCount((count) => count + 1);
   }, []);
+
+  useEffect(() => onProfileChanged(reload), [reload]);
 
   useEffect(() => {
     const version = ++loadVersion.current;

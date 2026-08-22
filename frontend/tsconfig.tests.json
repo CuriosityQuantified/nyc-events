@@ -3,6 +3,13 @@
   "compilerOptions": {
     "incremental": false
   },
-  "include": ["next-env.d.ts", "**/*.test.ts", "**/*.test.tsx", "e2e/**/*.ts"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.test.ts",
+    "**/*.test.tsx",
+    "e2e/**/*.ts",
+    "e2e/**/*.tsx",
+    "vite.auth.config.mts"
+  ],
   "exclude": ["node_modules"]
 }

@@ -86,6 +86,34 @@ export async function unfollowInterest(interestId: string): Promise<void> {
   }
 }
 
+/** Update one Interest's alert preference without changing its identity. */
+export async function setInterestAlert(
+  interest: Interest,
+  alertEnabled: boolean,
+): Promise<Interest> {
+  const response = await fetch("/api/profile/interests", {
+    method: "PUT",
+    headers: headers({ "Content-Type": "application/json" }),
+    body: JSON.stringify(
+      interest.facets.length > 1
+        ? {
+            facets: interest.facets.map((facet) => ({
+              facet_type: facet.facetType,
+              facet_value: facet.facetValue,
+            })),
+            alert_enabled: alertEnabled,
+          }
+        : {
+            facet_type: interest.facets[0]?.facetType ?? interest.facetType,
+            facet_value: interest.facets[0]?.facetValue ?? interest.facetValue,
+            alert_enabled: alertEnabled,
+          },
+    ),
+  });
+  if (!response.ok) throw new PreferencesApiError(response.status);
+  return (await response.json()) as Interest;
+}
+
 const PAGE_SIZE = 100;
 const MAX_PAGES = 10;
 
