@@ -1,7 +1,11 @@
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import type { ParkEvent } from "@/app/data/events";
 import { EventLifecycleStatus } from "./TrustStatus";
 import SaveHeart from "./SaveHeart";
+import MapPreview from "./MapPreview";
 import styles from "./EventCard.module.css";
 
 interface EventCardProps {
@@ -33,6 +37,7 @@ function costBadgeClass(costType: ParkEvent["costType"]): string {
 }
 
 export default function EventCard({ event, returnQuery = "" }: EventCardProps) {
+  const [mapExpanded, setMapExpanded] = useState(false);
   const detailHref = `/events/${encodeURIComponent(event.guid)}${returnQuery ? `?${returnQuery}` : ""}`;
 
   return (
@@ -76,7 +81,19 @@ export default function EventCard({ event, returnQuery = "" }: EventCardProps) {
           <p className={styles.metaItem}>{event.accessibility}</p>
         </div>
       </div>
+      <MapPreview
+        event={event}
+        variant={mapExpanded ? "expanded" : "compact"}
+      />
       <div className={styles.actions}>
+        <button
+          className={styles.expandMap}
+          type="button"
+          aria-expanded={mapExpanded}
+          onClick={() => setMapExpanded((expanded) => !expanded)}
+        >
+          {mapExpanded ? "Show compact map" : "Show larger map"}
+        </button>
         <Link
           className={styles.detailLink}
           href={detailHref}

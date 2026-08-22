@@ -7,6 +7,11 @@ vi.mock("next/navigation", () => ({
   usePathname: () => "/",
   useSearchParams: () => new URLSearchParams(),
 }));
+vi.mock("leaflet", () => ({
+  map: () => ({ setView: vi.fn(), remove: vi.fn() }),
+  tileLayer: () => ({ once: vi.fn(), addTo: vi.fn() }),
+  circleMarker: () => ({ addTo: vi.fn() }),
+}));
 
 import BottomNav from "./BottomNav";
 import EventCard from "./EventCard";
@@ -119,8 +124,24 @@ describe("EventCard", () => {
     expect(screen.getByText("Address: Not listed")).toBeTruthy();
     expect(screen.getByText("Aug 16, 2026 · 7:30 AM")).toBeTruthy();
     expect(screen.getByText("Free")).toBeTruthy();
-    expect(screen.queryByTestId("map-thumbnail")).toBeNull();
-    expect(screen.queryByTestId("map-thumbnail-fallback")).toBeNull();
+    expect(screen.getByTestId("map-preview")).toBeTruthy();
+    expect(
+      screen.getByTestId("map-preview").getAttribute("data-map-variant"),
+    ).toBe("compact");
+    expect(
+      screen
+        .getByRole("link", { name: /Open Long Meadow marker/ })
+        .getAttribute("href"),
+    ).toBe(
+      "https://www.openstreetmap.org/?mlat=40.660200&mlon=-73.969000#map=15/40.660200/-73.969000",
+    );
+    expect(
+      screen.getByRole("link", { name: "© OpenStreetMap contributors" }),
+    ).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Show larger map" }));
+    expect(
+      screen.getByTestId("map-preview").getAttribute("data-map-variant"),
+    ).toBe("expanded");
     expect(screen.getByText(event.registration)).toBeTruthy();
     expect(screen.getByText(event.accessibility)).toBeTruthy();
     expect(
@@ -153,7 +174,7 @@ describe("EventCard", () => {
     expect(screen.getByRole("link", { name: /View details/ })).toBeTruthy();
   });
 
-  it("does not render a thumbnail for an invalid source location", () => {
+  it("renders a stable fallback and no map activation for an invalid source location", () => {
     render(
       <EventCard
         event={{
@@ -164,10 +185,13 @@ describe("EventCard", () => {
       />,
     );
 
-    expect(screen.queryByTestId("map-thumbnail")).toBeNull();
-    expect(screen.queryByTestId("map-thumbnail-fallback")).toBeNull();
+    expect(screen.getByTestId("map-preview-fallback")).toBeTruthy();
+    expect(screen.getByText("Map preview unavailable")).toBeTruthy();
     expect(screen.queryByRole("img")).toBeNull();
-    expect(screen.queryByRole("link", { name: /Google Maps/ })).toBeNull();
+    expect(screen.queryByRole("link", { name: /Open .* marker/ })).toBeNull();
+    expect(
+      screen.getByRole("link", { name: "© OpenStreetMap contributors" }),
+    ).toBeTruthy();
   });
 });
 

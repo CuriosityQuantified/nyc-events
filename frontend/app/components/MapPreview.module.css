@@ -1,0 +1,125 @@
+.frame {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  contain: layout paint;
+  border-block: 1px solid var(--color-border);
+  background: var(--color-accent-subtle);
+}
+
+.compact {
+  height: clamp(132px, 34vw, 180px);
+  aspect-ratio: 16 / 9;
+}
+
+.expanded,
+.detail {
+  height: clamp(220px, 54vw, 360px);
+  aspect-ratio: 8 / 5;
+}
+
+.detail {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+}
+
+.map {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+  background: var(--color-accent-subtle);
+}
+
+.map :global(.leaflet-pane),
+.map :global(.leaflet-map-pane),
+.map :global(.leaflet-tile-pane) {
+  width: 100%;
+  height: 100%;
+}
+
+@media (prefers-color-scheme: dark) {
+  .map :global(.leaflet-tile-pane) {
+    filter: invert(1) hue-rotate(180deg) brightness(0.86) contrast(0.92)
+      saturate(0.85);
+  }
+}
+
+.loading,
+.fallback {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: grid;
+  place-content: center;
+  gap: var(--space-1);
+  margin: 0;
+  padding: var(--space-4);
+  color: var(--color-foreground-secondary);
+  background: var(--color-surface);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+
+.fallback strong {
+  color: var(--color-foreground);
+}
+
+.openMap,
+.attribution {
+  position: absolute;
+  z-index: 2;
+  color: var(--color-foreground);
+  background: color-mix(in oklch, var(--color-surface) 94%, transparent);
+}
+
+.openMap {
+  top: var(--space-2);
+  right: var(--space-2);
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  padding-inline: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.openMap:hover {
+  color: var(--color-accent-foreground);
+  background: var(--color-accent);
+}
+
+.openMap:focus-visible,
+.attribution:focus-visible {
+  outline-offset: -3px;
+}
+
+.attribution {
+  right: 0;
+  bottom: 0;
+  max-width: calc(100% - var(--space-2));
+  padding: 2px 5px;
+  font-size: 10px;
+  line-height: 1.5;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  white-space: nowrap;
+}
+
+@media (min-width: 700px) {
+  .compact {
+    height: 168px;
+  }
+
+  .expanded,
+  .detail {
+    height: 320px;
+  }
+}

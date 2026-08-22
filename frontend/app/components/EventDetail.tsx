@@ -3,12 +3,14 @@
 import Link from "next/link";
 import { useEffect, useState, type ReactNode } from "react";
 import BottomNav from "@/app/components/BottomNav";
+import MapPreview from "@/app/components/MapPreview";
 import {
   EventLifecycleStatus,
   FreshnessBanner,
 } from "@/app/components/TrustStatus";
 import {
   eventLifecycleStatus,
+  apiToUiEvent,
   parseEventResponse,
   safeOfficialUrl,
   type ApiFact,
@@ -356,6 +358,8 @@ export function EventDetailContent({ event }: { event: ApiEvent }) {
             </div>
           </div>
         </section>
+
+        <MapPreview event={apiToUiEvent(event)} variant="detail" />
 
         <div className={styles.storyContent}>
           <section className={styles.section} aria-labelledby="about-heading">

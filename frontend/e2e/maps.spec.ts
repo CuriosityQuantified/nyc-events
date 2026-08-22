@@ -1,5 +1,5 @@
-import type { Page } from "@playwright/test";
-import { expect, test } from "./fixtures";
+import type { Locator, Page } from "@playwright/test";
+import { expect, OSM_TILE_PNG, test } from "./fixtures";
 import AxeBuilder from "@axe-core/playwright";
 import eventList from "../../contracts/golden/events-list.json";
 import { apiToUiEvent, type ParkEvent } from "../app/data/events";
@@ -42,16 +42,24 @@ const unlocatable: ParkEvent = {
 };
 const events = [source[0], shared, source[1], multiple, invalid, unlocatable];
 
-type AuditedPage = Page & { __mapErrors?: string[] };
-
-const TILE_PNG = Buffer.from(
-  "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
-  "base64",
-);
+type AuditedPage = Page & {
+  __mapErrors?: string[];
+  __tileRequests?: string[];
+  __expectTileFailures?: boolean;
+};
 
 async function installRoutes(page: Page): Promise<void> {
-  await page.route("https://tile.openstreetmap.org/**", (route) =>
-    route.fulfill({ body: TILE_PNG, contentType: "image/png" }),
+  const tileRequests: string[] = [];
+  (page as AuditedPage).__tileRequests = tileRequests;
+  await page.route("https://tile.openstreetmap.org/**", (route) => {
+    tileRequests.push(route.request().url());
+    return route.fulfill({ body: OSM_TILE_PNG, contentType: "image/png" });
+  });
+  await page.route("https://www.openstreetmap.org/**", (route) =>
+    route.fulfill({
+      body: "<!doctype html><title>OpenStreetMap marker</title>",
+      contentType: "text/html",
+    }),
   );
   await page.route("**/api/events?*", async (route) => {
     const params = new URL(route.request().url()).searchParams;
@@ -69,9 +77,7 @@ async function installRoutes(page: Page): Promise<void> {
     });
   });
   await page.route("**/api/profile/saved**", (route) =>
-    route.fulfill({
-      json: { events: [], page: 1, pageSize: 100, total: 0 },
-    }),
+    route.fulfill({ json: { events: [], page: 1, pageSize: 100, total: 0 } }),
   );
   await page.route("**/api/freshness", (route) =>
     route.fulfill({
@@ -84,11 +90,96 @@ async function installRoutes(page: Page): Promise<void> {
   );
 }
 
-test.describe("Issue #26 maps", () => {
+async function expectFrameGeometry(preview: Locator): Promise<void> {
+  expect(
+    await preview.evaluate((frame) => {
+      const box = frame.getBoundingClientRect();
+      const canvas = frame.querySelector<HTMLElement>(
+        "[data-testid='map-preview-canvas']",
+      );
+      const attribution = [...frame.querySelectorAll("a")].find((link) =>
+        link.textContent?.includes("OpenStreetMap contributors"),
+      );
+      const canvasBox = canvas?.getBoundingClientRect();
+      const attributionBox = attribution?.getBoundingClientRect();
+      return (
+        box.width > 200 &&
+        box.height >= 132 &&
+        canvasBox !== undefined &&
+        Math.abs(canvasBox.width - box.width) <= 2 &&
+        Math.abs(canvasBox.height - box.height) <= 2 &&
+        attributionBox !== undefined &&
+        attributionBox.left >= box.left &&
+        attributionBox.right <= box.right &&
+        attributionBox.top >= box.top &&
+        attributionBox.bottom <= box.bottom &&
+        getComputedStyle(attribution!).visibility === "visible"
+      );
+    }),
+  ).toBe(true);
+}
+
+async function expectLeafletTileCoverage(preview: Locator): Promise<void> {
+  await expect
+    .poll(() =>
+      preview.evaluate((frame) => {
+        const canvas = frame.querySelector<HTMLElement>(
+          "[data-testid='map-preview-canvas']",
+        );
+        const pane = frame.querySelector<HTMLElement>(".leaflet-tile-pane");
+        const tiles = [...frame.querySelectorAll<HTMLElement>(".leaflet-tile")];
+        if (!canvas || !pane || tiles.length === 0) return false;
+        const box = canvas.getBoundingClientRect();
+        const tileBoxes = tiles.map((tile) => tile.getBoundingClientRect());
+        const samples = [0.05, 0.25, 0.5, 0.75, 0.95];
+        return samples.every((xRatio) =>
+          samples.every((yRatio) => {
+            const x = box.left + box.width * xRatio;
+            const y = box.top + box.height * yRatio;
+            return tileBoxes.some(
+              (tile) =>
+                x >= tile.left - 1 &&
+                x <= tile.right + 1 &&
+                y >= tile.top - 1 &&
+                y <= tile.bottom + 1,
+            );
+          }),
+        );
+      }),
+    )
+    .toBe(true);
+}
+
+async function fulfillEvents(
+  page: Page,
+  suppliedEvents: ParkEvent[],
+): Promise<void> {
+  await page.route("**/api/events?*", (route) =>
+    route.fulfill({
+      json: {
+        events: suppliedEvents,
+        page: 1,
+        pageSize: 12,
+        total: suppliedEvents.length,
+        totalPages: suppliedEvents.length ? 1 : 0,
+      },
+    }),
+  );
+}
+
+test.describe("Issue #26 Leaflet maps", () => {
   test.beforeEach(async ({ page }) => {
     const errors: string[] = [];
     page.on("console", (message) => {
-      if (message.type() === "error") errors.push(message.text());
+      if (
+        message.type() === "error" &&
+        !(
+          (page as AuditedPage).__expectTileFailures &&
+          message.text() === "Failed to load resource: net::ERR_FAILED"
+        )
+      ) {
+        errors.push(message.text());
+      }
     });
     page.on("pageerror", (error) => errors.push(error.message));
     (page as AuditedPage).__mapErrors = errors;
@@ -102,93 +193,110 @@ test.describe("Issue #26 maps", () => {
     ).toEqual([]);
   });
 
-  test("ordinary Explore journeys make no Static Maps requests", async ({
+  test("renders lazy compact and expanded previews with safe independent OSM activation", async ({
     page,
   }) => {
-    const thumbnailRequests: string[] = [];
-    page.on("request", (request) => {
-      if (new URL(request.url()).pathname === "/api/maps/thumbnail") {
-        thumbnailRequests.push(request.url());
-      }
-    });
-
-    await page.goto("/", { waitUntil: "networkidle" });
+    await page.goto("/");
     const cards = page.getByTestId("event-card");
     await expect(cards).toHaveCount(events.length);
-    await expect(cards.first()).toContainText("Address: Not listed");
-    await expect(page.getByTestId("map-thumbnail")).toHaveCount(0);
-    await expect(page.getByTestId("map-thumbnail-fallback")).toHaveCount(0);
-    expect(thumbnailRequests).toEqual([]);
+    await expect(page.getByTestId("map-preview")).toHaveCount(4);
+    await expect(page.getByTestId("map-preview-fallback")).toHaveCount(2);
+
+    const first = page.getByTestId("map-preview").first();
+    const initialBox = await first.boundingBox();
+    await first.scrollIntoViewIfNeeded();
+    await expect(first).toHaveAttribute("data-map-status", "ready");
+    expect((await first.boundingBox())!.height).toBe(initialBox!.height);
+    await expectFrameGeometry(first);
+    await expect(
+      first.getByRole("link", { name: "© OpenStreetMap contributors" }),
+    ).toBeVisible();
+
+    const last = page.getByTestId("map-preview").last();
+    await expect(last).toHaveAttribute("data-map-status", "waiting");
+    await last.scrollIntoViewIfNeeded();
+    await expect(last).toHaveAttribute("data-map-status", "ready");
+    await expectFrameGeometry(last);
+
+    const firstCard = cards.first();
+    const previewHeight = (await first.boundingBox())!.height;
+    await firstCard.getByRole("button", { name: "Show larger map" }).click();
+    await expect(first).toHaveAttribute("data-map-variant", "expanded");
+    expect((await first.boundingBox())!.height).toBeGreaterThan(previewHeight);
+    await expectLeafletTileCoverage(first);
+    await expect(
+      firstCard.getByRole("link", { name: /View details/ }),
+    ).toBeVisible();
+
+    const openMap = first.getByRole("link", { name: /Open .* marker/ });
+    const expectedUrl = await openMap.getAttribute("href");
+    const popupPromise = page.waitForEvent("popup");
+    await openMap.click();
+    const popup = await popupPromise;
+    await popup.waitForLoadState("domcontentloaded");
+    expect(popup.url()).toBe(expectedUrl);
+    expect(await popup.evaluate(() => window.opener === null)).toBe(true);
+    await popup.close();
+
+    await expect(
+      page.getByText("Venue or park:", { exact: false }).first(),
+    ).toBeVisible();
+    await expect(
+      page.getByText("Borough:", { exact: false }).first(),
+    ).toBeVisible();
+    await expect(page.getByText("Address: Not listed").first()).toBeVisible();
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth,
+      ),
+    ).toBe(true);
   });
 
-  test("groups stable locations and supports keyboard marker selection at both viewports", async ({
+  test("aggregates exact Location identities and supports accessible keyboard selection", async ({
     page,
   }, testInfo) => {
-    const thumbnailRequests: string[] = [];
-    page.on("request", (request) => {
-      if (new URL(request.url()).pathname === "/api/maps/thumbnail") {
-        thumbnailRequests.push(request.url());
-      }
-    });
     await page.goto("/?view=map");
-
     const map = page.getByTestId("event-map");
     await expect(map).toHaveAttribute("data-map-status", "ready");
     const coordinateMap = page.getByTestId("coordinate-map");
-    await expect(coordinateMap).toHaveAttribute("data-fit-bounds", "true");
-    await coordinateMap.scrollIntoViewIfNeeded();
+    const mapBox = await map.boundingBox();
+    const canvasBox = await coordinateMap.boundingBox();
+    expect(canvasBox).toEqual(mapBox);
+
     const markers = page.getByTestId("map-marker");
-    await expect(markers).toHaveCount(2);
+    await expect(markers).toHaveCount(3);
     for (const marker of await markers.all()) {
-      expect(
-        await marker.evaluate((element) => {
-          const bounds = element.getBoundingClientRect();
-          return (
-            bounds.width >= 44 &&
-            bounds.height >= 44 &&
-            bounds.left >= 0 &&
-            bounds.top >= 0 &&
-            bounds.right <= window.innerWidth &&
-            bounds.bottom <= window.innerHeight
-          );
-        }),
-      ).toBe(true);
+      const box = await marker.boundingBox();
+      expect(box).not.toBeNull();
+      expect(box!.width).toBeGreaterThanOrEqual(44);
+      expect(box!.height).toBeGreaterThanOrEqual(44);
     }
+
     const sharedMarker = page.getByRole("button", {
       name: /Soldiers' and Sailors' Monument.*2 events/,
     });
-    const targetBox = await sharedMarker.boundingBox();
-    expect(targetBox).not.toBeNull();
-    expect(targetBox!.width).toBeGreaterThanOrEqual(44);
-    expect(targetBox!.height).toBeGreaterThanOrEqual(44);
-    expect(await sharedMarker.getAttribute("data-diameter")).toBe("22");
-
+    await expect(sharedMarker).toHaveAttribute("data-diameter", "22");
     const panel = page.getByRole("complementary", {
       name: "Events at selected location",
     });
-    const distinctMarker = markers.nth(1);
-    await distinctMarker.click();
+
+    await markers.nth(1).focus();
+    await page.keyboard.press("Enter");
     await expect(panel).toContainText(source[1].title);
     await expect(panel).toContainText(multiple.title);
-    await expect(panel).toContainText(invalid.title);
-    await expect(panel.getByText("3 events", { exact: true })).toBeVisible();
     await expect(panel).not.toContainText(source[0].title);
+    await expect(panel.getByText("2 events", { exact: true })).toBeVisible();
 
     await sharedMarker.focus();
-    await page.keyboard.press("Enter");
+    await page.keyboard.press(" ");
     await expect(panel).toContainText(source[0].title);
     await expect(panel).toContainText(shared.title);
-    await expect(panel.locator("ul").first()).not.toContainText(invalid.title);
+    await expect(panel).toContainText(invalid.title);
     await expect(panel).toContainText(unlocatable.title);
-    await expect(panel.getByText("2 events", { exact: true })).toBeVisible();
     await expect(
-      page.getByText("1 events are available in the list only"),
+      page.getByText("2 events are available in the list only"),
     ).toBeVisible();
-    await expect(page.getByRole("button", { name: "Zoom in" })).toBeVisible();
-    await expect(page.getByRole("button", { name: "Zoom out" })).toBeVisible();
 
-    const params = new URL(page.url()).searchParams;
-    expect(params.get("view")).toBe("map");
     const toggle = page.getByTestId("list-map-toggle");
     await toggle.getByRole("button", { name: "List", exact: true }).click();
     expect(new URL(page.url()).searchParams.get("view")).toBeNull();
@@ -196,32 +304,95 @@ test.describe("Issue #26 maps", () => {
     await expect(
       toggle.getByRole("button", { name: "Map", exact: true }),
     ).toHaveAttribute("aria-pressed", "true");
-    await expect(map).toBeVisible();
-    expect(thumbnailRequests).toEqual([]);
-
+    await expect(
+      map.getByRole("link", { name: "© OpenStreetMap contributors" }),
+    ).toBeVisible();
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);
-    await testInfo.attach(`${testInfo.project.name}-location-map`, {
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= window.innerWidth,
+      ),
+    ).toBe(true);
+    await testInfo.attach(`${testInfo.project.name}-leaflet-location-map`, {
       body: await page.screenshot({ fullPage: true }),
       contentType: "image/png",
     });
   });
 
-  test("works without credentials and keeps every filtered event reachable", async ({
+  test("does not initialize the interactive map or request tiles for invalid-only Events", async ({
+    page,
+  }) => {
+    const outOfRange: ParkEvent = {
+      ...invalid,
+      id: "out-of-range-location",
+      guid: "out-of-range-location",
+      title: "Invalid Coordinate Event",
+      coordinates: [{ latitude: 91, longitude: -74 }],
+    };
+    await fulfillEvents(page, [invalid, unlocatable, outOfRange]);
+
+    await page.goto("/?view=map");
+    await expect(page.getByTestId("event-map")).toHaveAttribute(
+      "data-map-status",
+      "error",
+    );
+    await expect(page.getByText("No locations to map")).toBeVisible();
+    await expect(page.getByTestId("map-marker")).toHaveCount(0);
+    expect((page as AuditedPage).__tileRequests).toEqual([]);
+  });
+
+  test("stops interactive tile requests and disables controls after the first terminal failure", async ({
+    page,
+  }) => {
+    const failedRequests: string[] = [];
+    (page as AuditedPage).__expectTileFailures = true;
+    await page.unroute("https://tile.openstreetmap.org/**");
+    await page.route("https://tile.openstreetmap.org/**", (route) => {
+      failedRequests.push(route.request().url());
+      return route.abort("failed");
+    });
+
+    await page.goto("/?view=map");
+    const map = page.getByTestId("event-map");
+    await expect(map).toHaveAttribute("data-map-status", "error");
+    await expect(page.getByText("The street map is unavailable")).toBeVisible();
+    const zoomIn = page.getByRole("button", { name: "Zoom in" });
+    const zoomOut = page.getByRole("button", { name: "Zoom out" });
+    await expect(zoomIn).toBeDisabled();
+    await expect(zoomOut).toBeDisabled();
+
+    await expect
+      .poll(async () => {
+        const before = failedRequests.length;
+        await page.waitForTimeout(100);
+        return failedRequests.length === before ? before : -1;
+      })
+      .toBeGreaterThan(0);
+    const terminalCount = failedRequests.length;
+    await zoomIn.dispatchEvent("click");
+    await zoomOut.dispatchEvent("click");
+    await page.waitForTimeout(200);
+    expect(failedRequests).toHaveLength(terminalCount);
+  });
+
+  test("preserves filters and list access without credentials or live services", async ({
     page,
   }) => {
     await page.goto("/?borough=Manhattan&view=map");
-    const map = page.getByTestId("event-map");
-    await expect(map).toHaveAttribute("data-map-status", "ready");
-    await expect(page.getByTestId("coordinate-map")).toBeVisible();
-    await expect(
-      page
-        .getByTestId("list-map-toggle")
-        .getByRole("button", { name: "List", exact: true }),
-    ).toBeVisible();
+    await expect(page.getByTestId("event-map")).toHaveAttribute(
+      "data-map-status",
+      "ready",
+    );
     await expect(
       page.getByRole("link", { name: source[0].title }),
     ).toBeVisible();
     await expect(page.getByRole("link", { name: shared.title })).toBeVisible();
     expect(new URL(page.url()).searchParams.get("borough")).toBe("Manhattan");
+    expect((page as AuditedPage).__tileRequests!.length).toBeGreaterThan(0);
+    expect(
+      (page as AuditedPage).__tileRequests!.every((url) =>
+        url.startsWith("https://tile.openstreetmap.org/"),
+      ),
+    ).toBe(true);
   });
 });

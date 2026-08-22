@@ -1,76 +1,21 @@
 "use client";
 
-import "maplibre-gl/dist/maplibre-gl.css";
 import { useEffect, useRef, useState } from "react";
-import type {
-  Map as MapLibreMap,
-  Marker,
-  StyleSpecification,
-} from "maplibre-gl";
 import type { View } from "@/app/components/ListMapToggle";
-import { markerDiameter, type LocationGroup } from "@/app/data/maps";
+import {
+  markerDiameter,
+  OSM_ATTRIBUTION,
+  OSM_ATTRIBUTION_URL,
+  OSM_MAX_ZOOM,
+  OSM_MIN_ZOOM,
+  OSM_TILE_URL,
+  type LocationGroup,
+} from "@/app/data/maps";
 import styles from "./EventMap.module.css";
 
 function markerLabel(group: LocationGroup): string {
   const count = group.events.length;
   return `${group.name}, ${group.borough}: ${count} ${count === 1 ? "event" : "events"}`;
-}
-
-/** MapLibre uses [longitude, latitude] where the source data is [lat, lng]. */
-const NYC_CENTER: [number, number] = [-74.006, 40.7128];
-const TILE_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
-const TILE_ATTRIBUTION =
-  '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors';
-
-/**
- * Street tiles come straight from OpenStreetMap, so the map keeps working
- * without any vendor key or account.
- */
-const STREET_STYLE: StyleSpecification = {
-  version: 8,
-  sources: {
-    osm: {
-      type: "raster",
-      tiles: [TILE_URL],
-      tileSize: 256,
-      maxzoom: 19,
-      attribution: TILE_ATTRIBUTION,
-    },
-  },
-  layers: [{ id: "osm", type: "raster", source: "osm" }],
-};
-
-/**
- * Keeps every marker clear of the glass tiles floating over the map: the
- * control column and the selected-location card cover different parts of the
- * screen in each view, so the fit is computed per view and per breakpoint.
- */
-function fitPadding(width: number, height: number, view: View) {
-  const desktop = width >= 1024;
-  const raw = desktop
-    ? { top: 130, bottom: 80, left: 700, right: 450 }
-    : view === "map"
-      ? {
-          top: Math.round(height * 0.32),
-          bottom: Math.round(height * 0.5),
-          left: 40,
-          right: 40,
-        }
-      : {
-          top: 96,
-          bottom: Math.round(height * 0.66),
-          left: 40,
-          right: 40,
-        };
-  // Never ask MapLibre for more padding than the canvas can give.
-  const vertical = Math.min(1, (height * 0.86) / (raw.top + raw.bottom));
-  const horizontal = Math.min(1, (width * 0.86) / (raw.left + raw.right));
-  return {
-    top: Math.round(raw.top * vertical),
-    bottom: Math.round(raw.bottom * vertical),
-    left: Math.round(raw.left * horizontal),
-    right: Math.round(raw.right * horizontal),
-  };
 }
 
 type EventMapProps = {
@@ -87,122 +32,133 @@ export default function EventMap({
   onSelectLocation,
 }: EventMapProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
-  const mapRef = useRef<MapLibreMap | null>(null);
-  const markersRef = useRef<Marker[]>([]);
+  const mapRef = useRef<import("leaflet").Map | null>(null);
+  const markersRef = useRef<import("leaflet").Marker[]>([]);
+  const tilesRef = useRef<import("leaflet").TileLayer | null>(null);
   const selectRef = useRef(onSelectLocation);
   const [mapReady, setMapReady] = useState(false);
   const [mapFailed, setMapFailed] = useState(false);
-  const status = mapFailed
-    ? "error"
-    : groups.length === 0
-      ? "error"
-      : mapReady
-        ? "ready"
-        : "loading";
+  const hasGroups = groups.length > 0;
+  const controlsDisabled = mapFailed || !mapReady || !hasGroups;
+  let status = "loading";
+  if (mapFailed || !hasGroups) status = "error";
+  else if (mapReady) status = "ready";
 
   useEffect(() => {
     selectRef.current = onSelectLocation;
   }, [onSelectLocation]);
 
   useEffect(() => {
+    if (!hasGroups) return;
     let disposed = false;
-    (async () => {
-      const maplibre = (await import("maplibre-gl")).default;
-      if (disposed || !mapContainer.current || mapRef.current) return;
-      try {
-        const map = new maplibre.Map({
-          container: mapContainer.current,
-          style: STREET_STYLE,
-          center: NYC_CENTER,
-          zoom: 10.6,
-          maxZoom: 18,
-          minZoom: 9,
+    void import("leaflet")
+      .then((leaflet) => {
+        if (disposed || !mapContainer.current || mapRef.current) return;
+        setMapFailed(false);
+        setMapReady(false);
+        const map = leaflet.map(mapContainer.current, {
+          center: [40.7128, -74.006],
+          zoom: 11,
+          minZoom: OSM_MIN_ZOOM,
+          maxZoom: OSM_MAX_ZOOM,
           attributionControl: false,
-          // A map that also rotates makes an events list harder to scan;
-          // pan and zoom are the gestures this product needs.
-          dragRotate: false,
-          pitchWithRotate: false,
-          touchPitch: false,
-          fadeDuration: 0,
+          zoomControl: false,
         });
-        map.touchZoomRotate.disableRotation();
-        map.on("load", () => {
-          if (!disposed) setMapReady(true);
+        const tiles = leaflet.tileLayer(OSM_TILE_URL, {
+          minZoom: OSM_MIN_ZOOM,
+          maxZoom: OSM_MAX_ZOOM,
+          attribution: OSM_ATTRIBUTION,
+        });
+        tiles.once("tileerror", () => {
+          if (disposed || tilesRef.current !== tiles) return;
+          tiles.remove();
+          tilesRef.current = null;
+          setMapFailed(true);
         });
         mapRef.current = map;
-      } catch {
-        // No WebGL available: the location panel below still lists every
-        // filtered event, so the page stays usable.
+        tilesRef.current = tiles;
+        tiles.addTo(map);
+        map.whenReady(() => {
+          if (!disposed) setMapReady(true);
+        });
+      })
+      .catch(() => {
         if (!disposed) setMapFailed(true);
-      }
-    })();
+      });
     return () => {
       disposed = true;
-      for (const marker of markersRef.current) marker.remove();
+      markersRef.current.forEach((marker) => marker.remove());
       markersRef.current = [];
+      tilesRef.current?.remove();
+      tilesRef.current = null;
       mapRef.current?.remove();
       mapRef.current = null;
     };
-  }, []);
+  }, [hasGroups]);
 
   useEffect(() => {
-    if (!mapReady) return;
+    if (!mapReady || !mapRef.current) return;
     let disposed = false;
-    (async () => {
-      const maplibre = (await import("maplibre-gl")).default;
+    void import("leaflet").then((leaflet) => {
       const map = mapRef.current;
       if (disposed || !map) return;
-
-      for (const marker of markersRef.current) marker.remove();
+      markersRef.current.forEach((marker) => marker.remove());
       markersRef.current = groups.map((group) => {
         const diameter = markerDiameter(group.events.length);
-        const target = document.createElement("button");
-        target.type = "button";
-        target.className = styles.markerTarget;
-        target.dataset.testid = "map-marker";
-        target.dataset.locationKey = group.key;
-        target.dataset.diameter = String(diameter);
-        target.setAttribute("aria-label", markerLabel(group));
-        const dot = document.createElement("span");
-        dot.className = styles.markerDot;
-        dot.setAttribute("aria-hidden", "true");
-        dot.style.setProperty("--marker-diameter", `${diameter}px`);
-        dot.textContent = String(group.events.length);
-        target.append(dot);
-        target.addEventListener("click", () => selectRef.current(group.key));
-        return new maplibre.Marker({ element: target, anchor: "center" })
-          .setLngLat([group.longitude, group.latitude])
-          .addTo(map);
+        const selected = group.key === selectedKey;
+        const label = markerLabel(group);
+        const icon = leaflet.divIcon({
+          className: `${styles.markerTarget}${selected ? ` ${styles.markerSelected}` : ""}`,
+          html: `<span class="${styles.markerDot}" style="--marker-diameter:${diameter}px" aria-hidden="true">${group.events.length}</span>`,
+          iconSize: [44, 44],
+          iconAnchor: [22, 22],
+        });
+        const marker = leaflet.marker([group.latitude, group.longitude], {
+          icon,
+          keyboard: true,
+          title: label,
+          alt: label,
+        });
+        marker.on("add", () => {
+          const element = marker.getElement();
+          if (!element) return;
+          element.dataset.testid = "map-marker";
+          element.dataset.locationKey = group.key;
+          element.dataset.diameter = String(diameter);
+          element.dataset.selected = String(selected);
+          element.setAttribute("role", "button");
+          element.setAttribute("aria-label", label);
+          element.setAttribute("aria-pressed", String(selected));
+          element.addEventListener("keydown", (event) => {
+            if (event.key !== "Enter" && event.key !== " ") return;
+            event.preventDefault();
+            selectRef.current(group.key);
+          });
+        });
+        marker.on("click", () => selectRef.current(group.key));
+        return marker.addTo(map);
       });
 
       if (groups.length > 0) {
-        const bounds = new maplibre.LngLatBounds();
-        for (const group of groups) {
-          bounds.extend([group.longitude, group.latitude]);
-        }
-        const canvas = map.getContainer();
+        const bounds = leaflet.latLngBounds(
+          groups.map((group) => [group.latitude, group.longitude]),
+        );
+        map.invalidateSize(false);
         map.fitBounds(bounds, {
-          padding: fitPadding(canvas.clientWidth, canvas.clientHeight, view),
+          paddingTopLeft: view === "map" ? [48, 160] : [48, 96],
+          paddingBottomRight: [48, view === "map" ? 300 : 180],
           maxZoom: 15,
           animate: false,
         });
       }
-    })();
+    });
     return () => {
       disposed = true;
     };
-  }, [groups, mapReady, view]);
-
-  useEffect(() => {
-    for (const marker of markersRef.current) {
-      const element = marker.getElement();
-      element.dataset.selected = String(
-        element.dataset.locationKey === selectedKey,
-      );
-    }
-  }, [selectedKey, groups, mapReady]);
+  }, [groups, mapReady, selectedKey, view]);
 
   function changeZoom(amount: 1 | -1) {
+    if (controlsDisabled) return;
     if (amount > 0) mapRef.current?.zoomIn();
     else mapRef.current?.zoomOut();
   }
@@ -212,7 +168,7 @@ export default function EventMap({
       className={styles.layer}
       data-testid="event-map"
       data-map-status={status}
-      aria-label="Map of filtered events"
+      aria-label="Interactive OpenStreetMap of filtered event locations"
     >
       <div
         ref={mapContainer}
@@ -230,27 +186,24 @@ export default function EventMap({
         <button
           type="button"
           onClick={() => changeZoom(1)}
+          disabled={controlsDisabled}
           aria-label="Zoom in"
         >
-          <span aria-hidden="true">+</span>
+          +
         </button>
         <button
           type="button"
           onClick={() => changeZoom(-1)}
+          disabled={controlsDisabled}
           aria-label="Zoom out"
         >
-          <span aria-hidden="true">−</span>
+          −
         </button>
       </div>
       <p className={styles.attribution}>
-        <a
-          href="https://www.openstreetmap.org/copyright"
-          target="_blank"
-          rel="noreferrer"
-        >
-          © OpenStreetMap
-        </a>{" "}
-        contributors
+        <a href={OSM_ATTRIBUTION_URL} target="_blank" rel="noopener noreferrer">
+          {OSM_ATTRIBUTION}
+        </a>
       </p>
       {status === "error" ? (
         <div className={`${styles.mapState} glass-strong`} role="status">
