@@ -159,7 +159,7 @@ Search, filters, sort order, and view should be represented in the URL so users 
 
 The map should answer spatial questions without becoming the product’s authority.
 
-For MVP, use a credential-free coordinate map. Plot grouped source coordinates with keyboard-operable markers and a synchronized event panel. It must not call a browser map service or Static Maps endpoint. Google provider integration and per-event thumbnails are post-MVP.
+Use Leaflet with the centralized OpenStreetMap HTTPS tile layer. Compact Event tiles show a non-interactive preview. Expanded tiles and Event detail show a larger preview. Textual Location facts remain primary, and below-fold previews initialize only near the viewport. Invalid or null-island coordinates show a stable fallback and request no tiles.
 
 #### Location identity
 
@@ -188,7 +188,7 @@ For `n >= 1` filtered events at a location, set the visible circular dot diamete
 - Preserve list access on mobile and for assistive technology
 - Show whether a pin is exact or approximate
 
-Use `AdvancedMarkerElement`, with the accessible custom HTML circle as that advanced marker’s content; never use legacy `google.maps.Marker`. Every marker must expose the location name and event count, be keyboard focusable, and activate with standard Enter/Space behavior. Preserve an equivalent list interaction and the 44px minimum interactive target even when the visual dot is smaller.
+Use a Leaflet `divIcon` with an accessible custom HTML circle. Every marker must expose the location name and event count, be keyboard focusable, and activate with standard Enter/Space behavior. Preserve an equivalent list interaction and the 44px minimum interactive target even when the visual dot is smaller. Every map keeps visible linked `© OpenStreetMap contributors` attribution.
 
 The app should not imply walking time, transit time, or exact meeting points unless those facts come from a verified source.
 

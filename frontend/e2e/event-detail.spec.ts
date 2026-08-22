@@ -89,25 +89,34 @@ test.describe("Issue #14 event detail", () => {
     ).toEqual(expectedErrors);
   });
 
-  test("detail journey makes no Static Maps thumbnail request", async ({
+  test("detail journey renders a large offline Leaflet preview", async ({
     page,
   }) => {
-    const thumbnailRequests: string[] = [];
-    page.on("request", (request) => {
-      if (new URL(request.url()).pathname === "/api/maps/thumbnail") {
-        thumbnailRequests.push(request.url());
-      }
-    });
-
     await page.goto(`/events/${encodeURIComponent(eventDetail.guid)}`, {
       waitUntil: "networkidle",
     });
     await expect(
       page.getByRole("heading", { level: 1, name: eventDetail.title.value }),
     ).toBeVisible();
-    await expect(page.getByTestId("map-thumbnail")).toHaveCount(0);
-    await expect(page.getByTestId("map-thumbnail-fallback")).toHaveCount(0);
-    expect(thumbnailRequests).toEqual([]);
+    const preview = page.getByTestId("map-preview");
+    await expect(preview).toHaveAttribute("data-map-variant", "detail");
+    await expect(preview).toHaveAttribute("data-map-status", "ready");
+    await expect(
+      preview.getByRole("link", { name: "© OpenStreetMap contributors" }),
+    ).toBeVisible();
+    expect(
+      await preview.evaluate((frame) => {
+        const box = frame.getBoundingClientRect();
+        const canvas = frame
+          .querySelector<HTMLElement>("[data-testid='map-preview-canvas']")!
+          .getBoundingClientRect();
+        return (
+          box.height >= 220 &&
+          Math.abs(canvas.width - box.width) <= 2 &&
+          Math.abs(canvas.height - box.height) <= 2
+        );
+      }),
+    ).toBe(true);
   });
 
   test("opens a grounded detail, exposes provenance, and returns to filters", async ({
@@ -144,6 +153,10 @@ test.describe("Issue #14 event detail", () => {
     await expect(
       page.locator('[data-provenance="Not listed"]').first(),
     ).toBeVisible();
+    await expect(page.getByTestId("map-preview")).toHaveAttribute(
+      "data-map-status",
+      "ready",
+    );
     await expect(page).toHaveScreenshot("event-detail-light.png", {
       animations: "disabled",
       maxDiffPixelRatio: SCREENSHOT_MAX_DIFF_PIXEL_RATIO,
@@ -171,15 +184,20 @@ test.describe("Issue #14 event detail", () => {
     }
 
     if (testInfo.project.name === "desktop") {
-      const [summaryBox, aboutBox] = await Promise.all([
+      const [summaryBox, previewBox, aboutBox] = await Promise.all([
         page.getByTestId("event-summary").boundingBox(),
+        page.getByTestId("map-preview").boundingBox(),
         page.getByRole("heading", { name: "About this event" }).boundingBox(),
       ]);
       expect(summaryBox).not.toBeNull();
+      expect(previewBox).not.toBeNull();
       expect(aboutBox).not.toBeNull();
-      const storyGap = aboutBox!.y - (summaryBox!.y + summaryBox!.height);
-      expect(storyGap).toBeGreaterThanOrEqual(32);
-      expect(storyGap).toBeLessThanOrEqual(96);
+      expect(previewBox!.y).toBeGreaterThanOrEqual(
+        summaryBox!.y + summaryBox!.height,
+      );
+      expect(aboutBox!.y).toBeGreaterThanOrEqual(
+        previewBox!.y + previewBox!.height,
+      );
     }
 
     expect((await new AxeBuilder({ page }).analyze()).violations).toEqual([]);

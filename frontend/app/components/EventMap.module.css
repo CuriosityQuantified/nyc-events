@@ -14,7 +14,7 @@
 /* OpenStreetMap raster tiles are drawn for light UIs; invert them for dark
    mode so the glass tiles keep a consistent contrast relationship. */
 @media (prefers-color-scheme: dark) {
-  .canvas :global(.maplibregl-canvas) {
+  .canvas :global(.leaflet-tile-pane) {
     filter: invert(1) hue-rotate(180deg) brightness(0.86) contrast(0.92)
       saturate(0.85);
   }
@@ -41,8 +41,8 @@
 }
 
 .zoomControls button {
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   display: grid;
   place-items: center;
   border-radius: var(--radius-md);
@@ -136,7 +136,8 @@
   transform: scale(1.12);
 }
 
-.markerTarget[data-selected="true"] .markerDot {
+.markerTarget[data-selected="true"] .markerDot,
+.markerSelected .markerDot {
   transform: scale(1.18);
   border-color: #fff;
   box-shadow:

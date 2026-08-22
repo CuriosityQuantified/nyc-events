@@ -1,8 +1,14 @@
 import { cleanup, render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import eventDetail from "../../../contracts/golden/event-detail.json";
 import { EventDetailContent } from "./EventDetail";
 import { parseEventResponse } from "@/app/data/events";
+
+vi.mock("leaflet", () => ({
+  map: () => ({ setView: vi.fn(), remove: vi.fn() }),
+  tileLayer: () => ({ once: vi.fn(), addTo: vi.fn() }),
+  circleMarker: () => ({ addTo: vi.fn() }),
+}));
 
 afterEach(cleanup);
 
@@ -22,6 +28,12 @@ describe("EventDetailContent", () => {
     expect(screen.getAllByText("Stated").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Derived").length).toBeGreaterThan(0);
     expect(screen.getAllByText("Not listed").length).toBeGreaterThan(0);
+    expect(
+      screen.getByTestId("map-preview").getAttribute("data-map-variant"),
+    ).toBe("detail");
+    expect(
+      screen.getByRole("link", { name: "© OpenStreetMap contributors" }),
+    ).toBeTruthy();
   });
 
   it("keeps missing accessibility and cost honest", () => {

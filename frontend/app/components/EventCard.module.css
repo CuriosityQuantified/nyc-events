@@ -80,7 +80,21 @@
 }
 
 .actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
   padding: 0 var(--space-4) var(--space-3);
+}
+
+.expandMap {
+  min-height: var(--touch-min);
+  color: var(--color-foreground-secondary);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
 }
 
 .category {

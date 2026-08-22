@@ -3,6 +3,7 @@ import { connection } from "next/server";
 import AuthProvider from "@/app/components/AuthProvider";
 import SavedProvider from "@/app/components/SavedProvider";
 import { clerkConfiguration } from "@/app/data/clerk";
+import "leaflet/dist/leaflet.css";
 import "./globals.css";
 
 export const metadata: Metadata = {

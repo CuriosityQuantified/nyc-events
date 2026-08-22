@@ -1,5 +1,12 @@
 import type { ParkEvent } from "./events";
 
+export const OSM_TILE_URL = "https://tile.openstreetmap.org/{z}/{x}/{y}.png";
+export const OSM_ATTRIBUTION = "© OpenStreetMap contributors";
+export const OSM_ATTRIBUTION_URL = "https://www.openstreetmap.org/copyright";
+export const OSM_MIN_ZOOM = 9;
+export const OSM_MAX_ZOOM = 18;
+export const OSM_PREVIEW_ZOOM = 15;
+
 export type Coordinate = {
   latitude: number;
   longitude: number;
@@ -54,84 +61,41 @@ export function locationKey(
   return locationId?.trim() ? `${locationId.trim()}|${normalized}` : normalized;
 }
 
-function locationNameKey(event: ParkEvent): string | null {
-  const name = event.location.trim().toLowerCase();
-  if (!name || name === "location not listed") return null;
-  return `name:${name}|${event.borough.trim().toLowerCase()}`;
-}
-
 /**
- * One marker per place. Events sharing a location name (within a borough)
- * form a single group even when their stored coordinates differ or are
- * missing — an event with only a park name joins the park's marker, placed
- * at the centroid of every coordinate its events brought. Events without a
- * usable name fall back to one group per exact coordinate. Events with
- * neither stay off the map (the caller lists them separately).
+ * A Location is the source Location ID plus one normalized coordinate. Display
+ * spelling never changes identity. A multi-Location Event enters each unique
+ * group once, while its source guid remains the Event identity.
  */
 export function groupEventsByLocation(events: ParkEvent[]): LocationGroup[] {
-  type Draft = {
-    key: string;
-    name: string;
-    borough: string;
-    coordinates: Map<string, Coordinate>;
-    events: ParkEvent[];
-    guids: Set<string>;
-    allExact: boolean;
-  };
-  const drafts = new Map<string, Draft>();
-
-  function draftFor(key: string, event: ParkEvent): Draft {
-    const existing = drafts.get(key);
-    if (existing) return existing;
-    const created: Draft = {
-      key,
-      name: event.location,
-      borough: event.borough,
-      coordinates: new Map(),
-      events: [],
-      guids: new Set(),
-      allExact: true,
-    };
-    drafts.set(key, created);
-    return created;
-  }
+  const groups = new Map<string, LocationGroup>();
+  const guids = new Map<string, Set<string>>();
 
   for (const event of events) {
-    const coordinates = validEventCoordinates(event);
-    const nameKey = locationNameKey(event);
-    if (!nameKey && coordinates.length === 0) continue;
-    const key = nameKey ?? locationKey(event.locationId, coordinates[0]);
-    const draft = draftFor(key, event);
-    for (const coordinate of nameKey ? coordinates : coordinates.slice(0, 1)) {
-      draft.coordinates.set(normalizeCoordinate(coordinate), coordinate);
+    for (const coordinate of validEventCoordinates(event)) {
+      const key = locationKey(event.locationId, coordinate);
+      let group = groups.get(key);
+      if (!group) {
+        group = {
+          key,
+          latitude: coordinate.latitude,
+          longitude: coordinate.longitude,
+          name: event.location,
+          borough: event.borough,
+          accuracy: event.positionAccuracy,
+          events: [],
+        };
+        groups.set(key, group);
+        guids.set(key, new Set());
+      }
+      const seen = guids.get(key)!;
+      if (!seen.has(event.guid)) {
+        seen.add(event.guid);
+        group.events.push(event);
+      }
+      if (event.positionAccuracy !== "exact") group.accuracy = "approximate";
     }
-    if (!draft.guids.has(event.guid)) {
-      draft.guids.add(event.guid);
-      draft.events.push(event);
-    }
-    if (event.positionAccuracy !== "exact") draft.allExact = false;
   }
-
-  const groups: LocationGroup[] = [];
-  for (const draft of drafts.values()) {
-    const coordinates = [...draft.coordinates.values()];
-    if (coordinates.length === 0) continue;
-    const latitude =
-      coordinates.reduce((sum, c) => sum + c.latitude, 0) / coordinates.length;
-    const longitude =
-      coordinates.reduce((sum, c) => sum + c.longitude, 0) / coordinates.length;
-    groups.push({
-      key: draft.key,
-      latitude,
-      longitude,
-      name: draft.name,
-      borough: draft.borough,
-      accuracy:
-        coordinates.length === 1 && draft.allExact ? "exact" : "approximate",
-      events: draft.events,
-    });
-  }
-  return groups;
+  return [...groups.values()];
 }
 
 export function markerDiameter(eventCount: number): number {
@@ -141,22 +105,23 @@ export function markerDiameter(eventCount: number): number {
   return Math.min(48, 16 + 6 * Math.log2(eventCount));
 }
 
-export function googleMapsDirectionsUrl(coordinate: Coordinate): string {
-  const destination = normalizeCoordinate(coordinate);
-  const params = new URLSearchParams({ api: "1", destination });
-  return `https://www.google.com/maps/dir/?${params.toString()}`;
+export function previewZoom(value: number = OSM_PREVIEW_ZOOM): number {
+  if (!Number.isFinite(value)) return OSM_PREVIEW_ZOOM;
+  return Math.min(OSM_MAX_ZOOM, Math.max(OSM_MIN_ZOOM, Math.round(value)));
 }
 
-export function thumbnailPath(
-  event: ParkEvent,
-  variant: "compact" | "detail",
-  coordinateIndex = 0,
-): string | null {
-  if (!validEventCoordinates(event)[coordinateIndex]) return null;
-  const params = new URLSearchParams({
-    guid: event.guid,
-    variant,
-    location: String(coordinateIndex),
-  });
-  return `/api/maps/thumbnail?${params.toString()}`;
+export function osmMarkerUrl(
+  coordinate: Coordinate,
+  zoom: number = OSM_PREVIEW_ZOOM,
+): string {
+  if (!isValidCoordinate(coordinate)) {
+    throw new RangeError("OpenStreetMap marker requires a valid coordinate");
+  }
+  const normalized = normalizeCoordinate(coordinate);
+  const [latitude, longitude] = normalized.split(",");
+  const url = new URL("https://www.openstreetmap.org/");
+  url.searchParams.set("mlat", latitude);
+  url.searchParams.set("mlon", longitude);
+  url.hash = `map=${previewZoom(zoom)}/${latitude}/${longitude}`;
+  return url.toString();
 }

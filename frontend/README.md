@@ -18,9 +18,10 @@ Open [http://localhost:3000](http://localhost:3000) with your browser to see the
 
 ## Map configuration
 
-The MVP Location map is credential-free. It plots grouped source coordinates
-without browser or Static Maps network requests. Google map integration and
-per-event Static Maps thumbnails are deferred and need no deployment secrets.
+Event previews and the Location-aggregated map use Leaflet with OpenStreetMap
+tiles requested directly by the browser. The fixed HTTPS tile template, zoom
+bounds, marker handoff URL, and attribution are centralized in `app/data/maps.ts`.
+No map key, tile proxy, prefetch, or offline tile download is used.
 
 You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
