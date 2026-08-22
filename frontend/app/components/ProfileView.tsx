@@ -7,10 +7,12 @@ import DesktopSidebar from "@/app/components/DesktopSidebar";
 import BottomNav from "@/app/components/BottomNav";
 import {
   fetchInterests,
+  setInterestAlert,
   unfollowInterest,
   type Interest,
 } from "@/app/data/preferences";
 import pageStyles from "@/app/page.module.css";
+import { onProfileChanged } from "@/app/data/profile-sync";
 import styles from "./ProfileView.module.css";
 
 const FACET_TYPE_LABELS: Record<string, string> = {
@@ -44,6 +46,8 @@ export default function ProfileView({ account }: { account?: ReactNode }) {
   const [loadCount, setLoadCount] = useState(0);
 
   const reload = useCallback(() => {
+    setInterests([]);
+    setActionError(null);
     setStatus("loading");
     setLoadCount((count) => count + 1);
   }, []);
@@ -65,6 +69,8 @@ export default function ProfileView({ account }: { account?: ReactNode }) {
     };
   }, [loadCount]);
 
+  useEffect(() => onProfileChanged(reload), [reload]);
+
   const onUnfollow = async (interest: Interest) => {
     setActionError(null);
     try {
@@ -72,6 +78,31 @@ export default function ProfileView({ account }: { account?: ReactNode }) {
       setInterests((prev) => prev.filter((item) => item.id !== interest.id));
     } catch {
       setActionError(`Could not unfollow ${interest.facetValue}.`);
+    }
+  };
+
+  const onAlertChange = async (interest: Interest) => {
+    setActionError(null);
+    const nextEnabled = !interest.alertEnabled;
+    setInterests((previous) =>
+      previous.map((item) =>
+        item.id === interest.id ? { ...item, alertEnabled: nextEnabled } : item,
+      ),
+    );
+    try {
+      const updated = await setInterestAlert(interest, nextEnabled);
+      setInterests((previous) =>
+        previous.map((item) => (item.id === interest.id ? updated : item)),
+      );
+    } catch {
+      setInterests((previous) =>
+        previous.map((item) =>
+          item.id === interest.id
+            ? { ...item, alertEnabled: interest.alertEnabled }
+            : item,
+        ),
+      );
+      setActionError(`Could not update alerts for ${interestLabel(interest)}.`);
     }
   };
 
@@ -90,10 +121,16 @@ export default function ProfileView({ account }: { account?: ReactNode }) {
           aria-busy={status === "loading"}
         >
           <h2 className={styles.title}>Profile</h2>
-          <p className={styles.subtitle}>
-            An anonymous profile on this device. Your Interests decide which new
-            events become Matches in Saved.
-          </p>
+          <div className={styles.intro}>
+            <p className={styles.subtitle}>
+              Shape the events you hear about. Your preferences stay on this
+              device unless you choose to create an account.
+            </p>
+            <p className={styles.anonymousNote}>
+              <strong>No account required.</strong> Interests, alerts, Saved,
+              and Concierge work either way.
+            </p>
+          </div>
 
           <section aria-label="Interests you follow" className={styles.section}>
             <h3 className={styles.heading}>Interests</h3>
@@ -133,18 +170,45 @@ export default function ProfileView({ account }: { account?: ReactNode }) {
                         {interest.alertEnabled ? "· alerts on" : "· alerts off"}
                       </span>
                     </span>
-                    <button
-                      type="button"
-                      className={styles.unfollow}
-                      onClick={() => void onUnfollow(interest)}
-                      aria-label={`Unfollow ${interestLabel(interest)}`}
-                    >
-                      Unfollow
-                    </button>
+                    <span className={styles.itemActions}>
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={interest.alertEnabled}
+                        aria-label={`Alerts for ${interestLabel(interest)}`}
+                        className={styles.alertSwitch}
+                        onClick={() => void onAlertChange(interest)}
+                      >
+                        <span className={styles.switchTrack} aria-hidden="true">
+                          <span className={styles.switchThumb} />
+                        </span>
+                        Alert me
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.unfollow}
+                        onClick={() => void onUnfollow(interest)}
+                        aria-label={`Unfollow ${interestLabel(interest)}`}
+                      >
+                        Unfollow
+                      </button>
+                    </span>
                   </li>
                 ))}
               </ul>
             )}
+          </section>
+
+          <section
+            aria-label="Notification preferences"
+            className={styles.section}
+          >
+            <h3 className={styles.heading}>Notification preferences</h3>
+            <p className={styles.state}>
+              Use each Interest&rsquo;s Alert me switch to choose what can
+              notify you. Alerts are optional and stay available without an
+              account.
+            </p>
           </section>
 
           <section aria-label="Account" className={styles.section}>

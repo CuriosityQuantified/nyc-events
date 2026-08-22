@@ -5,11 +5,9 @@ RUN npm ci
 
 FROM node:22-alpine AS builder
 WORKDIR /app
-# Clerk's publishable key is public and inlined by `next build`, so it has to be
-# present here; without it the image ships with accounts disabled.
-ARG NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=""
-ENV NEXT_TELEMETRY_DISABLED=1 \
-    NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=$NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY
+# Clerk configuration is read from the live server environment at request time.
+# Do not pass private or public Clerk configuration through image build args.
+ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=dependencies /app/node_modules ./node_modules
 COPY . .
 RUN mkdir -p public && npm run build

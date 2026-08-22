@@ -12,6 +12,25 @@
   font-size: var(--text-sm);
 }
 
+.intro {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.anonymousNote {
+  margin: 0 0 var(--space-2);
+  max-width: 34ch;
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  background: var(--glass-soft);
+  color: var(--color-foreground-secondary);
+  font-size: var(--text-sm);
+}
+
 .section {
   display: flex;
   flex-direction: column;
@@ -51,6 +70,36 @@
   gap: var(--space-3);
 }
 
+.identityRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.accountActions,
+.itemActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.claimBox {
+  display: grid;
+  gap: var(--space-3);
+  max-width: 58ch;
+  padding: var(--space-4);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  background: var(--glass-soft);
+}
+
+.claimSuccess {
+  margin: 0;
+  color: var(--color-accent-strong);
+  font-weight: 650;
+}
+
 .accountButton {
   min-height: var(--touch-min);
   padding: 0 var(--space-5);
@@ -65,6 +114,24 @@
 
 .accountButton:hover {
   filter: brightness(1.08);
+}
+
+.accountButton:disabled,
+.secondaryButton:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.secondaryButton {
+  min-height: var(--touch-min);
+  padding: 0 var(--space-5);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-surface-raised);
+  color: var(--color-foreground);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  cursor: pointer;
 }
 
 .error {
@@ -128,7 +195,7 @@
 }
 
 .unfollow {
-  min-height: 40px;
+  min-height: var(--touch-min);
   padding: 0 var(--space-4);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-full);
@@ -142,4 +209,50 @@
 .unfollow:hover {
   background: var(--glass-strong);
   color: var(--color-save);
+}
+
+.alertSwitch {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  min-width: 112px;
+  min-height: var(--touch-min);
+  font-size: var(--text-sm);
+  font-weight: 650;
+}
+
+.switchTrack {
+  display: inline-flex;
+  align-items: center;
+  width: 44px;
+  height: 26px;
+  padding: 3px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  background: var(--color-border);
+  transition: background 160ms var(--ease-glass);
+}
+
+.switchThumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-surface-raised);
+  box-shadow: var(--shadow-sm);
+  transition: transform 160ms var(--ease-glass);
+}
+
+.alertSwitch[aria-checked="true"] .switchTrack {
+  background: var(--color-accent);
+}
+
+.alertSwitch[aria-checked="true"] .switchThumb {
+  transform: translateX(18px);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .switchTrack,
+  .switchThumb {
+    transition: none;
+  }
 }

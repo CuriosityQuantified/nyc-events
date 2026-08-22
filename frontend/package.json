@@ -4,18 +4,19 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "next build && node scripts/verify-auth-artifact.mjs",
     "start": "next start",
-    "format:check": "prettier --check \"app/**/*.{ts,tsx,css}\" \"e2e/*.ts\" next.config.ts playwright.config.ts playwright.production.config.ts tsconfig.json tsconfig.tests.json",
+    "format:check": "prettier --check \"app/**/*.{ts,tsx,css}\" \"e2e/**/*.{ts,tsx,html}\" \"scripts/**/*.mjs\" next.config.ts vite.auth.config.mts vitest.config.mts playwright.config.ts playwright.auth.config.ts playwright.production.config.ts tsconfig.json tsconfig.tests.json",
     "lint": "eslint",
     "typecheck": "next typegen && tsc --noEmit && tsc --noEmit --project tsconfig.tests.json",
     "pretest": "playwright install --with-deps chromium",
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "vitest run",
-    "test:e2e": "playwright test",
+    "test:e2e": "playwright test && npm run test:e2e:auth",
+    "test:e2e:auth": "playwright test --config playwright.auth.config.ts",
     "test:production": "playwright test --config playwright.production.config.ts",
     "test:ui": "playwright test --ui",
-    "format": "prettier --write \"app/**/*.{ts,tsx,css}\" \"e2e/*.ts\" next.config.ts playwright.config.ts playwright.production.config.ts tsconfig.json tsconfig.tests.json"
+    "format": "prettier --write \"app/**/*.{ts,tsx,css}\" \"e2e/**/*.{ts,tsx,html}\" \"scripts/**/*.mjs\" next.config.ts vite.auth.config.mts vitest.config.mts playwright.config.ts playwright.auth.config.ts playwright.production.config.ts tsconfig.json tsconfig.tests.json"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.7.6",
@@ -38,6 +39,7 @@
     "jsdom": "^30.0.1",
     "prettier": "3.6.2",
     "typescript": "^5",
+    "vite": "^8.2.2",
     "vitest": "^4.1.10"
   }
 }
