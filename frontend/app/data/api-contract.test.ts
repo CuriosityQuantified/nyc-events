@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import eventDetail from "../../../contracts/golden/event-detail.json";
 import eventList from "../../../contracts/golden/events-list.json";
 import freshness from "../../../contracts/golden/freshness.json";
+import subwayFiltered from "../../../contracts/golden/events-subway-filtered.json";
 
 type Provenance = "Stated" | "Derived" | "Not listed";
 
@@ -62,5 +63,22 @@ describe("shared API contract frontend consumer", () => {
         title: { ...eventDetail.title, provenance: "Inferred" },
       }),
     ).toThrow(/provenance/);
+  });
+
+  it("consumes subway-filtered golden contract with proximity and transit_source", () => {
+    const events = subwayFiltered.events.map(consumeEvent);
+    expect(events).toHaveLength(1);
+    const event = subwayFiltered.events[0];
+    expect(event.subway_proximity).toEqual({
+      line_id: "1",
+      nearest_stop: { id: "121", name: "86 St" },
+      straight_line_distance_miles: 0.22,
+    });
+    expect(subwayFiltered.transit_source).toEqual({
+      id: "mta-nyct-subway-gtfs",
+      attribution: "Metropolitan Transportation Authority (MTA)",
+      source_url: "https://rrgtfsfeeds.s3.amazonaws.com/gtfs_subway.zip",
+      last_updated: "2026-08-07T12:10:36+00:00",
+    });
   });
 });

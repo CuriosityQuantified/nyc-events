@@ -95,6 +95,53 @@
   font-size: var(--text-sm);
 }
 
+/* --- Route overlay --- */
+.canvas :global(.leaflet-pane[style*="z-index: 350"]) {
+  pointer-events: none;
+}
+
+/* --- Stop markers --- */
+.stopTarget {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+}
+
+.stopDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--stop-color);
+  background: #fff;
+  transition: transform 0.15s var(--ease-glass);
+}
+
+.stopDotSelected {
+  width: 14px;
+  height: 14px;
+  background: var(--stop-color);
+  border-width: 3px;
+}
+
+.stopTarget:hover .stopDot {
+  transform: scale(1.3);
+}
+
+.stopTarget:focus-visible {
+  outline: none;
+}
+
+.stopTarget:focus-visible .stopDot {
+  outline: 3px solid var(--color-foreground);
+  outline-offset: 3px;
+}
+
 /* --- Markers --- */
 .markerTarget {
   width: 44px;
@@ -152,6 +199,13 @@
 .markerTarget:focus-visible .markerDot {
   outline: 3px solid var(--color-foreground);
   outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stopDot,
+  .markerDot {
+    transition: none;
+  }
 }
 
 @media (min-width: 1024px) {

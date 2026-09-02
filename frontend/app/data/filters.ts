@@ -1,4 +1,5 @@
-import type { ParkEvent } from "./events";
+import type { ParkEvent } from "@/app/data/events";
+import { getSubwayLine } from "@/app/data/subway";
 
 export const FILTER_OPTIONS = {
   borough: [
@@ -42,6 +43,8 @@ export type FilterState = {
   /** Exact New York calendar dates, inclusive, as YYYY-MM-DD. */
   dateFrom: string | null;
   dateTo: string | null;
+  /** Backend-side subway proximity filter (route ID, e.g. "1", "A"). */
+  subwayLine: string | null;
 };
 
 export const EMPTY_FILTERS: FilterState = {
@@ -53,11 +56,13 @@ export const EMPTY_FILTERS: FilterState = {
   freeOnly: false,
   dateFrom: null,
   dateTo: null,
+  subwayLine: null,
 };
 
 const EXACT_DATE_PARAMS = { dateFrom: "date_from", dateTo: "date_to" } as const;
 const QUERY_PARAM = "query";
 const FREE_PARAM = "free";
+const SUBWAY_LINE_PARAM = "subway_line";
 const MAX_QUERY_LENGTH = 200;
 
 function normalizeQuery(value: string): string {
@@ -116,6 +121,12 @@ export function parseFilterSearchParams(params: URLSearchParams): FilterState {
     dateTo = null;
   }
 
+  const requestedSubwayLine = params.get(SUBWAY_LINE_PARAM)?.trim() || null;
+  const subwayLine =
+    requestedSubwayLine && getSubwayLine(requestedSubwayLine)
+      ? requestedSubwayLine
+      : null;
+
   return {
     borough: valueFor("borough"),
     category: valueFor("category"),
@@ -125,6 +136,7 @@ export function parseFilterSearchParams(params: URLSearchParams): FilterState {
     freeOnly: params.getAll(FREE_PARAM).includes("true"),
     dateFrom,
     dateTo,
+    subwayLine,
   };
 }
 
@@ -168,6 +180,13 @@ export function parseStrictFilterSearchParams(
   if (from && to && from > to) {
     throw new TypeError("Invalid date_from filter");
   }
+  const subwayLineValues = params.getAll(SUBWAY_LINE_PARAM);
+  if (subwayLineValues.length > 1) {
+    throw new TypeError(`Invalid ${SUBWAY_LINE_PARAM} filter`);
+  }
+  if (subwayLineValues[0] && !getSubwayLine(subwayLineValues[0].trim())) {
+    throw new TypeError(`Invalid ${SUBWAY_LINE_PARAM} filter`);
+  }
   return parseFilterSearchParams(params);
 }
 
@@ -191,6 +210,8 @@ export function writeFilterSearchParams(
   if (query) next.set(QUERY_PARAM, query);
   next.delete(FREE_PARAM);
   if (filters.freeOnly) next.set(FREE_PARAM, "true");
+  next.delete(SUBWAY_LINE_PARAM);
+  if (filters.subwayLine) next.set(SUBWAY_LINE_PARAM, filters.subwayLine);
   return next;
 }
 
@@ -200,7 +221,8 @@ export function hasActiveFilters(filters: FilterState): boolean {
     normalizeQuery(filters.query).length > 0 ||
     filters.freeOnly ||
     filters.dateFrom !== null ||
-    filters.dateTo !== null
+    filters.dateTo !== null ||
+    filters.subwayLine !== null
   );
 }
 
@@ -224,6 +246,9 @@ export function describeFilters(filters: FilterState): string[] {
     described.push(`Dates: from ${filters.dateFrom}`);
   } else if (filters.dateTo) {
     described.push(`Dates: until ${filters.dateTo}`);
+  }
+  if (filters.subwayLine) {
+    described.push(`Subway line: ${filters.subwayLine}`);
   }
   return described;
 }

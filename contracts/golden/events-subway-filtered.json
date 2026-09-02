@@ -1,0 +1,38 @@
+{
+  "events": [
+    {
+      "guid": "2,146,733",
+      "title": {"value": "Summer on the Hudson: Tai Chi", "provenance": "Stated", "raw": "Summer on the Hudson: Tai Chi"},
+      "description": {"value": "Join Silvana Pizzuti to learn and practice Tai Chi.", "provenance": "Stated", "raw": "Join Silvana Pizzuti to learn and practice Tai Chi."},
+      "official_event_url": {"value": "http://www.nycgovparks.org/events/2026/08/09/summer-on-the-hudson-tai-chi", "provenance": "Stated", "raw": "http://www.nycgovparks.org/events/2026/08/09/summer-on-the-hudson-tai-chi"},
+      "location_id": {"value": "M072", "provenance": "Stated", "raw": "M072"},
+      "location_name": {"value": "Soldiers' and Sailors' Monument (in Riverside Park)", "provenance": "Stated", "raw": "Soldiers' and Sailors' Monument (in Riverside Park)"},
+      "start_date": {"value": "2026-08-09", "provenance": "Derived", "raw": "08/09/2026"},
+      "end_date": {"value": "2026-08-09", "provenance": "Derived", "raw": "08/09/2026"},
+      "start_datetime": {"value": "2026-08-09T08:00:00-04:00", "provenance": "Derived", "raw": "2026-08-09 08:00:00"},
+      "end_datetime": {"value": "2026-08-09T09:30:00-04:00", "provenance": "Derived", "raw": "2026-08-09 09:30:00"},
+      "categories": {"value": ["Fitness"], "provenance": "Stated", "raw": "Fitness"},
+      "coordinates": {"value": [{"latitude": 40.791999816895, "longitude": -73.978996276855}], "provenance": "Stated", "raw": "40.79199981689500000, -73.97899627685500000"},
+      "borough": {"value": "Manhattan", "provenance": "Derived", "raw": "M072"},
+      "registration_status": {"value": null, "provenance": "Not listed", "raw": null},
+      "registration_description": {"value": null, "provenance": "Not listed", "raw": null},
+      "is_free_explicit": {"value": null, "provenance": "Not listed", "raw": null},
+      "accessibility_mentioned": {"value": null, "provenance": "Not listed", "raw": null},
+      "subway_proximity": {
+        "line_id": "1",
+        "nearest_stop": {"id": "121", "name": "86 St"},
+        "straight_line_distance_miles": 0.22
+      }
+    }
+  ],
+  "page": 1,
+  "page_size": 20,
+  "total": 1,
+  "applied_facets": {},
+  "transit_source": {
+    "id": "mta-nyct-subway-gtfs",
+    "attribution": "Metropolitan Transportation Authority (MTA)",
+    "source_url": "https://rrgtfsfeeds.s3.amazonaws.com/gtfs_subway.zip",
+    "last_updated": "2026-08-07T12:10:36+00:00"
+  }
+}

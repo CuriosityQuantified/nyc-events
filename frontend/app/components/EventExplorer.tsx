@@ -18,6 +18,7 @@ import {
   type EventPage,
   type Freshness,
   type ParkEvent,
+  type TransitSource,
 } from "@/app/data/events";
 import { groupEventsByLocation } from "@/app/data/maps";
 import {
@@ -28,7 +29,15 @@ import {
   writeFilterSearchParams,
   type FilterState,
 } from "@/app/data/filters";
+import {
+  getSubwayLine,
+  loadTransitData,
+  type SubwayRouteData,
+  type SubwayStopData,
+} from "@/app/data/subway";
 import styles from "@/app/page.module.css";
+
+const TRANSIT_STALE_THRESHOLD_MS = 90 * 24 * 60 * 60 * 1000;
 
 function mergeWithoutDuplicates(current: ParkEvent[], incoming: ParkEvent[]) {
   return uniqueEventsByGuid([...current, ...incoming]);
@@ -64,6 +73,17 @@ export default function EventExplorer({ initialFilters }: EventExplorerProps) {
     "idle" | "loading" | "ready" | "error"
   >("idle");
   const [selectedKey, setSelectedKey] = useState("");
+  const [selectedStopId, setSelectedStopId] = useState<string | null>(null);
+  const [transitSource, setTransitSource] = useState<TransitSource | null>(
+    null,
+  );
+  const [routeData, setRouteData] = useState<SubwayRouteData | null>(null);
+  const [routeStops, setRouteStops] = useState<Record<string, SubwayStopData>>(
+    {},
+  );
+  const [transitGeoState, setTransitGeoState] = useState<
+    "idle" | "loading" | "ready" | "stale" | "error"
+  >("idle");
   const requestVersion = useRef(0);
   const mapRequestVersion = useRef(0);
   const activeFilterDescriptions = describeFilters(filters);
@@ -81,6 +101,18 @@ export default function EventExplorer({ initialFilters }: EventExplorerProps) {
   }, [mapEvents, groups]);
   const selectedLocation =
     groups.find((group) => group.key === selectedKey) ?? groups[0] ?? null;
+  const selectedStopEventTitles = useMemo(
+    () =>
+      selectedStopId
+        ? events
+            .filter(
+              (event) =>
+                event.subwayProximity?.nearestStop.id === selectedStopId,
+            )
+            .map((event) => event.title)
+        : [],
+    [events, selectedStopId],
+  );
 
   const load = useCallback(
     async (targetPage: number, replace: boolean) => {
@@ -140,6 +172,11 @@ export default function EventExplorer({ initialFilters }: EventExplorerProps) {
         setPage(eventPage.page);
         setTotalPages(eventPage.totalPages);
         setTotal(eventPage.total);
+        if (replace && eventPage.transitSource) {
+          setTransitSource(eventPage.transitSource);
+        } else if (replace) {
+          setTransitSource(null);
+        }
         setState("ready");
         if (!replace) {
           setLoadMoreError(false);
@@ -222,6 +259,63 @@ export default function EventExplorer({ initialFilters }: EventExplorerProps) {
     return () => window.removeEventListener("popstate", restoreFilters);
   }, []);
 
+  // Load transit geometry when a subway line is selected
+  useEffect(() => {
+    let cancelled = false;
+    if (!filters.subwayLine) {
+      queueMicrotask(() => {
+        if (cancelled) return;
+        setRouteData(null);
+        setRouteStops({});
+        setTransitGeoState("idle");
+      });
+      return () => {
+        cancelled = true;
+      };
+    }
+    const lineId = filters.subwayLine;
+    // Deferred to satisfy react-hooks/set-state-in-effect
+    queueMicrotask(() => {
+      if (!cancelled) setTransitGeoState("loading");
+    });
+    void loadTransitData()
+      .then((data) => {
+        if (cancelled) return;
+        const route = data.routes[lineId];
+        if (route) {
+          setRouteData(route);
+          setTransitSource((current) => current ?? data.source);
+          const relevantStops: Record<string, SubwayStopData> = {};
+          for (const stopId of route.stopIds) {
+            if (data.stops[stopId]) {
+              relevantStops[stopId] = data.stops[stopId];
+            }
+          }
+          setRouteStops(relevantStops);
+        } else {
+          setRouteData(null);
+          setRouteStops({});
+        }
+        setTransitGeoState("ready");
+      })
+      .catch(() => {
+        if (!cancelled) setTransitGeoState("error");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [filters.subwayLine]);
+
+  useEffect(() => {
+    if (transitGeoState !== "ready") return;
+    if (!transitSource?.lastUpdated) return;
+    const lastUpdated = new Date(transitSource.lastUpdated);
+    if (Number.isNaN(lastUpdated.getTime())) return;
+    if (Date.now() - lastUpdated.getTime() > TRANSIT_STALE_THRESHOLD_MS) {
+      queueMicrotask(() => setTransitGeoState("stale"));
+    }
+  }, [transitGeoState, transitSource]);
+
   function changeFilters(next: FilterState) {
     const params = writeFilterSearchParams(
       new URLSearchParams(window.location.search),
@@ -252,11 +346,32 @@ export default function EventExplorer({ initialFilters }: EventExplorerProps) {
 
   function selectLocation(key: string) {
     setSelectedKey(key);
-    // A pin selection is a request to read that location, so the map view
-    // takes over the panel on phones where both cannot share the screen.
+    const group = groups.find((g) => g.key === key);
+    if (group) {
+      const eventWithStop = group.events.find((e) => e.subwayProximity);
+      setSelectedStopId(eventWithStop?.subwayProximity?.nearestStop.id ?? null);
+    }
     if (window.matchMedia("(max-width: 1023px)").matches && view !== "map") {
       changeView("map");
     }
+  }
+
+  function handleSelectStop(stopId: string | null) {
+    setSelectedStopId(stopId);
+    if (stopId) {
+      const matchingGroup = groups.find((g) =>
+        g.events.some((e) => e.subwayProximity?.nearestStop.id === stopId),
+      );
+      if (matchingGroup) setSelectedKey(matchingGroup.key);
+    }
+  }
+
+  function selectEventTransit(event: ParkEvent) {
+    setSelectedStopId(event.subwayProximity?.nearestStop.id ?? null);
+    const group = groups.find((candidate) =>
+      candidate.events.some((groupEvent) => groupEvent.guid === event.guid),
+    );
+    if (group) setSelectedKey(group.key);
   }
 
   function retry() {
@@ -269,6 +384,17 @@ export default function EventExplorer({ initialFilters }: EventExplorerProps) {
 
   const showList = view === "list";
 
+  const routeOverlay = useMemo(() => {
+    if (!filters.subwayLine || !routeData) return null;
+    const line = getSubwayLine(filters.subwayLine);
+    if (!line) return null;
+    return {
+      routeData,
+      stops: routeStops,
+      lineColor: line.color,
+    };
+  }, [filters.subwayLine, routeData, routeStops]);
+
   return (
     <div className={styles.explore} data-view={view}>
       <a className="skip-link" href="#main-content">
@@ -279,6 +405,9 @@ export default function EventExplorer({ initialFilters }: EventExplorerProps) {
         selectedKey={selectedLocation?.key ?? ""}
         view={view}
         onSelectLocation={selectLocation}
+        routeOverlay={routeOverlay}
+        selectedStopId={selectedStopId}
+        onSelectStop={handleSelectStop}
       />
       <DesktopSidebar />
       <Header />
@@ -301,7 +430,18 @@ export default function EventExplorer({ initialFilters }: EventExplorerProps) {
           onChange={(query) => changeFilters({ ...filters, query })}
         />
         <div className={styles.filtersColumn}>
-          <FilterChips filters={filters} onChange={changeFilters} />
+          <FilterChips
+            filters={filters}
+            onChange={changeFilters}
+            transitSource={transitSource}
+            transitGeoState={transitGeoState}
+            stops={routeStops}
+            stopIds={routeData?.stopIds}
+            routeBranchCount={routeData?.geometry.coordinates.length}
+            selectedStopId={selectedStopId}
+            onSelectStop={handleSelectStop}
+            nearbyEventTitles={selectedStopEventTitles}
+          />
           <FollowFacets filters={filters} />
         </div>
         <section
@@ -373,9 +513,7 @@ export default function EventExplorer({ initialFilters }: EventExplorerProps) {
               )}
             </section>
           ) : null}
-          {(state === "ready" || state === "loading") &&
-          events.length > 0 &&
-          showList ? (
+          {events.length > 0 && showList ? (
             <>
               <p
                 className={styles.resultsSummary}
@@ -396,6 +534,7 @@ export default function EventExplorer({ initialFilters }: EventExplorerProps) {
                     key={event.guid}
                     event={event}
                     returnQuery={returnQuery}
+                    onSelectTransit={selectEventTransit}
                   />
                 ))}
               </section>
