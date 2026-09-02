@@ -9,11 +9,22 @@ import {
   type FilterKey,
   type FilterState,
 } from "@/app/data/filters";
+import type { TransitSource } from "@/app/data/events";
+import type { SubwayStopData } from "@/app/data/subway";
+import SubwayLineSelector from "./SubwayLineSelector";
 import styles from "./FilterChips.module.css";
 
 type FilterChipsProps = {
   filters: FilterState;
   onChange: (filters: FilterState) => void;
+  transitSource?: TransitSource | null;
+  transitGeoState?: "idle" | "loading" | "ready" | "stale" | "error";
+  stops?: Record<string, SubwayStopData>;
+  stopIds?: string[];
+  routeBranchCount?: number;
+  selectedStopId?: string | null;
+  onSelectStop?: (stopId: string | null) => void;
+  nearbyEventTitles?: string[];
 };
 
 const GROUPS: Array<{
@@ -31,7 +42,18 @@ const GROUPS: Array<{
   },
 ];
 
-export default function FilterChips({ filters, onChange }: FilterChipsProps) {
+export default function FilterChips({
+  filters,
+  onChange,
+  transitSource,
+  transitGeoState,
+  stops,
+  stopIds,
+  routeBranchCount,
+  selectedStopId,
+  onSelectStop,
+  nearbyEventTitles,
+}: FilterChipsProps) {
   const wrapperRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
@@ -191,6 +213,21 @@ export default function FilterChips({ filters, onChange }: FilterChipsProps) {
               </button>
             ) : null}
           </div>
+        </fieldset>
+        <fieldset className={styles.group}>
+          <legend>Transit proximity</legend>
+          <SubwayLineSelector
+            selectedLine={filters.subwayLine}
+            onChange={(lineId) => onChange({ ...filters, subwayLine: lineId })}
+            transitSource={transitSource}
+            transitGeoState={transitGeoState}
+            stops={stops}
+            stopIds={stopIds}
+            routeBranchCount={routeBranchCount}
+            selectedStopId={selectedStopId}
+            onSelectStop={onSelectStop}
+            nearbyEventTitles={nearbyEventTitles}
+          />
         </fieldset>
       </div>
     </section>

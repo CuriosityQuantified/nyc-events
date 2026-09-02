@@ -17,6 +17,7 @@ import BottomNav from "./BottomNav";
 import EventCard from "./EventCard";
 import FilterChips from "./FilterChips";
 import ListMapToggle from "./ListMapToggle";
+import SubwayLineSelector from "./SubwayLineSelector";
 import type { ParkEvent } from "@/app/data/events";
 import { EMPTY_FILTERS } from "@/app/data/filters";
 
@@ -226,5 +227,229 @@ describe("BottomNav", () => {
 
     fireEvent.click(screen.getByRole("button", { name: /Concierge/ }));
     expect(routerPush).toHaveBeenCalledWith("/concierge");
+  });
+});
+
+describe("SubwayLineSelector", () => {
+  it("renders with correct options including Any subway line", () => {
+    render(<SubwayLineSelector selectedLine={null} onChange={vi.fn()} />);
+
+    const select = screen.getByRole("combobox", { name: "Subway line filter" });
+    expect(select).toBeTruthy();
+    // Check "Any subway line" option exists
+    const options = select.querySelectorAll("option");
+    expect(options[0].textContent).toBe("Any subway line");
+    // 29 lines + 1 "Any" = 30 options
+    expect(options).toHaveLength(30);
+  });
+
+  it("triggers onChange when a line is selected", () => {
+    const onChange = vi.fn();
+    render(<SubwayLineSelector selectedLine={null} onChange={onChange} />);
+
+    fireEvent.change(
+      screen.getByRole("combobox", { name: "Subway line filter" }),
+      {
+        target: { value: "A" },
+      },
+    );
+    expect(onChange).toHaveBeenCalledWith("A");
+  });
+
+  it("triggers onChange with null when cleared", () => {
+    const onChange = vi.fn();
+    render(<SubwayLineSelector selectedLine="A" onChange={onChange} />);
+
+    fireEvent.change(
+      screen.getByRole("combobox", { name: "Subway line filter" }),
+      {
+        target: { value: "" },
+      },
+    );
+    expect(onChange).toHaveBeenCalledWith(null);
+  });
+
+  it("shows summary panel when a line is selected", () => {
+    render(
+      <SubwayLineSelector
+        selectedLine="1"
+        onChange={vi.fn()}
+        transitSource={{
+          id: "mta-gtfs-static",
+          attribution: "MTA",
+          sourceUrl: "https://new.mta.info/developers",
+          lastUpdated: "2026-07-01",
+        }}
+      />,
+    );
+
+    expect(screen.getByTestId("subway-line-summary")).toBeTruthy();
+    expect(screen.getByText("Broadway–Seventh Avenue Local")).toBeTruthy();
+    expect(
+      screen.getByText("Strictly under 0.5 miles from stops"),
+    ).toBeTruthy();
+    expect(screen.getByText(/MTA/)).toBeTruthy();
+  });
+
+  it("does not show summary when no line is selected", () => {
+    render(<SubwayLineSelector selectedLine={null} onChange={vi.fn()} />);
+
+    expect(screen.queryByTestId("subway-line-summary")).toBeNull();
+  });
+
+  it("renders a stop selector with all stops for the selected line (B2)", () => {
+    const onSelectStop = vi.fn();
+    render(
+      <SubwayLineSelector
+        selectedLine="1"
+        onChange={vi.fn()}
+        stops={{
+          "101": {
+            name: "Van Cortlandt Park-242 St",
+            lat: 40.889,
+            lng: -73.899,
+          },
+          "103": { name: "238 St", lat: 40.885, lng: -73.901 },
+        }}
+        stopIds={["101", "103"]}
+        selectedStopId={null}
+        onSelectStop={onSelectStop}
+      />,
+    );
+
+    const stopSelect = screen.getByRole("combobox", { name: "Nearby stop" });
+    expect(stopSelect).toBeTruthy();
+    const options = stopSelect.querySelectorAll("option");
+    expect(options).toHaveLength(3); // "Any stop" + 2 stops
+    expect(options[0].textContent).toBe("Any stop");
+    expect(options[1].textContent).toBe("Van Cortlandt Park-242 St");
+    expect(options[2].textContent).toBe("238 St");
+  });
+
+  it("fires onSelectStop when a stop is chosen (B2)", () => {
+    const onSelectStop = vi.fn();
+    render(
+      <SubwayLineSelector
+        selectedLine="1"
+        onChange={vi.fn()}
+        stops={{
+          "101": {
+            name: "Van Cortlandt Park-242 St",
+            lat: 40.889,
+            lng: -73.899,
+          },
+        }}
+        stopIds={["101"]}
+        selectedStopId={null}
+        onSelectStop={onSelectStop}
+      />,
+    );
+
+    fireEvent.change(screen.getByRole("combobox", { name: "Nearby stop" }), {
+      target: { value: "101" },
+    });
+    expect(onSelectStop).toHaveBeenCalledWith("101");
+  });
+
+  it("fires onSelectStop with null when stop is cleared (B2)", () => {
+    const onSelectStop = vi.fn();
+    render(
+      <SubwayLineSelector
+        selectedLine="1"
+        onChange={vi.fn()}
+        stops={{
+          "101": {
+            name: "Van Cortlandt Park-242 St",
+            lat: 40.889,
+            lng: -73.899,
+          },
+        }}
+        stopIds={["101"]}
+        selectedStopId="101"
+        onSelectStop={onSelectStop}
+      />,
+    );
+
+    fireEvent.change(screen.getByRole("combobox", { name: "Nearby stop" }), {
+      target: { value: "" },
+    });
+    expect(onSelectStop).toHaveBeenCalledWith(null);
+  });
+
+  it("does not show stop selector when no stops are provided (B2)", () => {
+    render(<SubwayLineSelector selectedLine="1" onChange={vi.fn()} />);
+
+    expect(screen.queryByRole("combobox", { name: "Nearby stop" })).toBeNull();
+  });
+
+  it("shows stale transit data indicator (B4)", () => {
+    render(
+      <SubwayLineSelector
+        selectedLine="1"
+        onChange={vi.fn()}
+        transitSource={{
+          id: "mta-gtfs-static",
+          attribution: "MTA",
+          sourceUrl: "https://new.mta.info/developers",
+          lastUpdated: "2026-07-01",
+        }}
+        transitGeoState="stale"
+      />,
+    );
+
+    const staleStatus = screen.getByText(/data may be outdated/i);
+    expect(staleStatus).toBeTruthy();
+    expect(staleStatus.textContent).toContain("Jul 1, 2026");
+  });
+});
+
+describe("EventCard subway proximity", () => {
+  it("shows proximity info when subwayProximity is present", () => {
+    render(
+      <EventCard
+        event={{
+          ...event,
+          subwayProximity: {
+            lineId: "1",
+            nearestStop: { id: "120", name: "86 St" },
+            straightLineDistanceMiles: 0.22,
+          },
+        }}
+      />,
+    );
+
+    expect(screen.getByTestId("nearest-station")).toBeTruthy();
+    expect(screen.getByText("Nearest station: 86 St")).toBeTruthy();
+    expect(screen.getByTestId("straight-line-distance")).toBeTruthy();
+    expect(screen.getByText(/Straight-line distance: 0\.22 mi/)).toBeTruthy();
+  });
+
+  it("does not show proximity info when subwayProximity is absent", () => {
+    render(<EventCard event={event} />);
+
+    expect(screen.queryByTestId("nearest-station")).toBeNull();
+    expect(screen.queryByTestId("straight-line-distance")).toBeNull();
+  });
+
+  it("never implies walking time, transit time, or route availability", () => {
+    render(
+      <EventCard
+        event={{
+          ...event,
+          subwayProximity: {
+            lineId: "1",
+            nearestStop: { id: "120", name: "86 St" },
+            straightLineDistanceMiles: 0.22,
+          },
+        }}
+      />,
+    );
+
+    const text = document.body.textContent ?? "";
+    expect(text).not.toMatch(/walking/i);
+    expect(text).not.toMatch(/transit time/i);
+    expect(text).not.toMatch(/route availability/i);
+    expect(text).not.toMatch(/minutes? away/i);
+    expect(text).toContain("Straight-line distance");
   });
 });

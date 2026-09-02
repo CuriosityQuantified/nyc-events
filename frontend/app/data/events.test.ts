@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import eventList from "../../../contracts/golden/events-list.json";
 import eventDetail from "../../../contracts/golden/event-detail.json";
 import freshness from "../../../contracts/golden/freshness.json";
+import subwayFiltered from "../../../contracts/golden/events-subway-filtered.json";
 import {
   apiToUiEvent,
   getEvent,
@@ -170,5 +171,110 @@ describe("live Event API mapping", () => {
 
     expect(fetchMock).toHaveBeenCalledOnce();
     expect(fetchMock.mock.calls[0][0]).toContain("/events?page=1&page_size=12");
+  });
+
+  it("parses subway_proximity from the API response", () => {
+    const parsed = parseEventsResponse(subwayFiltered);
+    const event = apiToUiEvent(parsed.events[0]);
+    expect(event.subwayProximity).toEqual({
+      lineId: "1",
+      nearestStop: { id: "121", name: "86 St" },
+      straightLineDistanceMiles: 0.22,
+    });
+  });
+
+  it.each([
+    ["negative distance", { straight_line_distance_miles: -0.01 }],
+    ["strict boundary", { straight_line_distance_miles: 0.5 }],
+    ["non-finite distance", { straight_line_distance_miles: Infinity }],
+    ["missing line", { line_id: "" }],
+    ["missing stop id", { nearest_stop: { id: "", name: "86 St" } }],
+    ["missing stop name", { nearest_stop: { id: "121", name: "" } }],
+  ])("rejects subway_proximity with %s", (_case, proximityPatch) => {
+    const source = subwayFiltered.events[0].subway_proximity;
+    expect(() =>
+      parseEventsResponse({
+        ...subwayFiltered,
+        events: [
+          {
+            ...subwayFiltered.events[0],
+            subway_proximity: { ...source, ...proximityPatch },
+          },
+        ],
+      }),
+    ).toThrow(/subway_proximity/);
+  });
+
+  it.each([0, 0.499_999])(
+    "accepts subway_proximity distance inside the strict boundary: %s",
+    (distance) => {
+      const source = subwayFiltered.events[0].subway_proximity;
+      const parsed = parseEventsResponse({
+        ...subwayFiltered,
+        events: [
+          {
+            ...subwayFiltered.events[0],
+            subway_proximity: {
+              ...source,
+              straight_line_distance_miles: distance,
+            },
+          },
+        ],
+      });
+      expect(
+        parsed.events[0].subway_proximity?.straight_line_distance_miles,
+      ).toBe(distance);
+    },
+  );
+
+  it("parses transit_source from a subway-filtered response", () => {
+    const parsed = parseEventsResponse(subwayFiltered);
+    expect(parsed.transit_source).toEqual({
+      id: "mta-nyct-subway-gtfs",
+      attribution: "Metropolitan Transportation Authority (MTA)",
+      source_url: "https://rrgtfsfeeds.s3.amazonaws.com/gtfs_subway.zip",
+      last_updated: "2026-08-07T12:10:36+00:00",
+    });
+  });
+
+  it("maps subway_proximity to null when absent", () => {
+    const parsed = parseEventsResponse(eventList);
+    const event = apiToUiEvent(parsed.events[0]);
+    expect(event.subwayProximity).toBeNull();
+  });
+
+  it("passes subway_line to backend when getEvents is called with subwayLine", async () => {
+    const fetchMock = vi.fn<
+      (input: string | URL | Request) => Promise<Response>
+    >(async () => Response.json(subwayFiltered));
+    vi.stubGlobal("fetch", fetchMock);
+
+    await getEvents(1, 12, "1");
+
+    expect(fetchMock).toHaveBeenCalledOnce();
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain("subway_line=1");
+  });
+
+  it("passes subway_line through getFilteredEvents when only subwayLine is set", async () => {
+    const fetchMock = vi.fn<
+      (input: string | URL | Request) => Promise<Response>
+    >(async () => Response.json(subwayFiltered));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const result = await getFilteredEvents({
+      ...EMPTY_FILTERS,
+      subwayLine: "1",
+    });
+
+    expect(fetchMock).toHaveBeenCalledOnce();
+    const url = fetchMock.mock.calls[0][0] as string;
+    expect(url).toContain("subway_line=1");
+    expect(result.transitSource).toEqual({
+      id: "mta-nyct-subway-gtfs",
+      attribution: "Metropolitan Transportation Authority (MTA)",
+      sourceUrl: "https://rrgtfsfeeds.s3.amazonaws.com/gtfs_subway.zip",
+      lastUpdated: "2026-08-07T12:10:36+00:00",
+    });
   });
 });

@@ -4,6 +4,7 @@ import {
   EMPTY_FILTERS,
   applyEventFilters,
   describeFilters,
+  hasActiveFilters,
   parseFilterSearchParams,
   parseStrictFilterSearchParams,
   writeFilterSearchParams,
@@ -77,6 +78,7 @@ describe("filter URL state", () => {
       freeOnly: false,
       dateFrom: null,
       dateTo: null,
+      subwayLine: null,
     });
   });
 
@@ -92,6 +94,7 @@ describe("filter URL state", () => {
         freeOnly: true,
         dateFrom: null,
         dateTo: null,
+        subwayLine: null,
       },
     );
 
@@ -117,6 +120,7 @@ describe("event filtering", () => {
         freeOnly: false,
         dateFrom: null,
         dateTo: null,
+        subwayLine: null,
       },
       new Date("2026-08-16T16:00:00Z"),
     );
@@ -159,6 +163,7 @@ describe("event filtering", () => {
         freeOnly: false,
         dateFrom: null,
         dateTo: null,
+        subwayLine: null,
       }),
     ).toEqual([
       "Borough: Queens",
@@ -251,5 +256,78 @@ describe("exact-date filters", () => {
         dateTo: "2026-08-22",
       }),
     ).toContain("Dates: 2026-08-20 to 2026-08-22");
+  });
+});
+
+describe("subway_line filter", () => {
+  it("parses subway_line from URL search params", () => {
+    const parsed = parseFilterSearchParams(
+      new URLSearchParams("subway_line=A"),
+    );
+    expect(parsed.subwayLine).toBe("A");
+  });
+
+  it("defaults subwayLine to null when not present", () => {
+    expect(
+      parseFilterSearchParams(new URLSearchParams()).subwayLine,
+    ).toBeNull();
+  });
+
+  it("round-trips subway_line through write and parse", () => {
+    const params = writeFilterSearchParams(new URLSearchParams(), {
+      ...EMPTY_FILTERS,
+      subwayLine: "1",
+    });
+    expect(params.get("subway_line")).toBe("1");
+    const parsed = parseFilterSearchParams(params);
+    expect(parsed.subwayLine).toBe("1");
+  });
+
+  it("clears subway_line when set to null", () => {
+    const params = writeFilterSearchParams(
+      new URLSearchParams("subway_line=A"),
+      { ...EMPTY_FILTERS, subwayLine: null },
+    );
+    expect(params.has("subway_line")).toBe(false);
+  });
+
+  it("returns hasActiveFilters true when only subwayLine is set", () => {
+    expect(hasActiveFilters({ ...EMPTY_FILTERS, subwayLine: "1" })).toBe(true);
+    expect(hasActiveFilters(EMPTY_FILTERS)).toBe(false);
+  });
+
+  it("describes subway line in filter descriptions", () => {
+    expect(describeFilters({ ...EMPTY_FILTERS, subwayLine: "A" })).toContain(
+      "Subway line: A",
+    );
+  });
+
+  it("composes subway_line with other filters", () => {
+    const params = writeFilterSearchParams(new URLSearchParams(), {
+      ...EMPTY_FILTERS,
+      borough: "Manhattan",
+      subwayLine: "1",
+    });
+    expect(params.get("borough")).toBe("Manhattan");
+    expect(params.get("subway_line")).toBe("1");
+    const parsed = parseFilterSearchParams(params);
+    expect(parsed.borough).toBe("Manhattan");
+    expect(parsed.subwayLine).toBe("1");
+  });
+
+  it("strict parse rejects multiple subway_line values", () => {
+    expect(() =>
+      parseStrictFilterSearchParams(
+        new URLSearchParams("subway_line=A&subway_line=B"),
+      ),
+    ).toThrowError(/subway_line/);
+  });
+
+  it("rejects unsupported subway lines instead of calling the backend", () => {
+    const params = new URLSearchParams("subway_line=NOPE");
+    expect(parseFilterSearchParams(params).subwayLine).toBeNull();
+    expect(() => parseStrictFilterSearchParams(params)).toThrowError(
+      /subway_line/,
+    );
   });
 });

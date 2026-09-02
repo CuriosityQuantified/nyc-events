@@ -11,6 +11,7 @@ import styles from "./EventCard.module.css";
 interface EventCardProps {
   event: ParkEvent;
   returnQuery?: string;
+  onSelectTransit?: (event: ParkEvent) => void;
 }
 
 function costLabel(event: ParkEvent): string {
@@ -36,7 +37,11 @@ function costBadgeClass(costType: ParkEvent["costType"]): string {
   }
 }
 
-export default function EventCard({ event, returnQuery = "" }: EventCardProps) {
+export default function EventCard({
+  event,
+  returnQuery = "",
+  onSelectTransit,
+}: EventCardProps) {
   const [mapExpanded, setMapExpanded] = useState(false);
   const detailHref = `/events/${encodeURIComponent(event.guid)}${returnQuery ? `?${returnQuery}` : ""}`;
 
@@ -79,6 +84,20 @@ export default function EventCard({ event, returnQuery = "" }: EventCardProps) {
             Address: Not listed
           </p>
           <p className={styles.metaItem}>{event.accessibility}</p>
+          {event.subwayProximity ? (
+            <>
+              <p className={styles.metaItem} data-testid="nearest-station">
+                Nearest station: {event.subwayProximity.nearestStop.name}
+              </p>
+              <p
+                className={styles.metaItem}
+                data-testid="straight-line-distance"
+              >
+                Straight-line distance:{" "}
+                {event.subwayProximity.straightLineDistanceMiles.toFixed(2)} mi
+              </p>
+            </>
+          ) : null}
         </div>
       </div>
       <MapPreview
@@ -86,6 +105,15 @@ export default function EventCard({ event, returnQuery = "" }: EventCardProps) {
         variant={mapExpanded ? "expanded" : "compact"}
       />
       <div className={styles.actions}>
+        {event.subwayProximity && onSelectTransit ? (
+          <button
+            className={styles.expandMap}
+            type="button"
+            onClick={() => onSelectTransit(event)}
+          >
+            Select event and nearest stop
+          </button>
+        ) : null}
         <button
           className={styles.expandMap}
           type="button"

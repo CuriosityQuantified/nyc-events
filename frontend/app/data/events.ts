@@ -29,6 +29,11 @@ export type ParkEvent = {
   startDateTime?: string | null;
   endDateTime?: string | null;
   endDate?: string | null;
+  subwayProximity?: {
+    lineId: string;
+    nearestStop: { id: string; name: string };
+    straightLineDistanceMiles: number;
+  } | null;
 };
 
 export type EventLifecycleStatus =
@@ -40,12 +45,20 @@ export type EventLifecycleStatus =
   | "expired"
   | "removed";
 
+export type TransitSource = {
+  id: string;
+  attribution: string;
+  sourceUrl: string;
+  lastUpdated: string;
+};
+
 export type EventPage = {
   events: ParkEvent[];
   page: number;
   pageSize: number;
   total: number;
   totalPages: number;
+  transitSource?: TransitSource | null;
 };
 
 export type Freshness = {
@@ -70,6 +83,12 @@ export type ApiFact<T> = {
   raw: string | null;
 };
 
+export type ApiSubwayProximity = {
+  line_id: string;
+  nearest_stop: { id: string; name: string };
+  straight_line_distance_miles: number;
+};
+
 export type ApiEvent = {
   guid: string;
   title: ApiFact<string>;
@@ -90,6 +109,14 @@ export type ApiEvent = {
   accessibility_mentioned: ApiFact<boolean>;
   lifecycle_status?: ApiFact<string>;
   status?: ApiFact<string>;
+  subway_proximity?: ApiSubwayProximity | null;
+};
+
+type ApiTransitSource = {
+  id: string;
+  attribution: string;
+  source_url: string;
+  last_updated: string;
 };
 
 type ApiEventsResponse = {
@@ -98,6 +125,7 @@ type ApiEventsResponse = {
   page_size: number;
   total: number;
   applied_facets: Record<string, string[]>;
+  transit_source?: ApiTransitSource | null;
 };
 
 type ApiFreshness = {
@@ -183,6 +211,35 @@ function isFact(value: unknown): boolean {
   );
 }
 
+function parseSubwayProximity(value: unknown): ApiSubwayProximity {
+  if (
+    !isRecord(value) ||
+    typeof value.line_id !== "string" ||
+    value.line_id.length === 0 ||
+    !isRecord(value.nearest_stop) ||
+    typeof value.nearest_stop.id !== "string" ||
+    value.nearest_stop.id.length === 0 ||
+    typeof value.nearest_stop.name !== "string" ||
+    value.nearest_stop.name.length === 0 ||
+    typeof value.straight_line_distance_miles !== "number" ||
+    !Number.isFinite(value.straight_line_distance_miles) ||
+    value.straight_line_distance_miles < 0 ||
+    value.straight_line_distance_miles >= 0.5
+  ) {
+    throw new TypeError(
+      "Event subway_proximity does not match the API contract",
+    );
+  }
+  return {
+    line_id: value.line_id,
+    nearest_stop: {
+      id: value.nearest_stop.id,
+      name: value.nearest_stop.name,
+    },
+    straight_line_distance_miles: value.straight_line_distance_miles,
+  };
+}
+
 export function parseEventResponse(value: unknown): ApiEvent {
   if (!isRecord(value) || typeof value.guid !== "string" || !value.guid) {
     throw new TypeError("Event is missing its source guid");
@@ -197,7 +254,13 @@ export function parseEventResponse(value: unknown): ApiEvent {
       throw new TypeError(`Event field ${field} is not a contract Fact`);
     }
   }
-  return value as ApiEvent;
+  return {
+    ...(value as ApiEvent),
+    subway_proximity:
+      value.subway_proximity == null
+        ? null
+        : parseSubwayProximity(value.subway_proximity),
+  };
 }
 
 const EVENT_LIFECYCLE_STATUSES = new Set<EventLifecycleStatus>([
@@ -220,6 +283,33 @@ export function eventLifecycleStatus(
     : null;
 }
 
+function parseTransitSource(value: unknown): ApiTransitSource | null {
+  if (!isRecord(value)) return null;
+  if (
+    typeof value.id !== "string" ||
+    typeof value.attribution !== "string" ||
+    typeof value.source_url !== "string" ||
+    typeof value.last_updated !== "string"
+  ) {
+    return null;
+  }
+  return {
+    id: value.id,
+    attribution: value.attribution,
+    source_url: value.source_url,
+    last_updated: value.last_updated,
+  };
+}
+
+function apiToUiTransitSource(source: ApiTransitSource): TransitSource {
+  return {
+    id: source.id,
+    attribution: source.attribution,
+    sourceUrl: source.source_url,
+    lastUpdated: source.last_updated,
+  };
+}
+
 export function parseEventsResponse(value: unknown): ApiEventsResponse {
   if (
     !isRecord(value) ||
@@ -240,6 +330,9 @@ export function parseEventsResponse(value: unknown): ApiEventsResponse {
     page_size: Number(value.page_size),
     total: Number(value.total),
     applied_facets: value.applied_facets as Record<string, string[]>,
+    transit_source: value.transit_source
+      ? parseTransitSource(value.transit_source)
+      : null,
   };
 }
 
@@ -320,6 +413,14 @@ export function apiToUiEvent(event: ApiEvent): ParkEvent {
     startDateTime: event.start_datetime.value,
     endDateTime: event.end_datetime.value,
     endDate: event.end_date.value?.slice(0, 10) ?? null,
+    subwayProximity: event.subway_proximity
+      ? {
+          lineId: event.subway_proximity.line_id,
+          nearestStop: event.subway_proximity.nearest_stop,
+          straightLineDistanceMiles:
+            event.subway_proximity.straight_line_distance_miles,
+        }
+      : null,
   };
 }
 
@@ -345,8 +446,17 @@ export async function getEvent(guid: string): Promise<ApiEvent> {
   return parseEventResponse(await response.json());
 }
 
-export async function getEvents(page = 1, pageSize = 12): Promise<EventPage> {
-  const response = await apiFetch(`/events?page=${page}&page_size=${pageSize}`);
+export async function getEvents(
+  page = 1,
+  pageSize = 12,
+  subwayLine?: string,
+): Promise<EventPage> {
+  const params = new URLSearchParams({
+    page: String(page),
+    page_size: String(pageSize),
+  });
+  if (subwayLine) params.set("subway_line", subwayLine);
+  const response = await apiFetch(`/events?${params.toString()}`);
   const data = parseEventsResponse(await response.json());
   const mapped = data.events.map(apiToUiEvent);
   const events = uniqueEventsByGuid(mapped);
@@ -356,6 +466,9 @@ export async function getEvents(page = 1, pageSize = 12): Promise<EventPage> {
     pageSize: data.page_size,
     total: data.total,
     totalPages: Math.ceil(data.total / data.page_size),
+    transitSource: data.transit_source
+      ? apiToUiTransitSource(data.transit_source)
+      : null,
   };
 }
 
@@ -365,24 +478,47 @@ export async function getFilteredEvents(
   pageSize = 12,
   now = new Date(),
 ): Promise<EventPage> {
-  if (!hasActiveFilters(filters)) return getEvents(page, pageSize);
+  // When subway_line is the only active filter, the backend handles it
+  // entirely. No client-side filtering is needed.
+  const clientFilters: FilterState = { ...filters, subwayLine: null };
+  const needsClientFilter = hasActiveFilters(clientFilters);
+
+  if (!needsClientFilter && !filters.subwayLine) {
+    return getEvents(page, pageSize);
+  }
+
+  // When only subway_line is set (no client-side filters), let the backend
+  // paginate directly.
+  if (!needsClientFilter && filters.subwayLine) {
+    return getEvents(page, pageSize, filters.subwayLine);
+  }
 
   const sourcePageSize = 100;
   const maximumSourceEvents = 10_000;
   const maximumSourcePages = maximumSourceEvents / sourcePageSize;
-  const first = await getEvents(1, sourcePageSize);
+  const first = await getEvents(
+    1,
+    sourcePageSize,
+    filters.subwayLine ?? undefined,
+  );
   if (first.totalPages > maximumSourcePages) {
     throw new Error("Event result set exceeds the bounded filter window");
   }
 
   const remaining: EventPage[] = [];
   for (let sourcePage = 2; sourcePage <= first.totalPages; sourcePage += 1) {
-    remaining.push(await getEvents(sourcePage, sourcePageSize));
+    remaining.push(
+      await getEvents(
+        sourcePage,
+        sourcePageSize,
+        filters.subwayLine ?? undefined,
+      ),
+    );
   }
   const sourceEvents = uniqueEventsByGuid(
     [first, ...remaining].flatMap((result) => result.events),
   );
-  const filtered = applyEventFilters(sourceEvents, filters, now);
+  const filtered = applyEventFilters(sourceEvents, clientFilters, now);
   const start = (page - 1) * pageSize;
   return {
     events: filtered.slice(start, start + pageSize),
@@ -390,6 +526,7 @@ export async function getFilteredEvents(
     pageSize,
     total: filtered.length,
     totalPages: Math.ceil(filtered.length / pageSize),
+    transitSource: first.transitSource,
   };
 }
 
