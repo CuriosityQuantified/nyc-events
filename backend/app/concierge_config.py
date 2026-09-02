@@ -3,7 +3,7 @@
 from functools import lru_cache
 from pathlib import Path
 
-from pydantic import AliasChoices, Field
+from pydantic import AliasChoices, Field, SecretStr
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 _REPOSITORY_ROOT = Path(__file__).resolve().parents[2]
@@ -28,6 +28,12 @@ class ConciergeSettings(BaseSettings):
     concierge_model_fallback_3: str = "poolside/laguna-xs-2.1:free"
     concierge_model_fallback_4: str = "deepseek/deepseek-v4-flash-0731"
     concierge_max_input_chars: int = 2000
+    concierge_runs_per_minute: int = Field(default=20, ge=1, le=120)
+    concierge_proxy_secret: str = Field(default="", min_length=0, max_length=512)
+    langsmith_tracing: bool = False
+    langsmith_project: str = "eventmatch-nyc-concierge"
+    langsmith_api_key: SecretStr | None = None
+    langsmith_workspace_id: str | None = None
 
     @property
     def model_chain(self) -> tuple[str, ...]:

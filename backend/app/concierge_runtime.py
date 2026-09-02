@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from dataclasses import dataclass
 from typing import Any, cast
 
 from langgraph.checkpoint.postgres.aio import AsyncPostgresSaver
@@ -11,6 +12,7 @@ from psycopg.rows import dict_row
 from psycopg_pool import AsyncConnectionPool
 
 from app.concierge import create_default_concierge_agent
+from app.concierge_agui import build_default_concierge_agui_agent
 from app.concierge_config import get_concierge_settings
 from app.config import get_settings
 
@@ -24,8 +26,14 @@ def _psycopg_url(database_url: str) -> str:
     return database_url
 
 
+@dataclass(frozen=True)
+class ConciergeAgents:
+    legacy: Any
+    agui: Any
+
+
 @asynccontextmanager
-async def concierge_runtime() -> AsyncIterator[Any | None]:
+async def concierge_runtime() -> AsyncIterator[ConciergeAgents | None]:
     """Yield the configured agent, or ``None`` when no model key is configured."""
     settings = get_settings()
     concierge_settings = get_concierge_settings()
@@ -49,6 +57,9 @@ async def concierge_runtime() -> AsyncIterator[Any | None]:
         await pool.wait()
         checkpointer = AsyncPostgresSaver(cast(Any, pool))
         await checkpointer.setup()
-        yield create_default_concierge_agent(checkpointer)
+        yield ConciergeAgents(
+            legacy=create_default_concierge_agent(checkpointer),
+            agui=build_default_concierge_agui_agent(checkpointer),
+        )
     finally:
         await pool.close()
