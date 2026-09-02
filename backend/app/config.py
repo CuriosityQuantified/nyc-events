@@ -16,6 +16,9 @@ class Settings(BaseSettings):
     frontend_origin: str = "http://localhost:3000"
     snapshot_stale_after_seconds: int = 21600
     sync_lock_timeout_seconds: int = 10800
+    vapid_public_key: str = ""
+    vapid_private_key: str = ""
+    vapid_subject: str = "mailto:operations@example.invalid"
 
     socrata_api_key_id: str = ""
     socrata_api_key_secret: str = ""

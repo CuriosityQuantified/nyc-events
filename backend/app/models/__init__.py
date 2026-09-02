@@ -11,9 +11,11 @@ from app.models.event import CurrentEvent, EventRepository, SyncRun  # noqa: E40
 from app.models.profile import (  # noqa: E402, F401
     Interest,
     MatchedEvent,
+    Notification,
     PreferenceAudit,
     Profile,
     ProfileDeviceAlias,
+    PushSubscription,
     SavedEvent,
 )
 from app.models.subway import (  # noqa: E402, F401

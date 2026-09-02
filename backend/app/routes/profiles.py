@@ -18,9 +18,11 @@ from app.models.event import EventRepository
 from app.models.profile import (
     Interest,
     MatchedEvent,
+    Notification,
     PreferenceAudit,
     Profile,
     ProfileDeviceAlias,
+    PushSubscription,
     SavedEvent,
 )
 from app.routes.events import _event_date_expression, _event_to_contract
@@ -209,6 +211,37 @@ async def _merge_profiles(
         )
     await session.execute(
         delete(MatchedEvent).where(MatchedEvent.profile_id == source_id)
+    )
+
+    # -- Notifications --
+    source_notifications = (
+        await session.scalars(
+            select(Notification).where(Notification.profile_id == source_id)
+        )
+    ).all()
+    for notification in source_notifications:
+        existing = await session.get(
+            Notification,
+            {"profile_id": target_id, "event_guid": notification.event_guid},
+        )
+        if existing is None:
+            notification.profile_id = target_id
+            continue
+        existing.push_enabled = existing.push_enabled or notification.push_enabled
+        existing.pushed_at = existing.pushed_at or notification.pushed_at
+        existing.read_at = (
+            existing.read_at
+            if existing.read_at is not None and notification.read_at is not None
+            else None
+        )
+        existing.created_at = min(existing.created_at, notification.created_at)
+        await session.delete(notification)
+
+    # -- Push subscriptions --
+    await session.execute(
+        update(PushSubscription)
+        .where(PushSubscription.profile_id == source_id)
+        .values(profile_id=target_id)
     )
 
     # -- Interests --

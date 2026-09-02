@@ -16,6 +16,7 @@ from app.database import get_engine, reset_engine
 from app.routes.agui import router as agui_router
 from app.routes.concierge import router as concierge_router
 from app.routes.events import router as events_router
+from app.routes.notifications import router as notifications_router
 from app.routes.preferences import router as preferences_router
 from app.routes.profiles import router as profiles_router
 
@@ -49,6 +50,7 @@ app.add_middleware(
 app.include_router(events_router)
 app.include_router(profiles_router)
 app.include_router(preferences_router)
+app.include_router(notifications_router)
 app.include_router(concierge_router)
 app.include_router(agui_router)
 

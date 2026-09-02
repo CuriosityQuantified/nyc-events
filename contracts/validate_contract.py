@@ -21,7 +21,13 @@ from vocabulary import walk_keys
 ROOT = Path(__file__).resolve().parent
 SPEC_PATH = ROOT / "openapi.json"
 CSV_PATHS = tuple(ROOT.parent.glob("NYC_Parks_Public_Events_*.csv"))
-REQUIRED_PATHS = {"/events", "/events/{guid}", "/freshness"}
+REQUIRED_PATHS = {
+    "/events",
+    "/events/{guid}",
+    "/freshness",
+    "/profile/notifications",
+    "/profile/push-subscription",
+}
 REQUIRED_FACETS = {"borough", "category", "registration", "location", "subway_line"}
 
 CSV_FACT_COLUMNS = {

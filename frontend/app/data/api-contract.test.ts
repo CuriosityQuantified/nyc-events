@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import eventDetail from "../../../contracts/golden/event-detail.json";
 import eventList from "../../../contracts/golden/events-list.json";
 import freshness from "../../../contracts/golden/freshness.json";
+import notifications from "../../../contracts/golden/notifications.json";
+import pushStatus from "../../../contracts/golden/push-subscription-status.json";
 import subwayFiltered from "../../../contracts/golden/events-subway-filtered.json";
 
 type Provenance = "Stated" | "Derived" | "Not listed";
@@ -80,5 +82,21 @@ describe("shared API contract frontend consumer", () => {
       source_url: "https://rrgtfsfeeds.s3.amazonaws.com/gtfs_subway.zip",
       last_updated: "2026-08-07T12:10:36+00:00",
     });
+  });
+
+  it("consumes Profile-owned notification and push-status contracts", () => {
+    expect(notifications.notifications).toEqual([
+      expect.objectContaining({
+        event_guid: "2,146,733",
+        url: "/events/2,146,733",
+        read: false,
+      }),
+    ]);
+    expect(pushStatus).toEqual({
+      enabled: false,
+      vapid_public_key: "BPublicVapidKeyFixture",
+    });
+    expect(JSON.stringify(pushStatus)).not.toContain("p256dh");
+    expect(JSON.stringify(pushStatus)).not.toContain("auth");
   });
 });

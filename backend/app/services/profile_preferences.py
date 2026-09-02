@@ -11,10 +11,18 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.event import CurrentEvent
-from app.models.profile import Interest, MatchedEvent, PreferenceAudit
+from app.models.profile import Interest, MatchedEvent, Notification, PreferenceAudit
 
 FacetType = Literal["borough", "category", "registration"]
-ConciergeDecision = Literal["approved", "edited", "rejected", "unapproved"]
+ConciergeDecision = Literal[
+    "approved",
+    "edited",
+    "proposed",
+    "edited_unapproved",
+    "rejected",
+    "cancelled",
+    "timed_out",
+]
 _ALLOWED_FACETS = {"borough", "category", "registration"}
 _ALLOWED_REGISTRATION_VALUES = {"required", "not_required", "closed", "not_listed"}
 
@@ -292,4 +300,18 @@ async def match_new_events(session: AsyncSession) -> int:
             )
             if result.scalar_one_or_none() is not None:
                 inserted += 1
+            notification = insert(Notification).values(
+                profile_id=interest.profile_id,
+                event_guid=event.guid,
+                push_enabled=interest.alert_enabled,
+            )
+            await session.execute(
+                notification.on_conflict_do_update(
+                    index_elements=[Notification.profile_id, Notification.event_guid],
+                    set_={
+                        "push_enabled": Notification.push_enabled
+                        | notification.excluded.push_enabled
+                    },
+                )
+            )
     return inserted

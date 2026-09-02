@@ -151,6 +151,8 @@ restartPolicyType = "NEVER"
             variables_command,
         )
         self.assertIn("SOCRATA_APP_TOKEN=${{backend.SOCRATA_APP_TOKEN}}", variables_command)
+        self.assertIn("VAPID_PRIVATE_KEY=${{backend.VAPID_PRIVATE_KEY}}", variables_command)
+        self.assertIn("VAPID_PUBLIC_KEY=${{backend.VAPID_PUBLIC_KEY}}", variables_command)
         self.assertNotIn("secret-value", json.dumps(run.call_args_list))
 
     def test_worker_variable_evidence_requires_backend_redis_reference(self) -> None:
@@ -162,6 +164,9 @@ restartPolicyType = "NEVER"
                 "SOCRATA_API_KEY_ID",
                 "SOCRATA_API_KEY_SECRET",
                 "SOCRATA_APP_TOKEN",
+                "VAPID_PRIVATE_KEY",
+                "VAPID_PUBLIC_KEY",
+                "VAPID_SUBJECT",
             )
         }
         required["DEPLOY_REVISION"] = "revision-1"
@@ -179,6 +184,7 @@ restartPolicyType = "NEVER"
                 self.assertEqual(verify_sync_worker_variables(args), 0)
             evidence = json.loads(output.read_text())
         self.assertIn("REDIS_URL", evidence["requiredVariableNames"])
+        self.assertIn("VAPID_PRIVATE_KEY", evidence["requiredVariableNames"])
         self.assertEqual(evidence["configuredServiceReference"], "backend")
         self.assertNotIn("values", evidence)
 

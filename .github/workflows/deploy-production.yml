@@ -36,6 +36,9 @@ jobs:
       CONFIGURED_RAILWAY_PROJECT_ID: ${{ vars.RAILWAY_PROJECT_ID }}
       CONFIGURED_PUBLIC_ORIGIN: ${{ vars.BACKEND_PUBLIC_ORIGIN }}
       CONFIGURED_FRONTEND_ORIGIN: ${{ vars.FRONTEND_PUBLIC_ORIGIN }}
+      CONFIGURED_VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+      CONFIGURED_VAPID_PUBLIC_KEY: ${{ vars.VAPID_PUBLIC_KEY }}
+      CONFIGURED_VAPID_SUBJECT: ${{ vars.VAPID_SUBJECT }}
       EXPECTED_DEPLOY_REVISION: ${{ github.sha }}
       ROLLBACK_DRILL: ${{ inputs.rollback_drill || false }}
     steps:
@@ -72,6 +75,9 @@ jobs:
           test -n "$RAILWAY_SSH_PRIVATE_KEY" || { echo "::error::RAILWAY_SSH_PRIVATE_KEY is missing from the production environment"; exit 1; }
           test -n "$CONFIGURED_RAILWAY_PROJECT_ID" || { echo "::error::RAILWAY_PROJECT_ID is missing from the production environment"; exit 1; }
           test -n "$CONFIGURED_FRONTEND_ORIGIN" || { echo "::error::FRONTEND_PUBLIC_ORIGIN is missing from the production environment"; exit 1; }
+          test -n "$CONFIGURED_VAPID_PRIVATE_KEY" || { echo "::error::VAPID_PRIVATE_KEY is missing from the production environment"; exit 1; }
+          test -n "$CONFIGURED_VAPID_PUBLIC_KEY" || { echo "::error::VAPID_PUBLIC_KEY is missing from the production environment"; exit 1; }
+          test -n "$CONFIGURED_VAPID_SUBJECT" || { echo "::error::VAPID_SUBJECT is missing from the production environment"; exit 1; }
 
       - name: Provision the dedicated noninteractive Railway SSH identity
         shell: bash
@@ -128,12 +134,15 @@ jobs:
             --github-output "$GITHUB_OUTPUT" \
             --github-env "$GITHUB_ENV"
 
-      - name: Attach the exact revision and frontend CORS origin to the backend release
+      - name: Attach the exact revision, origin, and Web Push configuration to the backend release
         run: |
           set -euo pipefail
           railway variable set \
             "DEPLOY_REVISION=$GITHUB_SHA" \
             "FRONTEND_ORIGIN=$CONFIGURED_FRONTEND_ORIGIN" \
+            "VAPID_PRIVATE_KEY=$CONFIGURED_VAPID_PRIVATE_KEY" \
+            "VAPID_PUBLIC_KEY=$CONFIGURED_VAPID_PUBLIC_KEY" \
+            "VAPID_SUBJECT=$CONFIGURED_VAPID_SUBJECT" \
             --skip-deploys \
             --project "$RAILWAY_PROJECT_ID" \
             --service "$RAILWAY_SERVICE_ID" \

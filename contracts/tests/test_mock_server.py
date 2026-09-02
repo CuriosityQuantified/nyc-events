@@ -25,9 +25,10 @@ class ContractMockTests(unittest.TestCase):
         cls.server.server_close()
         cls.thread.join(timeout=2)
 
-    def request(self, path: str) -> tuple[int, dict]:
+    def request(self, path: str, *, device_token: str | None = None) -> tuple[int, dict]:
         connection = http.client.HTTPConnection(self.host, self.port, timeout=2)
-        connection.request("GET", path)
+        headers = {"X-Device-Token": device_token} if device_token else {}
+        connection.request("GET", path, headers=headers)
         response = connection.getresponse()
         payload = json.loads(response.read())
         connection.close()
@@ -46,6 +47,24 @@ class ContractMockTests(unittest.TestCase):
         status, freshness = self.request("/freshness")
         self.assertEqual(status, 200)
         self.assertTrue(freshness["is_stale"]["value"])
+
+        token = "contract-device-token-abcdefghijklmnopqrstuvwxyz"
+        status, notifications = self.request(
+            "/profile/notifications", device_token=token
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(notifications["total"], 1)
+
+        status, push = self.request(
+            "/profile/push-subscription", device_token=token
+        )
+        self.assertEqual(status, 200)
+        self.assertFalse(push["enabled"])
+
+    def test_profile_contract_requires_device_ownership(self) -> None:
+        status, payload = self.request("/profile/notifications")
+        self.assertEqual(status, 400)
+        self.assertIn("X-Device-Token", payload["error"])
 
     def test_facet_filters_compose(self) -> None:
         status, payload = self.request("/events?borough=Manhattan&category=Fitness&location=M072")
