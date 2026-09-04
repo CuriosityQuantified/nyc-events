@@ -13,6 +13,13 @@ import {
 } from "@/app/data/preferences";
 import pageStyles from "@/app/page.module.css";
 import { onProfileChanged } from "@/app/data/profile-sync";
+import {
+  disableWebPush,
+  enableWebPush,
+  fetchNotifications,
+  fetchPushStatus,
+  type InAppNotification,
+} from "@/app/data/notifications";
 import styles from "./ProfileView.module.css";
 
 const FACET_TYPE_LABELS: Record<string, string> = {
@@ -44,6 +51,10 @@ export default function ProfileView({ account }: { account?: ReactNode }) {
   const [interests, setInterests] = useState<Interest[]>([]);
   const [actionError, setActionError] = useState<string | null>(null);
   const [loadCount, setLoadCount] = useState(0);
+  const [notifications, setNotifications] = useState<InAppNotification[]>([]);
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [vapidPublicKey, setVapidPublicKey] = useState("");
+  const [pushMessage, setPushMessage] = useState<string | null>(null);
 
   const reload = useCallback(() => {
     setInterests([]);
@@ -70,6 +81,50 @@ export default function ProfileView({ account }: { account?: ReactNode }) {
   }, [loadCount]);
 
   useEffect(() => onProfileChanged(reload), [reload]);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.all([fetchNotifications(), fetchPushStatus()])
+      .then(([items, push]) => {
+        if (cancelled) return;
+        setNotifications(items);
+        setPushEnabled(push.enabled);
+        setVapidPublicKey(push.vapidPublicKey);
+      })
+      .catch(() => {
+        if (!cancelled)
+          setPushMessage("Notification settings could not be loaded.");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [loadCount]);
+
+  const onPushChange = async () => {
+    setPushMessage(null);
+    try {
+      if (pushEnabled) {
+        await disableWebPush();
+        setPushEnabled(false);
+        setPushMessage(
+          "Push is off. Your Interests and in-app notifications remain.",
+        );
+        return;
+      }
+      if (!vapidPublicKey) throw new Error("Push is not configured");
+      const enabled = await enableWebPush(vapidPublicKey);
+      setPushEnabled(enabled);
+      setPushMessage(
+        enabled
+          ? "Push is on."
+          : "Push was not allowed. The app and in-app notifications still work.",
+      );
+    } catch {
+      setPushMessage(
+        "Push could not be changed. The rest of the app still works.",
+      );
+    }
+  };
 
   const onUnfollow = async (interest: Interest) => {
     setActionError(null);
@@ -209,6 +264,33 @@ export default function ProfileView({ account }: { account?: ReactNode }) {
               notify you. Alerts are optional and stay available without an
               account.
             </p>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={pushEnabled}
+              onClick={() => void onPushChange()}
+              className={styles.retry}
+            >
+              {pushEnabled ? "Turn off browser push" : "Turn on browser push"}
+            </button>
+            {pushMessage ? <p role="status">{pushMessage}</p> : null}
+            <p className={styles.state}>
+              On iPhone or iPad, install NYC Events on the Home Screen before
+              you turn on push. Apple does not deliver web push to a normal
+              browser tab.
+            </p>
+            <h4>In-app notifications</h4>
+            {notifications.length === 0 ? (
+              <p className={styles.state}>No new event matches yet.</p>
+            ) : (
+              <ul className={styles.list} data-testid="notifications-list">
+                {notifications.map((notification) => (
+                  <li key={notification.event_guid} className={styles.item}>
+                    <Link href={notification.url}>{notification.title}</Link>
+                  </li>
+                ))}
+              </ul>
+            )}
           </section>
 
           <section aria-label="Account" className={styles.section}>

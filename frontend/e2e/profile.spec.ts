@@ -82,6 +82,30 @@ test.describe("Profile tab with Interests", () => {
         json: { events: [], page: 1, pageSize: 100, total: 0 },
       }),
     );
+    await page.route("**/api/profile/notifications**", (route) =>
+      route.fulfill({
+        json: {
+          notifications: [
+            {
+              event_guid: "event-25",
+              title: "Notification event",
+              url: "/events/event-25",
+              created_at: "2026-09-02T00:00:00Z",
+              read: false,
+            },
+          ],
+          total: 1,
+        },
+      }),
+    );
+    await page.route("**/api/profile/push-subscription**", (route) => {
+      if (route.request().method() === "DELETE") {
+        return route.fulfill({ status: 204, body: "" });
+      }
+      return route.fulfill({
+        json: { enabled: false, vapid_public_key: "AQIDBA" },
+      });
+    });
     await page.goto("/profile");
   });
 
@@ -116,6 +140,92 @@ test.describe("Profile tab with Interests", () => {
       page.getByRole("button", { name: "Unfollow Brooklyn", exact: true }),
     ).toHaveCount(0);
     await expect(list.getByText("Fitness")).toBeVisible();
+  });
+
+  test("opens an in-app notification event in one step and discloses iOS limits", async ({
+    page,
+  }) => {
+    await expect(
+      page.getByText("install NYC Events on the Home Screen"),
+    ).toBeVisible();
+    const notification = page.getByRole("link", { name: "Notification event" });
+    await expect(notification).toHaveAttribute("href", "/events/event-25");
+    await notification.click();
+    await expect(page).toHaveURL(/\/events\/event-25$/);
+  });
+
+  test("permission decline keeps Profile and in-app notifications functional", async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      Object.defineProperty(window, "Notification", {
+        configurable: true,
+        value: { requestPermission: async () => "denied" },
+      });
+      Object.defineProperty(window, "PushManager", {
+        configurable: true,
+        value: class PushManager {},
+      });
+      Object.defineProperty(navigator, "serviceWorker", {
+        configurable: true,
+        value: {},
+      });
+    });
+    await page.reload();
+    await page.getByRole("switch", { name: "Turn on browser push" }).click();
+    await expect(page.getByRole("status")).toContainText(
+      "app and in-app notifications still work",
+    );
+    await expect(
+      page.getByRole("link", { name: "Notification event" }),
+    ).toBeVisible();
+    await expect(page.getByTestId("interests-list")).toContainText("Fitness");
+  });
+
+  test("opts into and out of browser push without changing Interests", async ({
+    page,
+  }) => {
+    await page.addInitScript(() => {
+      const subscription = {
+        toJSON: () => ({
+          endpoint: "https://fcm.googleapis.com/fcm/send/browser-test",
+          keys: { p256dh: "p".repeat(32), auth: "a".repeat(16) },
+        }),
+        unsubscribe: async () => true,
+      };
+      const registration = {
+        pushManager: {
+          getSubscription: async () => subscription,
+          subscribe: async () => subscription,
+        },
+      };
+      Object.defineProperty(window, "Notification", {
+        configurable: true,
+        value: { requestPermission: async () => "granted" },
+      });
+      Object.defineProperty(window, "PushManager", {
+        configurable: true,
+        value: class PushManager {},
+      });
+      Object.defineProperty(navigator, "serviceWorker", {
+        configurable: true,
+        value: {
+          register: async () => registration,
+          getRegistration: async () => registration,
+        },
+      });
+    });
+    await page.reload();
+    await page.getByRole("switch", { name: "Turn on browser push" }).click();
+    const enabledSwitch = page.getByRole("switch", {
+      name: "Turn off browser push",
+    });
+    await expect(enabledSwitch).toHaveAttribute("aria-checked", "true");
+    await enabledSwitch.click();
+    await expect(
+      page.getByRole("switch", { name: "Turn on browser push" }),
+    ).toHaveAttribute("aria-checked", "false");
+    await expect(page.getByTestId("interests-list")).toContainText("Fitness");
   });
 
   test("profile is the active four-tab destination", async ({ page }) => {

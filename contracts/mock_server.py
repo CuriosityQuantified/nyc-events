@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 from datetime import date
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -23,6 +24,8 @@ def load_json(path: Path) -> Any:
 LIST_GOLDEN = load_json(ROOT / "golden/events-list.json")
 DETAIL_GOLDEN = load_json(ROOT / "golden/event-detail.json")
 FRESHNESS_GOLDEN = load_json(ROOT / "golden/freshness.json")
+NOTIFICATIONS_GOLDEN = load_json(ROOT / "golden/notifications.json")
+PUSH_STATUS_GOLDEN = load_json(ROOT / "golden/push-subscription-status.json")
 EVENTS_BY_GUID = {event["guid"]: event for event in LIST_GOLDEN["events"]}
 EVENTS_BY_GUID[DETAIL_GOLDEN["guid"]] = DETAIL_GOLDEN
 REGISTRATION_VALUES = {"required", "not_required", "closed", "not_listed"}
@@ -122,6 +125,18 @@ class ContractHandler(BaseHTTPRequestHandler):
     def do_GET(self) -> None:
         parsed = urlparse(self.path)
         try:
+            if parsed.path.startswith("/profile/"):
+                token = self.headers.get("X-Device-Token", "")
+                if not re.fullmatch(r"[A-Za-z0-9._~-]{32,255}", token):
+                    self._send(HTTPStatus.BAD_REQUEST, {"error": "A valid X-Device-Token header is required"})
+                    return
+                if parsed.path == "/profile/notifications":
+                    self._send(HTTPStatus.OK, NOTIFICATIONS_GOLDEN)
+                    return
+                if parsed.path == "/profile/push-subscription":
+                    self._send(HTTPStatus.OK, PUSH_STATUS_GOLDEN)
+                    return
+
             if parsed.path == "/events":
                 query = parse_qs(parsed.query, keep_blank_values=True)
                 page = parse_positive_int(query, "page", 1)

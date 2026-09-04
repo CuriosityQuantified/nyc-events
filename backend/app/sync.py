@@ -11,6 +11,11 @@ from redis.exceptions import LockError
 
 from app.config import get_settings
 from app.database import get_session_factory, reset_engine
+from app.services.notifications import (
+    PushTransport,
+    PyWebPushTransport,
+    dispatch_push_notifications,
+)
 from app.socrata import EventSource, sync_events
 
 logger = logging.getLogger(__name__)
@@ -25,6 +30,7 @@ async def run(
     *,
     source: EventSource | None = None,
     redis_client: Redis | None = None,
+    push_transport: PushTransport | None = None,
 ) -> int:
     """Run one locked Snapshot synchronization from the standalone worker."""
     settings = get_settings()
@@ -44,6 +50,9 @@ async def run(
         session_factory = get_session_factory()
         async with session_factory() as session:
             count = await sync_events(session, source)
+            transport = push_transport or PyWebPushTransport(settings)
+            await dispatch_push_notifications(session, connection, transport)
+            await session.commit()
         logger.info("Stored %d Events", count)
         return count
     finally:
