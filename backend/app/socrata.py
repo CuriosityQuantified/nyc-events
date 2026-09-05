@@ -50,7 +50,7 @@ _RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 504}
 # Pagination
 _DEFAULT_PAGE_SIZE = 1000
 _ALLOWED_SOCRATA_HOST = "data.cityofnewyork.us"
-_SOCRATA_QUERY = "SELECT * ORDER BY startdate ASC, starttime ASC, guid ASC"
+_SOCRATA_QUERY = "SELECT * ORDER BY starttime ASC, guid ASC"
 
 _CANCELLED_VALUES = {"cancelled", "canceled"}
 

@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import logging
+from datetime import datetime
 from unittest.mock import patch
+from zoneinfo import ZoneInfo
 
 import httpx
 import pytest
@@ -48,8 +50,9 @@ class TestPagination:
             {"pageNumber": 2, "pageSize": 2},
             {"pageNumber": 3, "pageSize": 2},
         ]
+        # The live schema has starttime and guid, but no startdate.
         assert {request["query"] for request in transport.requests} == {
-            "SELECT * ORDER BY startdate ASC, starttime ASC, guid ASC"
+            "SELECT * ORDER BY starttime ASC, guid ASC"
         }
 
     async def test_pagination_stops_on_empty_page(self):
@@ -262,6 +265,26 @@ class TestParseEvent:
         parsed_b = parse_event(row_b)
         assert parsed_b["borough"] == "Brooklyn"
         assert parsed_b["registration_status"] == "required"
+
+    def test_parse_event_accepts_live_row_without_calendar_dates(self):
+        """Rows without calendar dates retain New York start and end timestamps."""
+        row = {
+            "guid": "live-row-without-dates",
+            "title": "Current provider event",
+            "starttime": "2026-09-15 10:00:00",
+            "endtime": "2026-09-15 11:30:00",
+        }
+
+        parsed = parse_event(row)
+
+        assert parsed["start_date"] is None
+        assert parsed["end_date"] is None
+        assert parsed["start_datetime"] == datetime(
+            2026, 9, 15, 10, 0, tzinfo=ZoneInfo("America/New_York")
+        )
+        assert parsed["end_datetime"] == datetime(
+            2026, 9, 15, 11, 30, tzinfo=ZoneInfo("America/New_York")
+        )
 
     def test_parse_event_accepts_live_socrata_iso_calendar_dates(self):
         """Live ISO date-times must win over the source's placeholder time date."""
