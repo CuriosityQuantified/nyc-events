@@ -329,21 +329,29 @@ def configure_sync_worker(args: argparse.Namespace) -> int:
     ):
         raise ValueError("sync worker deploy config must contain exactly three values")
 
+    environments = run_json(
+        ["railway", "api",
+         "query($projectId: String!) { project(id: $projectId) { environments { edges { node { id name } } } } }",
+         "--var", f"projectId={args.project_id}"],
+        "sync-environment-discovery",
+    )
+    environment = exact_named(environments, args.environment, "environment")
+    variables = {"serviceId": service["id"], "environmentId": environment["id"]}
     command = [
-        "railway",
-        "environment",
-        "edit",
-        "--project",
-        args.project_id,
-        "--environment",
-        args.environment,
+        "railway", "api",
+        "mutation($serviceId: String!, $environmentId: String!, $input: ServiceInstanceUpdateInput!) { serviceInstanceUpdate(serviceId: $serviceId, environmentId: $environmentId, input: $input) }",
+        "--variables", json.dumps({**variables, "input": deploy}),
     ]
-    for key in sorted(required):
-        command.extend(
-            ["--service-config", service["id"], f"deploy.{key}", deploy[key]]
-        )
-    command.extend(["--message", "Reconcile EventMatch scheduled sync worker"])
     run_command(command, "sync-service-configure")
+    configured = run_json(
+        ["railway", "api",
+         "query($serviceId: String!, $environmentId: String!) { serviceInstance(serviceId: $serviceId, environmentId: $environmentId) { startCommand cronSchedule restartPolicyType } }",
+         "--variables", json.dumps(variables)],
+        "sync-service-readback",
+    )
+    actual = configured.get("data", {}).get("serviceInstance", {})
+    if any(actual.get(key) != deploy[key] for key in required):
+        raise ValueError("Railway did not persist the worker start command and schedule")
 
     variable_command = ["railway", "variable", "set"]
     variable_command.extend(

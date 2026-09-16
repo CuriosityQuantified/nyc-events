@@ -28,11 +28,14 @@ the displayed events. The freshness banner reports when it cannot verify data.
 
 ## Worker deployment and recovery
 
-The worker upload must copy `backend/railway-sync.toml` to `railway.toml` in its
-upload root. Without that file, a deployment can start the Docker image's web
-server instead of the scheduled command. This was the production failure found
-on September 15, 2026: deployment manifests had null cron/start commands while
-the old smoke test manually executed a successful sync over SSH.
+The worker's expected settings live in `backend/railway-sync.toml`. Deployment
+applies them through Railway's `serviceInstanceUpdate` API and reads them back
+before uploading. It also includes the file in the upload for compatibility,
+but does not rely on Railway discovering it. Railway now restricts legacy Config
+as Code to services that already used it; adding a file to this worker was ignored.
+The older environment-edit path also returned success without persisting these
+settings. Deployment manifests had null cron/start commands and ran the Docker
+image's web server, while the old smoke test manually executed a sync over SSH.
 
 The deployment gate now verifies the actual deployment manifest and observes
 two automatic source checks carrying the expected deployment revision. It does
