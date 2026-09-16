@@ -20,7 +20,7 @@ The repository also contains a constrained AI-concierge backend slice. Its model
 
 ## Trust model
 
-The production dataset is NYC Parks' rolling upcoming-events feed (`w3wp-dpdi`). A synchronization run paginates the source into Postgres atomically: a failed run leaves the previous complete snapshot in place. Redis supports service coordination, and the API reports snapshot freshness and ingestion status.
+The production dataset is NYC Parks' rolling upcoming-events feed (`w3wp-dpdi`). A worker checks for source changes every five minutes, downloads changed data, and performs a full safety refresh every 24 hours. A synchronization run paginates the source into Postgres atomically: a failed run leaves the previous complete snapshot in place. Redis supports service coordination, and the API distinguishes successful source checks from source updates and full downloads. See the [pipeline and recovery guide](docs/data-pipeline.md).
 
 - **Stated** — present in the source record.
 - **Derived** — computed from a source record and labelled as such.

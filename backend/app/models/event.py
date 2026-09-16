@@ -81,3 +81,7 @@ class SyncRun(Base):
     row_count: Mapped[int | None] = mapped_column(nullable=True)
     duration_ms: Mapped[int | None] = mapped_column(nullable=True)
     failure_code: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    source_version: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    deployment_revision: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    retry_not_before: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    source_updated_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))

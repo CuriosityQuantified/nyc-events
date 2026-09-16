@@ -1,0 +1,19 @@
+name: Monitor data freshness
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '7,22,37,52 * * * *'
+
+permissions:
+  contents: read
+
+jobs:
+  freshness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Verify recent successful source checks
+        run: |
+          curl --fail --silent --show-error --max-time 30 --retry 2 \
+            https://backend-production-0da0a.up.railway.app/ingestion-health/ready

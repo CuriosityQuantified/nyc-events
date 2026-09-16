@@ -17,6 +17,7 @@ import {
   unsaveEventRemote,
 } from "@/app/data/saved";
 import { onProfileChanged } from "@/app/data/profile-sync";
+import { useSourceUpdates } from "@/app/data/use-source-updates";
 
 export type SavedContextValue = {
   status: "loading" | "ready" | "error";
@@ -56,7 +57,31 @@ export default function SavedProvider({ children }: { children: ReactNode }) {
     new Set(),
   );
   const loadVersion = useRef(0);
+  const mutationVersion = useRef(0);
   const [loadCount, setLoadCount] = useState(0);
+  const [snapshot, setSnapshot] = useState<string | null>(null);
+
+  useSourceUpdates(
+    snapshot,
+    async (signal) => {
+      if (pendingGuids.size || status === "loading")
+        throw new Error("Saved changes pending");
+      const version = loadVersion.current;
+      const mutation = mutationVersion.current;
+      const saved = await fetchSavedEvents(signal);
+      if (signal.aborted) throw signal.reason;
+      if (
+        version !== loadVersion.current ||
+        mutation !== mutationVersion.current
+      )
+        throw new Error("Saved events changed");
+      setEvents(chronological(saved));
+      setStatus("ready");
+    },
+    (next) => {
+      if (next) setSnapshot(next.lastSuccessfulSync);
+    },
+  );
 
   const reload = useCallback(() => {
     loadVersion.current += 1;
@@ -89,6 +114,7 @@ export default function SavedProvider({ children }: { children: ReactNode }) {
 
   const toggle = useCallback(
     async (event: ParkEvent): Promise<boolean> => {
+      mutationVersion.current += 1;
       const guid = event.guid;
       const wasSaved = savedGuids.has(guid);
       setPendingGuids((prev) => new Set(prev).add(guid));

@@ -140,11 +140,10 @@ def validate_workflows(ci: dict[str, Any], deploy: dict[str, Any]) -> list[str]:
         "--backend-service backend",
         "verify-sync-worker-variables",
         "variables.json",
-        "printenv DEPLOY_REVISION",
-        ".venv/bin/python -m app.sync",
-        "freshness-before.json",
-        "freshness-after.json",
-        "successful Sync Run",
+        'cp backend/railway-sync.toml "$RUNNER_TEMP/sync-worker-source/railway.toml"',
+        "verify_scheduled_sync.py",
+        '--deployment "$DEPLOYMENT_ID"',
+        '--revision "$EXPECTED_DEPLOY_REVISION"',
     ):
         if required not in sync_run_text:
             errors.append(f"scheduled-worker deployment gate is missing {required}")
@@ -154,20 +153,6 @@ def validate_workflows(ci: dict[str, Any], deploy: dict[str, Any]) -> list[str]:
         for step in rollback_steps
     ):
         errors.append("scheduled-worker smoke must use the required rollback path")
-    sync_job = deploy_jobs.get("deploy-sync-worker", {})
-    if sync_job.get("env", {}).get("RAILWAY_SSH_PRIVATE_KEY") != (
-        "${{ secrets.RAILWAY_SSH_PRIVATE_KEY }}"
-    ):
-        errors.append("scheduled-worker smoke must use the dedicated Railway SSH identity")
-    for required in (
-        "--identity-file",
-        "scripts/deploy/railway_known_hosts",
-        "StrictHostKeyChecking yes",
-        "BatchMode yes",
-        "SHA256:+S1xg92FrnHz6pY3bpkmh1OGtWQGNANXilPzlxA7B1g",
-    ):
-        if required not in sync_run_text:
-            errors.append(f"scheduled-worker SSH is missing {required}")
     for job_name, job in deploy_jobs.items():
         for step in job.get("steps", []):
             if step in configure_steps:

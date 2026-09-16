@@ -1015,6 +1015,12 @@
           },
           "is_stale": {
             "$ref": "#/components/schemas/BooleanFact"
+          },
+          "last_successful_check": {
+            "$ref": "#/components/schemas/TextFact"
+          },
+          "source_updated_at": {
+            "$ref": "#/components/schemas/TextFact"
           }
         }
       },

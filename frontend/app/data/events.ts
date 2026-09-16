@@ -63,6 +63,8 @@ export type EventPage = {
 
 export type Freshness = {
   lastSuccessfulSync: string | null;
+  lastSuccessfulCheck?: string | null;
+  sourceUpdatedAt?: string | null;
   snapshotRowCount: number | null;
   isStale: boolean;
 };
@@ -130,6 +132,8 @@ type ApiEventsResponse = {
 
 type ApiFreshness = {
   last_successful_sync: ApiFact<string>;
+  last_successful_check?: ApiFact<string>;
+  source_updated_at?: ApiFact<string>;
   snapshot_row_count: ApiFact<number>;
   is_stale: ApiFact<boolean>;
 };
@@ -535,6 +539,8 @@ export async function getFreshness(): Promise<Freshness> {
   const data = parseFreshnessResponse(await response.json());
   return {
     lastSuccessfulSync: data.last_successful_sync.value,
+    lastSuccessfulCheck: data.last_successful_check?.value ?? null,
+    sourceUpdatedAt: data.source_updated_at?.value ?? null,
     snapshotRowCount: data.snapshot_row_count.value,
     isStale: data.is_stale.value ?? true,
   };

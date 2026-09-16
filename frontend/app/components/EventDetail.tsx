@@ -19,6 +19,7 @@ import {
   type Provenance,
 } from "@/app/data/events";
 import styles from "./EventDetail.module.css";
+import { useSourceUpdates } from "@/app/data/use-source-updates";
 
 type EventDetailProps = {
   guid: string;
@@ -503,6 +504,31 @@ export default function EventDetail({ guid, returnHref }: EventDetailProps) {
     queueMicrotask(() => void load());
     return () => controller.abort();
   }, [guid]);
+
+  useSourceUpdates(
+    state === "error" ? null : freshness?.lastSuccessfulSync,
+    async (signal) => {
+      const response = await fetch(`/api/events/${encodeURIComponent(guid)}`, {
+        cache: "no-store",
+        signal,
+      });
+      if (signal.aborted) throw signal.reason;
+      if (response.status === 404) {
+        setState("not-found");
+        return;
+      }
+      if (!response.ok) throw new Error("Event is unavailable");
+      const updated = parseEventResponse(await response.json());
+      if (signal.aborted) throw signal.reason;
+      setEvent(updated);
+      setState("ready");
+    },
+    (next) => {
+      setFreshnessUnavailable(next === null);
+      if (next) setFreshness(next);
+    },
+    guid,
+  );
 
   if (state === "loading") {
     return (

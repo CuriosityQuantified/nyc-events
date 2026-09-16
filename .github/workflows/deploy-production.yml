@@ -198,7 +198,7 @@ jobs:
             --service "$RAILWAY_SERVICE_ID" \
             --environment production \
             --identity-file "$RAILWAY_SSH_IDENTITY" \
-            .venv/bin/python -m app.sync \
+            .venv/bin/python -m app.sync --force \
             | tee artifacts/backend-deployment/sync.log
           curl --fail --silent --show-error "$PUBLIC_ORIGIN/freshness" \
             --output artifacts/backend-deployment/freshness.json
@@ -344,7 +344,6 @@ jobs:
       deployment_id: ${{ steps.wait.outputs.deployment_id }}
     env:
       RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-      RAILWAY_SSH_PRIVATE_KEY: ${{ secrets.RAILWAY_SSH_PRIVATE_KEY }}
       CONFIGURED_RAILWAY_PROJECT_ID: ${{ vars.RAILWAY_PROJECT_ID }}
       BACKEND_PUBLIC_ORIGIN: ${{ needs.deploy-backend.outputs.origin }}
       EXPECTED_DEPLOY_REVISION: ${{ github.sha }}
@@ -408,12 +407,13 @@ jobs:
             --github-output "$GITHUB_OUTPUT" \
             --github-env "$GITHUB_ENV"
 
-      - name: Upload the exact worker revision without backend service config
+      - name: Upload the exact worker revision with its own Railway config
         id: deploy
         run: |
           set -euo pipefail
           mkdir -p "$RUNNER_TEMP/sync-worker-source"
           rsync -a --exclude railway.toml backend/ "$RUNNER_TEMP/sync-worker-source/"
+          cp backend/railway-sync.toml "$RUNNER_TEMP/sync-worker-source/railway.toml"
           railway variable set "DEPLOY_REVISION=$GITHUB_SHA" --skip-deploys \
             --project "$CONFIGURED_RAILWAY_PROJECT_ID" \
             --service "$SYNC_RAILWAY_SERVICE_ID" \
@@ -449,83 +449,16 @@ jobs:
             --expected-revision "$EXPECTED_DEPLOY_REVISION" \
             --output artifacts/sync-worker/variables.json
 
-      - name: Provision the dedicated noninteractive Railway SSH identity
-        shell: bash
+      - name: Prove the applied schedule and two autonomous worker checks
         run: |
-          set -euo pipefail
-          umask 077
-          RAILWAY_SSH_IDENTITY="$RUNNER_TEMP/railway-ci-ssh"
-          RAILWAY_SSH_KNOWN_HOSTS="$RUNNER_TEMP/railway-known-hosts"
-          printf '%s\n' "$RAILWAY_SSH_PRIVATE_KEY" > "$RAILWAY_SSH_IDENTITY"
-          chmod 600 "$RAILWAY_SSH_IDENTITY"
-          install -d -m 700 "$HOME/.ssh"
-          install -m 600 scripts/deploy/railway_known_hosts "$RAILWAY_SSH_KNOWN_HOSTS"
-          test "$(ssh-keygen -lf "$RAILWAY_SSH_KNOWN_HOSTS" | cut -d' ' -f2)" = \
-            "SHA256:+S1xg92FrnHz6pY3bpkmh1OGtWQGNANXilPzlxA7B1g"
-          cat >> "$HOME/.ssh/config" <<EOF
-          Host ssh.railway.com
-            BatchMode yes
-            StrictHostKeyChecking yes
-            UserKnownHostsFile $RAILWAY_SSH_KNOWN_HOSTS
-          EOF
-          chmod 600 "$HOME/.ssh/config"
-          printf 'RAILWAY_SSH_IDENTITY=%s\n' "$RAILWAY_SSH_IDENTITY" >> "$GITHUB_ENV"
-          printf 'RAILWAY_SSH_KNOWN_HOSTS=%s\n' "$RAILWAY_SSH_KNOWN_HOSTS" >> "$GITHUB_ENV"
-
-      - name: Run the exact scheduled worker and prove its successful Sync Run
-        run: |
-          set -euo pipefail
-          curl --fail --silent --show-error "$BACKEND_PUBLIC_ORIGIN/freshness" \
-            --output artifacts/sync-worker/freshness-before.json
-          timeout 60 railway ssh \
+          python3 scripts/deploy/verify_scheduled_sync.py \
             --project "$CONFIGURED_RAILWAY_PROJECT_ID" \
             --service "$SYNC_RAILWAY_SERVICE_ID" \
-            --environment production \
-            --identity-file "$RAILWAY_SSH_IDENTITY" \
-            printenv DEPLOY_REVISION \
-            > artifacts/sync-worker/worker-revision.txt
-          test "$(tr -d '\r\n' < artifacts/sync-worker/worker-revision.txt)" = \
-            "$EXPECTED_DEPLOY_REVISION"
-          timeout 600 railway ssh \
-            --project "$CONFIGURED_RAILWAY_PROJECT_ID" \
-            --service "$SYNC_RAILWAY_SERVICE_ID" \
-            --environment production \
-            --identity-file "$RAILWAY_SSH_IDENTITY" \
-            .venv/bin/python -m app.sync \
-            | tee artifacts/sync-worker/sync.log
-          curl --fail --silent --show-error "$BACKEND_PUBLIC_ORIGIN/freshness" \
-            --output artifacts/sync-worker/freshness-after.json
-          python3 - <<'PY'
-          import json
-          from datetime import datetime
-          from pathlib import Path
-
-          root = Path("artifacts/sync-worker")
-          before = json.loads((root / "freshness-before.json").read_text())
-          after = json.loads((root / "freshness-after.json").read_text())
-          before_sync = datetime.fromisoformat(before["last_successful_sync"]["value"])
-          after_sync = datetime.fromisoformat(after["last_successful_sync"]["value"])
-          if after_sync <= before_sync:
-              raise SystemExit("scheduled worker did not record a new successful Sync Run")
-          if after["is_stale"]["value"] is not False:
-              raise SystemExit("scheduled worker freshness is stale")
-          if after["snapshot_row_count"]["value"] <= 0:
-              raise SystemExit("scheduled worker produced an empty Snapshot")
-          evidence = {
-              "status": "success",
-              "revision": (root / "worker-revision.txt").read_text().strip(),
-              "previousSuccessfulSync": before_sync.isoformat(),
-              "successfulSync": after_sync.isoformat(),
-              "snapshotRowCount": after["snapshot_row_count"]["value"],
-              "isStale": False,
-          }
-          (root / "smoke.json").write_text(json.dumps(evidence, indent=2) + "\n")
-          PY
-
-      - name: Remove the Railway SSH identity from the runner
-        if: always()
-        shell: bash
-        run: rm -f "$RAILWAY_SSH_IDENTITY" "$RAILWAY_SSH_KNOWN_HOSTS"
+            --deployment "$DEPLOYMENT_ID" \
+            --revision "$EXPECTED_DEPLOY_REVISION" \
+            --origin "$BACKEND_PUBLIC_ORIGIN" \
+            --config backend/railway-sync.toml \
+            --output-dir artifacts/sync-worker
 
       - name: Roll back worker and backend when the scheduled deployment fails
         if: ${{ failure() && steps.deploy.outcome != 'skipped' }}

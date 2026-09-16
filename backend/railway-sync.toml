@@ -4,5 +4,5 @@ dockerfilePath = "Dockerfile"
 
 [deploy]
 startCommand = ".venv/bin/python -m app.sync"
-cronSchedule = "0 */2 * * *"
+cronSchedule = "*/5 * * * *"
 restartPolicyType = "NEVER"

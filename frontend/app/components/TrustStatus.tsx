@@ -33,6 +33,9 @@ export function FreshnessBanner({
     syncTime === "not available"
       ? "Official data is current — last successful sync time is unavailable"
       : `Official data updated ${syncTime}`;
+  if (freshness?.lastSuccessfulCheck) {
+    title = `Checked NYC Parks ${formatSyncTime(freshness.lastSuccessfulCheck)}`;
+  }
 
   if (loading) {
     state = "loading";
@@ -45,8 +48,9 @@ export function FreshnessBanner({
   } else if (freshness.isStale) {
     state = "stale";
     icon = "!";
-    title =
-      syncTime === "not available"
+    title = freshness.lastSuccessfulCheck
+      ? `Data may be stale — last checked ${formatSyncTime(freshness.lastSuccessfulCheck)}`
+      : syncTime === "not available"
         ? "Data may be stale — last successful sync time is unavailable"
         : `Data may be stale — last successful sync was ${syncTime}`;
   }
@@ -67,6 +71,11 @@ export function FreshnessBanner({
       </span>
       <div className={styles.freshnessCopy}>
         <strong>{title}</strong>
+        {freshness?.sourceUpdatedAt && !loading && !unavailable ? (
+          <span>
+            NYC Parks source updated {formatSyncTime(freshness.sourceUpdatedAt)}
+          </span>
+        ) : null}
         <span>{COVERAGE_LABEL}</span>
       </div>
     </section>

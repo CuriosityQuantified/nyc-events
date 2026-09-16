@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import EventCard from "@/app/components/EventCard";
 import { useSaved } from "@/app/components/SavedProvider";
 import type { ParkEvent } from "@/app/data/events";
@@ -10,6 +10,7 @@ import {
   promoteMatch,
 } from "@/app/data/preferences";
 import styles from "./MatchesSection.module.css";
+import { useSourceUpdates } from "@/app/data/use-source-updates";
 
 /**
  * Matches inside the Saved destination (#22): automatic suggestions from
@@ -24,6 +25,27 @@ export default function MatchesSection() {
   const [matches, setMatches] = useState<ParkEvent[]>([]);
   const [actionError, setActionError] = useState<string | null>(null);
   const [loadCount, setLoadCount] = useState(0);
+  const [snapshot, setSnapshot] = useState<string | null>(null);
+  const actionVersion = useRef(0);
+  const pendingActions = useRef(0);
+
+  useSourceUpdates(
+    snapshot,
+    async (signal) => {
+      if (pendingActions.current || status === "loading")
+        throw new Error("Matches are busy");
+      const version = actionVersion.current;
+      const updated = await fetchMatches(signal);
+      if (signal.aborted || version !== actionVersion.current)
+        throw new Error("Matches changed");
+      setMatches(updated);
+      setStatus("ready");
+    },
+    (next) => {
+      if (next) setSnapshot(next.lastSuccessfulSync);
+    },
+    String(loadCount),
+  );
 
   const reload = useCallback(() => {
     setStatus("loading");
@@ -48,6 +70,8 @@ export default function MatchesSection() {
   }, [loadCount]);
 
   const onPromote = async (event: ParkEvent) => {
+    actionVersion.current += 1;
+    pendingActions.current += 1;
     setActionError(null);
     try {
       await promoteMatch(event.guid);
@@ -55,16 +79,22 @@ export default function MatchesSection() {
       saved?.reload();
     } catch {
       setActionError(`Could not add ${event.title} to Saved.`);
+    } finally {
+      pendingActions.current -= 1;
     }
   };
 
   const onDismiss = async (event: ParkEvent) => {
+    actionVersion.current += 1;
+    pendingActions.current += 1;
     setActionError(null);
     try {
       await dismissMatch(event.guid);
       setMatches((prev) => prev.filter((item) => item.guid !== event.guid));
     } catch {
       setActionError(`Could not dismiss ${event.title}.`);
+    } finally {
+      pendingActions.current -= 1;
     }
   };
 

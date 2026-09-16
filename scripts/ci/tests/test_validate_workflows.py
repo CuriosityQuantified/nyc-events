@@ -145,9 +145,8 @@ class WorkflowPolicyTests(unittest.TestCase):
             "REDIS_URL",
             "--backend-service backend",
             "verify-sync-worker-variables",
-            ".venv/bin/python -m app.sync",
-            "freshness-after.json",
-            "successful Sync Run",
+            "verify_scheduled_sync.py",
+            'cp backend/railway-sync.toml "$RUNNER_TEMP/sync-worker-source/railway.toml"',
         ):
             with self.subTest(required=required):
                 broken = copy.deepcopy(self.deploy)
