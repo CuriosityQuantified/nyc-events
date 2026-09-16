@@ -31,6 +31,24 @@ from scripts.deploy.railway_release import (  # noqa: E402
 
 
 class RailwayReleaseTests(unittest.TestCase):
+    def test_worker_configuration_rejects_a_successful_noop_mutation(self) -> None:
+        args = Namespace(
+            project_id="project-1", environment="production", service_name="sync-worker",
+            backend_service="backend", config=str(ROOT / "backend/railway-sync.toml"),
+            github_output=None, github_env=None, evidence_output=None,
+        )
+        with (
+            patch("scripts.deploy.railway_release.run_json", side_effect=[
+                [{"id": "sync-1", "name": "sync-worker"}],
+                [{"id": "env-1", "name": "production"}],
+                {"data": {"serviceInstance": {"startCommand": None, "cronSchedule": None}}},
+            ]),
+            patch("scripts.deploy.railway_release.run_command") as run,
+            self.assertRaisesRegex(ValueError, "did not persist"),
+        ):
+            configure_sync_worker(args)
+        self.assertEqual(run.call_count, 1)
+
     def test_parses_json_after_non_json_cli_notice(self) -> None:
         self.assertEqual(parse_json_output("notice\n{\"id\": \"one\"}\n"), {"id": "one"})
 
@@ -134,7 +152,11 @@ restartPolicyType = "NEVER"
             with (
                 patch(
                     "scripts.deploy.railway_release.run_json",
-                    return_value=[{"id": "sync-1", "name": "sync-worker"}],
+                    side_effect=[
+                        [{"id": "sync-1", "name": "sync-worker"}],
+                        [{"id": "env-1", "name": "production"}],
+                        {"data": {"serviceInstance": {"startCommand": ".venv/bin/python -m app.sync", "cronSchedule": "0 */2 * * *", "restartPolicyType": "NEVER"}}},
+                    ],
                 ),
                 patch("scripts.deploy.railway_release.run_command") as run,
             ):
@@ -142,8 +164,10 @@ restartPolicyType = "NEVER"
 
         config_command = run.call_args_list[0].args[0]
         variables_command = run.call_args_list[1].args[0]
-        self.assertIn("deploy.cronSchedule", config_command)
-        self.assertIn("0 */2 * * *", config_command)
+        configured = json.loads(config_command[-1])
+        self.assertEqual(configured["environmentId"], "env-1")
+        self.assertEqual(configured["serviceId"], "sync-1")
+        self.assertEqual(configured["input"]["cronSchedule"], "0 */2 * * *")
         self.assertIn("DATABASE_URL=${{backend.DATABASE_URL}}", variables_command)
         self.assertIn("REDIS_URL=${{backend.REDIS_URL}}", variables_command)
         self.assertIn(
@@ -239,7 +263,11 @@ restartPolicyType = "NEVER"
                 ),
                 patch(
                     "scripts.deploy.railway_release.run_json",
-                    side_effect=[[], [{"id": "sync-1", "name": "sync-worker"}]],
+                    side_effect=[
+                        [], [{"id": "sync-1", "name": "sync-worker"}],
+                        [{"id": "env-1", "name": "production"}],
+                        {"data": {"serviceInstance": {"startCommand": "sync", "cronSchedule": "0 */2 * * *", "restartPolicyType": "NEVER"}}},
+                    ],
                 ),
                 patch("scripts.deploy.railway_release.run_command") as run,
             ):
