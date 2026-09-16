@@ -286,6 +286,31 @@ class TestParseEvent:
             2026, 9, 15, 11, 30, tzinfo=ZoneInfo("America/New_York")
         )
 
+    @pytest.mark.parametrize(
+        "starttime",
+        [
+            "2026-09-19 09:00:00",
+            "2026-09-19T09:00:00",
+            "2026-09-19T09:00:00.000",
+            "2026-09-19T13:00:00Z",
+            "2026-09-19T09:00:00-04:00",
+        ],
+    )
+    def test_live_iso_event_times_preserve_new_york_time(self, starttime):
+        row = load_fixture("live_iso_event_times.json")[0]
+        row["starttime"] = starttime
+        parsed = parse_event(row)
+        assert parsed["start_datetime"].isoformat() == "2026-09-19T09:00:00-04:00"
+        assert parsed["end_datetime"].isoformat() == "2026-09-19T12:00:00-04:00"
+
+    @pytest.mark.parametrize(
+        "starttime", ["2026-09-19", "invalid", "2026-09-19T25:00:00"]
+    )
+    def test_unusable_event_times_do_not_invent_a_time(self, starttime):
+        row = load_fixture("live_iso_event_times.json")[0]
+        row["starttime"] = starttime
+        assert parse_event(row)["start_datetime"] is None
+
     def test_parse_event_accepts_live_socrata_iso_calendar_dates(self):
         """Live ISO date-times must win over the source's placeholder time date."""
         rows = load_fixture("live_recurring_iso_dates.json")

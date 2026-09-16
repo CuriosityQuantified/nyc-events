@@ -142,6 +142,28 @@ def test_date_only_and_fully_missing_values_do_not_invent_datetimes_or_dates() -
 
 
 @requires_docker
+async def test_live_iso_times_survive_ingestion_and_date_filtering(client, db_session):
+    row = load_fixture("live_iso_event_times.json")[0]
+    await ingest_rows(db_session, [row])
+
+    response = await client.get(
+        "/events", params={"date_from": "2026-09-19", "date_to": "2026-09-19"}
+    )
+    assert response.status_code == 200
+    events = response.json()["events"]
+    assert len(events) == 1
+    assert events[0]["guid"] == row["guid"]
+    assert events[0]["start_date"] == {
+        "value": "2026-09-19",
+        "provenance": "Derived",
+        "raw": "2026-09-19T09:00:00.000",
+    }
+    assert events[0]["start_datetime"]["value"] == "2026-09-19T13:00:00+00:00"
+    detail = await client.get(f"/events/{row['guid']}")
+    assert detail.json()["start_date"] == events[0]["start_date"]
+
+
+@requires_docker
 async def test_recurring_live_rows_keep_unique_guids_and_distinct_calendar_dates(
     client, db_session
 ) -> None:

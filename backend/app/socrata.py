@@ -324,15 +324,20 @@ def _parse_date(raw: str | None) -> str | None:
 
 
 def _parse_datetime(raw: str | None) -> datetime | None:
-    """Convert 'YYYY-MM-DD HH:MM:SS' to a timezone-aware datetime."""
+    """Parse Socrata timestamps, treating floating times as New York local time."""
     if not raw:
         return None
+    value = raw.strip()
+    # A calendar date alone must not invent a midnight event time.
+    if len(value) <= 10 or value[10] not in {"T", " "}:
+        return None
     try:
-        return datetime.strptime(raw.strip(), "%Y-%m-%d %H:%M:%S").replace(
-            tzinfo=_NY_TZ
-        )
+        parsed = datetime.fromisoformat(value)
     except ValueError:
         return None
+    if parsed.tzinfo is None:
+        return parsed.replace(tzinfo=_NY_TZ)
+    return parsed.astimezone(_NY_TZ)
 
 
 def _apply_calendar_date(
