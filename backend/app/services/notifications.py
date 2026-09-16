@@ -76,6 +76,7 @@ class PyWebPushTransport:
                     vapid_private_key=self._private_key,
                     vapid_claims=self._claims,
                     ttl=86400,
+                    timeout=15,
                 )
             except WebPushException as error:
                 status = getattr(error.response, "status_code", None)

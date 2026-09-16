@@ -13,9 +13,12 @@ class Settings(BaseSettings):
     )
     redis_url: str = "redis://localhost:6379/0"
     environment: str = "development"
+    deploy_revision: str = ""
     frontend_origin: str = "http://localhost:3000"
-    snapshot_stale_after_seconds: int = 21600
-    sync_lock_timeout_seconds: int = 10800
+    snapshot_stale_after_seconds: int = 900
+    sync_lock_timeout_seconds: int = 300
+    sync_run_timeout_seconds: int = 240
+    sync_full_refresh_seconds: int = 86400
     vapid_public_key: str = ""
     vapid_private_key: str = ""
     vapid_subject: str = "mailto:operations@example.invalid"

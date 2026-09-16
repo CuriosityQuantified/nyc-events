@@ -61,14 +61,17 @@ def test_railway_uses_a_separate_scheduled_worker():
     deploy = config["deploy"]
     assert deploy == {
         "startCommand": ".venv/bin/python -m app.sync",
-        "cronSchedule": "0 */2 * * *",
+        "cronSchedule": "*/5 * * * *",
         "restartPolicyType": "NEVER",
     }
 
     api_source = (BACKEND_ROOT / "app/main.py").read_text()
     assert "app.sync" not in api_source
     assert "create_task(" not in api_source
-    assert get_settings().sync_lock_timeout_seconds > 2 * 60 * 60
+    assert (
+        get_settings().sync_lock_timeout_seconds
+        > get_settings().sync_run_timeout_seconds
+    )
 
 
 @requires_docker

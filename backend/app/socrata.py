@@ -7,14 +7,16 @@ import hashlib
 import json
 import logging
 import re
-from datetime import UTC, date, datetime
+from dataclasses import dataclass
+from datetime import UTC, date, datetime, timedelta
+from email.utils import parsedate_to_datetime
 from time import monotonic
 from typing import Any, Protocol
 from urllib.parse import urlparse
 from zoneinfo import ZoneInfo
 
 import httpx
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -77,10 +79,26 @@ class SocrataError(Exception):
     """Raised when the Socrata API returns an unrecoverable error."""
 
 
+class SocrataCooldown(SocrataError):
+    """Persist a long Retry-After across scheduled executions."""
+
+    def __init__(self, not_before: datetime):
+        self.not_before = not_before
+        super().__init__("Upstream requested a longer cooldown")
+
+
 class EventSource(Protocol):
     """The narrow transport contract used by the synchronization job."""
 
     async def fetch_all_events(self) -> list[dict[str, Any]]: ...
+
+
+@dataclass(frozen=True)
+class SourceRevision:
+    """Dataset metadata; never inferred from the time our worker ran."""
+
+    version: str
+    updated_at: datetime
 
 
 def _validated_endpoint(value: str) -> str:
@@ -147,6 +165,12 @@ class SocrataClient:
 
     async def _post_with_retry(self, payload: dict[str, Any]) -> httpx.Response:
         """POST to the Socrata endpoint with exponential-backoff retry."""
+        return await self._request_with_retry("POST", self._endpoint, payload)
+
+    async def _request_with_retry(
+        self, method: str, endpoint: str, payload: dict[str, Any] | None = None
+    ) -> httpx.Response:
+        """Bounded retries for metadata and data, honoring upstream Retry-After."""
         auth = (
             httpx.BasicAuth(self._api_key_id, self._api_key_secret)
             if self._api_key_id and self._api_key_secret
@@ -163,8 +187,9 @@ class SocrataClient:
         last_exc: Exception | None = None
         for attempt in range(_MAX_RETRIES + 1):
             try:
-                response = await self._client.post(
-                    self._endpoint,
+                response = await self._client.request(
+                    method,
+                    endpoint,
                     json=payload,
                     auth=auth,
                     headers=headers,
@@ -172,8 +197,27 @@ class SocrataClient:
                 )
                 if response.status_code in _RETRYABLE_STATUS_CODES:
                     last_exc = SocrataError(f"Server returned {response.status_code}")
+                    delay = _BASE_BACKOFF_SECONDS * (2**attempt)
+                    retry_after = response.headers.get("Retry-After")
+                    if retry_after:
+                        try:
+                            requested_delay = float(retry_after)
+                        except ValueError:
+                            try:
+                                requested_delay = (
+                                    parsedate_to_datetime(retry_after)
+                                    - datetime.now(UTC)
+                                ).total_seconds()
+                            except (ValueError, TypeError, OverflowError):
+                                requested_delay = 0
+                        delay = max(delay, requested_delay)
+                        # Do not retry early when the source asks us to wait
+                        # longer than this short-lived worker can accommodate.
+                        if delay > 60:
+                            raise SocrataCooldown(
+                                datetime.now(UTC) + timedelta(seconds=delay)
+                            )
                     if attempt < _MAX_RETRIES:
-                        delay = _BASE_BACKOFF_SECONDS * (2**attempt)
                         logger.warning(
                             "Socrata returned %d, retry %d after %.1fs",
                             response.status_code,
@@ -204,6 +248,32 @@ class SocrataClient:
         # Unreachable, but satisfies type checkers.
         raise SocrataError("Retry loop exited unexpectedly")  # pragma: no cover
 
+    async def fetch_revision(self) -> SourceRevision:
+        """Check the same dataset as the query without fetching its event rows."""
+        dataset_id = urlparse(self._endpoint).path.split("/")[4]
+        response = await self._request_with_retry(
+            "GET", f"https://data.cityofnewyork.us/api/views/{dataset_id}.json"
+        )
+        try:
+            metadata = response.json()
+            if not isinstance(metadata, dict) or metadata.get("id") != dataset_id:
+                raise ValueError("wrong dataset")
+            updated = metadata["rowsUpdatedAt"]
+            if type(updated) is not int or updated <= 0:
+                raise ValueError("missing data update timestamp")
+            updated_at = datetime.fromtimestamp(updated, UTC)
+            version = _content_hash(
+                {
+                    "endpoint": self._endpoint,
+                    "rowsUpdatedAt": updated,
+                    "viewLastModified": metadata.get("viewLastModified"),
+                    "publicationDate": metadata.get("publicationDate"),
+                }
+            )
+        except (ValueError, KeyError, TypeError, OverflowError) as error:
+            raise SocrataError("Socrata returned invalid dataset metadata") from error
+        return SourceRevision(version, updated_at)
+
     async def _fetch_page(self, page_number: int) -> list[dict[str, Any]]:
         """Fetch one page of events from the Socrata API."""
         payload = {
@@ -225,12 +295,14 @@ class SocrataClient:
         all_rows: list[dict[str, Any]] = []
         page_number = 1
 
-        while True:
+        while page_number <= 100:
             page = await self._fetch_page(page_number)
             if not page:
                 break
             all_rows.extend(page)
             page_number += 1
+        else:
+            raise SocrataError("Socrata pagination exceeded the safety limit")
 
         logger.info("Fetched %d total events from Socrata", len(all_rows))
         return all_rows
@@ -538,7 +610,9 @@ def parse_event(row: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-async def ingest_events(session: AsyncSession, rows: list[dict[str, Any]]) -> int:
+async def ingest_events(
+    session: AsyncSession, rows: list[dict[str, Any]], *, commit: bool = True
+) -> int:
     """Atomically archive a valid Snapshot and replace the current dataset."""
     if not rows:
         raise SocrataError("Socrata returned an empty Snapshot")
@@ -613,26 +687,85 @@ async def ingest_events(session: AsyncSession, rows: list[dict[str, Any]]) -> in
         from app.services.profile_preferences import match_new_events
 
         await match_new_events(session)
-        await session.commit()
-        session.expire_all()
+        if commit:
+            await session.commit()
+            session.expire_all()
+        else:
+            await session.flush()
     except Exception:
         await session.rollback()
         raise
     return len(rows)
 
 
-async def sync_events(session: AsyncSession, client: EventSource | None = None) -> int:
+async def sync_events(
+    session: AsyncSession, client: EventSource | None = None, *, force: bool = False
+) -> int:
     """Fetch and store one complete Snapshot with durable attempt evidence."""
     source = client or SocrataClient()
     owns_client = client is None
     started = monotonic()
-    run = SyncRun(status="running")
+    run = SyncRun(
+        status="running", deployment_revision=get_settings().deploy_revision or None
+    )
     session.add(run)
     await session.commit()
     run_id = run.id
     try:
+        cooldown = await session.scalar(
+            select(func.max(SyncRun.retry_not_before)).where(
+                SyncRun.retry_not_before > datetime.now(UTC)
+            )
+        )
+        if cooldown is not None:
+            run.status = "deferred"
+            run.finished_at = datetime.now(UTC)
+            run.duration_ms = int((monotonic() - started) * 1000)
+            await session.commit()
+            logger.warning("Source check deferred until %s", cooldown.isoformat())
+            return (
+                await session.scalar(select(func.count()).select_from(CurrentEvent))
+                or 0
+            )
+        revision_fetcher = getattr(source, "fetch_revision", None)
+        revision = await revision_fetcher() if revision_fetcher else None
+        previous = await session.scalar(
+            select(SyncRun)
+            .where(SyncRun.status == "succeeded")
+            .order_by(SyncRun.finished_at.desc(), SyncRun.id.desc())
+            .limit(1)
+        )
+        current_count = await session.scalar(
+            select(func.count()).select_from(CurrentEvent)
+        )
+        if (
+            not force
+            and revision is not None
+            and previous is not None
+            and previous.finished_at is not None
+            and previous.source_version == revision.version
+            and current_count
+            and current_count == previous.row_count
+            and (datetime.now(UTC) - previous.finished_at).total_seconds()
+            < get_settings().sync_full_refresh_seconds
+        ):
+            run.status = "unchanged"
+            run.source_version = revision.version
+            run.source_updated_at = revision.updated_at
+            run.row_count = current_count
+            run.finished_at = datetime.now(UTC)
+            run.duration_ms = int((monotonic() - started) * 1000)
+            await session.commit()
+            logger.info("Source unchanged; kept %d Events", current_count)
+            return current_count
+
         rows = await source.fetch_all_events()
-        count = await ingest_events(session, rows)
+        if revision is not None:
+            assert revision_fetcher is not None
+            after = await revision_fetcher()
+            if after.version != revision.version:
+                raise SocrataError("Source changed during pagination; retry next check")
+        count = await ingest_events(session, rows, commit=False)
         completed_run = await session.get(SyncRun, run_id)
         if completed_run is None:  # pragma: no cover - database invariant
             raise RuntimeError("Sync Run disappeared")
@@ -640,9 +773,12 @@ async def sync_events(session: AsyncSession, client: EventSource | None = None) 
         completed_run.finished_at = datetime.now(UTC)
         completed_run.row_count = count
         completed_run.duration_ms = int((monotonic() - started) * 1000)
+        if revision is not None:
+            completed_run.source_version = revision.version
+            completed_run.source_updated_at = revision.updated_at
         await session.commit()
         return count
-    except Exception as error:
+    except (Exception, asyncio.CancelledError) as error:
         await session.rollback()
         failed_run = await session.get(SyncRun, run_id)
         if failed_run is not None:
@@ -651,6 +787,8 @@ async def sync_events(session: AsyncSession, client: EventSource | None = None) 
             failed_run.row_count = None
             failed_run.duration_ms = int((monotonic() - started) * 1000)
             failed_run.failure_code = type(error).__name__
+            if isinstance(error, SocrataCooldown):
+                failed_run.retry_not_before = error.not_before
             await session.commit()
         raise
     finally:

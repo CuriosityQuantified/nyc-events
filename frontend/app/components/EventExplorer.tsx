@@ -21,6 +21,7 @@ import {
   type TransitSource,
 } from "@/app/data/events";
 import { groupEventsByLocation } from "@/app/data/maps";
+import { useSourceUpdates } from "@/app/data/use-source-updates";
 import {
   EMPTY_FILTERS,
   describeFilters,
@@ -203,50 +204,96 @@ export default function EventExplorer({ initialFilters }: EventExplorerProps) {
     queueMicrotask(() => void load(1, true));
   }, [load]);
 
-  const loadMapEvents = useCallback(async () => {
-    const requestId = ++mapRequestVersion.current;
-    setMapState("loading");
-    try {
-      const firstResponse = await fetch(eventsPath(filters, 1, 100), {
-        cache: "no-store",
-      });
-      if (!firstResponse.ok) throw new Error("Map event data is unavailable");
-      const first = (await firstResponse.json()) as EventPage;
-      if (first.total > 10_000 || first.totalPages > 100) {
-        throw new Error("Map event data exceeds its bounded window");
+  const loadMapEvents = useCallback(
+    async (background = false, signal?: AbortSignal) => {
+      const requestId = ++mapRequestVersion.current;
+      if (!background) setMapState("loading");
+      try {
+        const firstResponse = await fetch(eventsPath(filters, 1, 100), {
+          cache: "no-store",
+          signal,
+        });
+        if (!firstResponse.ok) throw new Error("Map event data is unavailable");
+        const first = (await firstResponse.json()) as EventPage;
+        if (first.total > 10_000 || first.totalPages > 100) {
+          throw new Error("Map event data exceeds its bounded window");
+        }
+        const remaining = await Promise.all(
+          Array.from(
+            { length: Math.max(0, first.totalPages - 1) },
+            (_, index) =>
+              fetch(eventsPath(filters, index + 2, 100), {
+                cache: "no-store",
+                signal,
+              }),
+          ),
+        );
+        if (remaining.some((response) => !response.ok)) {
+          throw new Error("Map event data is incomplete");
+        }
+        const pages = await Promise.all(
+          remaining.map(
+            async (response) => (await response.json()) as EventPage,
+          ),
+        );
+        if (signal?.aborted) throw signal.reason;
+        if (requestId !== mapRequestVersion.current) return;
+        setMapEvents(
+          mergeWithoutDuplicates(
+            first.events,
+            pages.flatMap((result) => result.events),
+          ),
+        );
+        setMapState("ready");
+      } catch (error) {
+        if (background) throw error;
+        if (requestId === mapRequestVersion.current) {
+          setMapEvents([]);
+          setMapState("error");
+        }
       }
-      const remaining = await Promise.all(
-        Array.from({ length: Math.max(0, first.totalPages - 1) }, (_, index) =>
-          fetch(eventsPath(filters, index + 2, 100), { cache: "no-store" }),
-        ),
-      );
-      if (remaining.some((response) => !response.ok)) {
-        throw new Error("Map event data is incomplete");
-      }
-      const pages = await Promise.all(
-        remaining.map(async (response) => (await response.json()) as EventPage),
-      );
-      if (requestId !== mapRequestVersion.current) return;
-      setMapEvents(
-        mergeWithoutDuplicates(
-          first.events,
-          pages.flatMap((result) => result.events),
-        ),
-      );
-      setMapState("ready");
-    } catch {
-      if (requestId === mapRequestVersion.current) {
-        setMapEvents([]);
-        setMapState("error");
-      }
-    }
-  }, [filters]);
+    },
+    [filters],
+  );
 
   // The map is the page now, so it always carries the complete filtered set
   // rather than waiting for a view switch.
   useEffect(() => {
     queueMicrotask(() => void loadMapEvents());
   }, [loadMapEvents]);
+
+  useSourceUpdates(
+    state === "error" ? null : freshness?.lastSuccessfulSync,
+    async (signal) => {
+      if (state === "loading" || loadingMore)
+        throw new Error("Events are loading");
+      const requestId = ++requestVersion.current;
+      const pages = await Promise.all(
+        Array.from({ length: page }, async (_, index) => {
+          const response = await fetch(eventsPath(filters, index + 1), {
+            cache: "no-store",
+            signal,
+          });
+          if (!response.ok) throw new Error("Events are unavailable");
+          return (await response.json()) as EventPage;
+        }),
+      );
+      await loadMapEvents(true, signal);
+      if (signal.aborted) throw signal.reason;
+      if (requestId !== requestVersion.current)
+        throw new Error("Filters changed");
+      setEvents(uniqueEventsByGuid(pages.flatMap((result) => result.events)));
+      setTotal(pages[0].total);
+      setTotalPages(pages[0].totalPages);
+      setPage(Math.max(1, Math.min(page, pages[0].totalPages)));
+      setState("ready");
+    },
+    (next) => {
+      setFreshnessUnavailable(next === null);
+      if (next) setFreshness(next);
+    },
+    JSON.stringify(filters),
+  );
 
   useEffect(() => {
     function restoreFilters() {

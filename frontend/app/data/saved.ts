@@ -15,12 +15,14 @@ const PAGE_SIZE = 100;
 const MAX_PAGES = 20;
 
 /** Fetch every Saved Event for this device's anonymous Profile. */
-export async function fetchSavedEvents(): Promise<ParkEvent[]> {
+export async function fetchSavedEvents(
+  signal?: AbortSignal,
+): Promise<ParkEvent[]> {
   const collected: ParkEvent[] = [];
   for (let page = 1; page <= MAX_PAGES; page += 1) {
     const response = await fetch(
       `/api/profile/saved?page=${page}&page_size=${PAGE_SIZE}`,
-      { headers: headers(), cache: "no-store" },
+      { headers: headers(), cache: "no-store", signal },
     );
     if (!response.ok) throw new SavedApiError(response.status);
     const data = (await response.json()) as {

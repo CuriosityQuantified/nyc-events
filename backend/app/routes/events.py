@@ -451,6 +451,12 @@ async def get_freshness() -> dict[str, Any]:
                 .order_by(SyncRun.finished_at.desc())
                 .limit(1)
             )
+            latest_check = await session.scalar(
+                select(SyncRun)
+                .where(SyncRun.status.in_(["succeeded", "unchanged"]))
+                .order_by(SyncRun.finished_at.desc(), SyncRun.id.desc())
+                .limit(1)
+            )
             row_count = await session.scalar(
                 select(func.count()).select_from(CurrentEvent)
             )
@@ -460,12 +466,24 @@ async def get_freshness() -> dict[str, Any]:
             ) from error
 
     successful_at = latest_success.finished_at if latest_success else None
+    checked_at = latest_check.finished_at if latest_check else None
+    source_updated_at = latest_check.source_updated_at if latest_check else None
     stale = True
-    if successful_at is not None:
-        age = datetime.now(UTC) - successful_at.astimezone(UTC)
+    if successful_at is not None and checked_at is not None and row_count:
+        age = datetime.now(UTC) - checked_at.astimezone(UTC)
         stale = age.total_seconds() > get_settings().snapshot_stale_after_seconds
     stale_after_seconds = get_settings().snapshot_stale_after_seconds
     return {
+        "last_successful_check": _text_fact(
+            checked_at.isoformat() if checked_at else None,
+            provenance="Derived" if checked_at else "Not listed",
+            raw="Latest successful source check" if checked_at else None,
+        ),
+        "source_updated_at": _text_fact(
+            source_updated_at.isoformat() if source_updated_at else None,
+            provenance="Stated" if source_updated_at else "Not listed",
+            raw="Socrata rowsUpdatedAt" if source_updated_at else None,
+        ),
         "last_successful_sync": _text_fact(
             successful_at.isoformat() if successful_at else None,
             provenance="Derived" if successful_at else "Not listed",
@@ -514,4 +532,14 @@ async def get_ingestion_health() -> dict[str, Any]:
         ),
         "row_count": row_count,
         "failure_code": latest.failure_code if latest else None,
+        "deployment_revision": latest.deployment_revision if latest else None,
     }
+
+
+@router.get("/ingestion-health/ready")
+async def get_ingestion_readiness() -> dict[str, str]:
+    """Fail an external monitor when scheduled checks stop or cannot refresh."""
+    freshness = await get_freshness()
+    if freshness["is_stale"]["value"]:
+        raise HTTPException(status_code=503, detail="Source checks are overdue")
+    return {"status": "ok"}

@@ -118,12 +118,12 @@ const PAGE_SIZE = 100;
 const MAX_PAGES = 10;
 
 /** Fetch this Profile's active Matches — automatic suggestions, not Saved. */
-export async function fetchMatches(): Promise<ParkEvent[]> {
+export async function fetchMatches(signal?: AbortSignal): Promise<ParkEvent[]> {
   const collected: ParkEvent[] = [];
   for (let page = 1; page <= MAX_PAGES; page += 1) {
     const response = await fetch(
       `/api/profile/matches?page=${page}&page_size=${PAGE_SIZE}`,
-      { headers: headers(), cache: "no-store" },
+      { headers: headers(), cache: "no-store", signal },
     );
     if (!response.ok) throw new PreferencesApiError(response.status);
     const data = (await response.json()) as {
