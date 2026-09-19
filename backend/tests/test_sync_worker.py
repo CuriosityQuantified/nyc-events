@@ -189,13 +189,18 @@ async def test_recorded_source_failure_is_not_a_crash_on_the_schedule(monkeypatc
     assert await main([]) == EXIT_SUCCESS
 
 
-async def test_recorded_source_failure_warns_with_evidence_pointers(
-    monkeypatch, caplog
-):
+async def test_recorded_source_failure_warns_with_evidence_pointers(monkeypatch):
+    """Assert the logger call itself: Alembic's fileConfig in the Postgres
+    session fixture disables pre-existing loggers, so caplog sees nothing."""
     monkeypatch.setattr("app.sync.run", _raising_run(_recorded_source_error(42)))
-    with caplog.at_level("WARNING", logger="app.sync"):
-        assert await main([]) == EXIT_SUCCESS
-    message = "\n".join(record.getMessage() for record in caplog.records)
+    warnings: list[str] = []
+
+    def record(template: str, *args: object) -> None:
+        warnings.append(template % args)
+
+    monkeypatch.setattr("app.sync.logger.warning", record)
+    assert await main([]) == EXIT_SUCCESS
+    message = "\n".join(warnings)
     assert "previous Snapshot preserved" in message
     assert "failure_code=SocrataError" in message
     assert "sync_run_id=42" in message
