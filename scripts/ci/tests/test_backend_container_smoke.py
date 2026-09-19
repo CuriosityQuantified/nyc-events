@@ -32,7 +32,14 @@ class BackendContainerSmokeTests(unittest.TestCase):
                     shift || true
                     case "$command" in
                       network|logs|rm) exit 0 ;;
-                      run) exit 0 ;;
+                      run)
+                        if [[ " $* " == *" --add-host data.cityofnewyork.us:127.0.0.1 "* ]]; then
+                          printf '%s\\n' "$*" > "$state/worker-command"
+                          [[ "${FAKE_WORKER_CRASHES:-}" != true ]] || exit 1
+                          printf 'WARNING:app.sync:Source check failed; previous Snapshot preserved: failure_code=SocrataError sync_run_id=1 detail=Request failed after 4 attempts\\n'
+                        fi
+                        exit 0
+                        ;;
                       exec)
                         shift || true
                         if [[ "${1:-}" == pg_isready ]]; then
@@ -67,10 +74,16 @@ class BackendContainerSmokeTests(unittest.TestCase):
                     #!/usr/bin/env bash
                     set -euo pipefail
                     output=""
+                    url=""
                     while (( $# )); do
-                      if [[ "$1" == --output ]]; then output=$2; shift 2; else shift; fi
+                      if [[ "$1" == --output ]]; then output=$2; shift 2
+                      elif [[ "$1" == http* ]]; then url=$1; shift
+                      else shift; fi
                     done
                     value='{"status":"healthy","database":"connected","redis":"connected"}'
+                    if [[ "$url" == */ingestion-health ]]; then
+                      value='{"status":"failed","last_attempted_sync":"2026-09-19T23:12:46+00:00","last_finished_sync":"2026-09-19T23:12:54+00:00","row_count":0,"failure_code":"SocrataError","deployment_revision":null}'
+                    fi
                     if [[ -n "$output" ]]; then
                       printf '%s\\n' "$value" > "$output"
                     else
@@ -103,6 +116,32 @@ class BackendContainerSmokeTests(unittest.TestCase):
             self.assertTrue((state / "build").exists())
             self.assertGreaterEqual(int((state / "pg-count").read_text()), 5)
             self.assertIn("readiness reset", (evidence / "readiness.log").read_text())
+            worker_command = (state / "worker-command").read_text()
+            self.assertIn("sh -c .venv/bin/python -m app.sync", worker_command)
+            self.assertIn("--add-host data.cityofnewyork.us:127.0.0.1", worker_command)
+            self.assertEqual((evidence / "worker-exit-code.txt").read_text(), "0\n")
+            self.assertIn("failure_code=SocrataError", (evidence / "worker.log").read_text())
+            self.assertIn(
+                '"failure_code":"SocrataError"',
+                (evidence / "ingestion-health.json").read_text(),
+            )
+            self.assertIn("scheduled worker container source-outage smoke passed", result.stdout)
+
+            (state / "pg-count").write_text("0\n", encoding="utf-8")
+            crashed_evidence = root / "crashed-evidence"
+            crashed = subprocess.run(
+                ["bash", str(SMOKE)],
+                check=False,
+                cwd=ROOT,
+                env=env | {"EVIDENCE_DIR": str(crashed_evidence), "FAKE_WORKER_CRASHES": "true"},
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            self.assertEqual(crashed.returncode, 1)
+            self.assertIn("scheduled worker exited 1 during a simulated source outage", crashed.stderr)
+            self.assertEqual((crashed_evidence / "worker-exit-code.txt").read_text(), "1\n")
+            self.assertNotIn("source-outage smoke passed", crashed.stdout)
 
             (state / "build").unlink()
             failed_evidence = root / "failed-evidence"

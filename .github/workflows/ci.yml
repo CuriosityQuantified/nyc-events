@@ -169,7 +169,7 @@ jobs:
         working-directory: backend
         run: uv run pytest -q tests/test_notifications.py
 
-      - name: Production container migration and health smoke
+      - name: Production container migration, health, and scheduled-worker outage smoke
         if: steps.probe.outputs.present == 'true'
         run: ./scripts/ci/backend_container_smoke.sh
 
@@ -181,7 +181,7 @@ jobs:
           {
             echo '## Backend gate'
             echo "- Status: $GATE_STATUS"
-            echo '- Checks: lock, format, lint, types, one migration head, upgrade/idempotency, tests, coverage, Postgres/Redis, production container'
+            echo '- Checks: lock, format, lint, types, one migration head, upgrade/idempotency, tests, coverage, Postgres/Redis, production API container, scheduled-worker source-outage container'
             echo '- Evidence: backend/coverage.xml and artifacts/backend-container/'
           } >> "$GITHUB_STEP_SUMMARY"
 
