@@ -42,8 +42,10 @@ two automatic source checks carrying the expected deployment revision. It does
 not invoke the worker to manufacture success. The backend release still forces
 a full sync after migrations so parser changes take effect immediately.
 
-If the monitor fails, inspect `/ingestion-health`, the worker's applied deployment
-manifest, and Railway execution logs. Confirm the schedule is `*/5 * * * *`,
+If the monitor fails, read its step summary first: it records
+`/ingestion-health` and `/freshness` and states whether the failure code points
+at NYC Open Data. Then inspect the worker's applied deployment manifest and
+Railway execution logs. Confirm the schedule is `*/5 * * * *`,
 the start command is `.venv/bin/python -m app.sync`, and restart policy is `NEVER`.
 The process must exit after each run. A 240-second deadline and 300-second Redis
 lock lease bound runs; keep the lease longer than the deadline when overriding.
@@ -55,6 +57,37 @@ until it expires. A deferred check does not count as a successful freshness chec
 To force a one-off refresh in the deployed backend container, use
 `.venv/bin/python -m app.sync --force`. It uses the same distributed lock.
 Never delete or truncate current events to recover a failed sync.
+
+## Worker exit status
+
+Railway reports any nonzero exit of a cron execution as a crash. The worker
+therefore separates handled outcomes from crashes:
+
+| Outcome | Sync Run | Scheduled exit | `--force` exit |
+|---|---|---|---|
+| Snapshot refreshed or source unchanged | `succeeded` / `unchanged` | 0 | 0 |
+| NYC Open Data unreachable, 5xx, invalid metadata or rows | `failed` with `failure_code` | 0 | 1 |
+| `Retry-After` over 60 seconds persisted a cooldown | `failed` with `SocrataCooldown` | 0 | 1 |
+| Cooldown still active, source not contacted | `deferred` | 0 | 0 |
+| Another worker holds the Redis lock | none | 0 | 1 |
+| Error before a Sync Run exists, Postgres or Redis unavailable, deadline hit | none or `failed` | nonzero with traceback | nonzero with traceback |
+
+A recorded source failure logs one warning,
+`Source check failed; previous Snapshot preserved: failure_code=... sync_run_id=...`,
+and is visible at `/ingestion-health`. After 15 minutes without a successful
+check, `/ingestion-health/ready` returns 503 and the **Monitor data freshness**
+workflow fails; its step summary reads the failure code and says whether the
+cause is upstream. The deployment gate does not rely on the exit status of its
+forced sync: it fails unless `/ingestion-health` reports `succeeded`.
+
+On 2026-09-19 every NYC Open Data endpoint served a "Site Currently
+Unavailable" HTML 503 for more than two hours. Each scheduled check retried
+three times with bounded backoff (about eight seconds), recorded a `failed`
+Sync Run with `failure_code=SocrataError`, and exited nonzero, which Railway
+displayed as a crashed sync-worker deployment. The API and the previous
+Snapshot were never affected. The worker now exits 0 in that case, and CI runs
+the exact Railway start command inside the production image against an
+unreachable dataset host to prove the recorded-failure path and the exit status.
 
 Configuration defaults: `SNAPSHOT_STALE_AFTER_SECONDS=900`,
 `SYNC_FULL_REFRESH_SECONDS=86400`, `SYNC_RUN_TIMEOUT_SECONDS=240`,

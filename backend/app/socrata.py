@@ -78,6 +78,9 @@ class CredentialFilter(logging.Filter):
 class SocrataError(Exception):
     """Raised when the Socrata API returns an unrecoverable error."""
 
+    #: The failed Sync Run that durably recorded this error, when one exists.
+    sync_run_id: int | None = None
+
 
 class SocrataCooldown(SocrataError):
     """Persist a long Retry-After across scheduled executions."""
@@ -795,6 +798,8 @@ async def sync_events(
             if isinstance(error, SocrataCooldown):
                 failed_run.retry_not_before = error.not_before
             await session.commit()
+            if isinstance(error, SocrataError):
+                error.sync_run_id = run_id
         raise
     finally:
         if owns_client:

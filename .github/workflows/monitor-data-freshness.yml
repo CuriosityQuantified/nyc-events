@@ -11,9 +11,58 @@ permissions:
 jobs:
   freshness:
     runs-on: ubuntu-latest
-    timeout-minutes: 2
+    timeout-minutes: 3
+    env:
+      BACKEND_PUBLIC_ORIGIN: https://backend-production-0da0a.up.railway.app
     steps:
+      - name: Record secret-free ingestion evidence
+        shell: bash
+        run: |
+          set -euo pipefail
+          for path in ingestion-health freshness; do
+            curl --fail --silent --show-error --max-time 30 --retry 2 \
+              "$BACKEND_PUBLIC_ORIGIN/$path" --output "$path.json"
+          done
+          python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+
+          ingestion = json.load(open("ingestion-health.json"))
+          freshness = json.load(open("freshness.json"))
+          status = ingestion.get("status")
+          failure_code = ingestion.get("failure_code")
+          if status in {"succeeded", "unchanged"}:
+              reading = "The latest scheduled check completed."
+          elif status == "deferred":
+              reading = "NYC Open Data asked for a cooldown; checks resume when it expires."
+          elif failure_code == "SocrataError":
+              reading = (
+                  "NYC Open Data was unreachable or returned invalid data on the "
+                  "latest check. The worker preserved the previous Snapshot and "
+                  "retries every five minutes; no deployment is needed."
+              )
+          elif status == "failed":
+              reading = (
+                  f"The worker failed with {failure_code}; inspect the Railway "
+                  "sync-worker execution logs and Postgres/Redis health."
+              )
+          else:
+              reading = f"Unexpected ingestion status {status!r}."
+          print("## Data freshness")
+          print(f"- Latest check status: `{status}` (failure code: `{failure_code}`)")
+          print(f"- Last attempted check: {ingestion.get('last_attempted_sync')}")
+          print(f"- Worker revision: `{ingestion.get('deployment_revision')}`")
+          print(
+              "- Last successful check: "
+              f"{freshness['last_successful_check']['value']}"
+          )
+          print(f"- Last full sync: {freshness['last_successful_sync']['value']}")
+          print(f"- NYC rowsUpdatedAt: {freshness['source_updated_at']['value']}")
+          print(f"- Snapshot rows: {freshness['snapshot_row_count']['value']}")
+          print(f"- Stale: {freshness['is_stale']['value']}")
+          print(f"- Reading: {reading}")
+          PY
+
       - name: Verify recent successful source checks
         run: |
           curl --fail --silent --show-error --max-time 30 --retry 2 \
-            https://backend-production-0da0a.up.railway.app/ingestion-health/ready
+            "$BACKEND_PUBLIC_ORIGIN/ingestion-health/ready"

@@ -8,6 +8,7 @@ NETWORK="nyc-events-smoke-$SUFFIX"
 POSTGRES="nyc-events-postgres-$SUFFIX"
 REDIS="nyc-events-redis-$SUFFIX"
 API="nyc-events-api-$SUFFIX"
+WORKER="nyc-events-worker-$SUFFIX"
 IMAGE="nyc-events-backend:$SUFFIX"
 mkdir -p "$EVIDENCE"
 
@@ -15,7 +16,7 @@ cleanup() {
   docker logs "$POSTGRES" >"$EVIDENCE/postgres.log" 2>&1 || true
   docker logs "$REDIS" >"$EVIDENCE/redis.log" 2>&1 || true
   docker logs "$API" >"$EVIDENCE/api.log" 2>&1 || true
-  docker rm -f "$API" "$POSTGRES" "$REDIS" >/dev/null 2>&1 || true
+  docker rm -f "$API" "$WORKER" "$POSTGRES" "$REDIS" >/dev/null 2>&1 || true
   docker network rm "$NETWORK" >/dev/null 2>&1 || true
 }
 trap cleanup EXIT
@@ -92,3 +93,42 @@ for _ in $(seq 1 60); do
 done
 python3 -c 'import json,sys; value=json.load(open(sys.argv[1])); expected={"status":"healthy","database":"connected","redis":"connected"}; assert value == expected, value' "$EVIDENCE/health.json"
 printf '%s\n' 'backend production container migration and health smoke passed'
+
+# Scheduled worker: the exact Railway start command must run inside the same
+# image, take the Redis lock, record a failed Sync Run when NYC Open Data is
+# unreachable, preserve the (empty) Snapshot, and exit 0 instead of crashing.
+# Tests never call the live API (ADR 0005): the dataset host resolves to the
+# container's own loopback address, where nothing listens on 443.
+WORKER_START_COMMAND=$(python3 -c 'import sys, tomllib; print(tomllib.load(open(sys.argv[1], "rb"))["deploy"]["startCommand"])' "$ROOT/backend/railway-sync.toml")
+set +e
+docker run --name "$WORKER" --network "$NETWORK" \
+  --add-host data.cityofnewyork.us:127.0.0.1 \
+  -e DATABASE_URL="$DATABASE_URL" -e REDIS_URL="$REDIS_URL" \
+  "$IMAGE" sh -c "$WORKER_START_COMMAND" >"$EVIDENCE/worker.log" 2>&1
+worker_exit=$?
+set -e
+printf '%s\n' "$worker_exit" >"$EVIDENCE/worker-exit-code.txt"
+docker rm -f "$WORKER" >/dev/null 2>&1 || true
+if [[ "$worker_exit" -ne 0 ]]; then
+  printf 'scheduled worker exited %s during a simulated source outage; see %s\n' \
+    "$worker_exit" "$EVIDENCE/worker.log" >&2
+  exit 1
+fi
+grep -q 'previous Snapshot preserved: failure_code=SocrataError' "$EVIDENCE/worker.log" || {
+  printf 'scheduled worker did not report the recorded source failure; see %s\n' \
+    "$EVIDENCE/worker.log" >&2
+  exit 1
+}
+curl --fail --silent --show-error http://127.0.0.1:18000/ingestion-health \
+  >"$EVIDENCE/ingestion-health.json"
+python3 - "$EVIDENCE/ingestion-health.json" <<'PY'
+import json
+import sys
+
+value = json.load(open(sys.argv[1]))
+assert value["status"] == "failed", value
+assert value["failure_code"] == "SocrataError", value
+assert value["row_count"] == 0, value
+assert value["last_finished_sync"], value
+PY
+printf '%s\n' 'scheduled worker container source-outage smoke passed'
